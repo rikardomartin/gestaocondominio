@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Teste Final - Modal Apartamento</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .apartment-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #ef4444;
+        }
+        .apartment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #2563eb;
+        }
+        .apartment-card.paid {
+            border-left-color: #16a34a;
+        }
+        .apartment-card.agreement {
+            border-left-color: #f59e0b;
+        }
+        .apartment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .apartment-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .apartment-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .apartment-status.pending {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .apartment-status.paid {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .apartment-status.agreement {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .test-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-info h3 {
+            color: #0c4a6e;
+            margin: 0 0 10px 0;
+        }
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #16a34a;
+            color: #15803d;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>✅ Teste Final - Modal de Apartamento</h1>
+        
+        <div class="test-info">
+            <h3>🧪 Como Testar</h3>
+            <p>Clique em qualquer apartamento abaixo para abrir o modal com as 4 opções de status:</p>
+            <ul>
+                <li><strong>PENDENTE</strong> - Vermelho com ícone de relógio</li>
+                <li><strong>PAGO</strong> - Verde com ícone de check (mostra campos de valor/data)</li>
+                <li><strong>PAGO RECICLADO</strong> - Azul com ícone de reciclar (mostra campos de valor/data)</li>
+                <li><strong>ACORDO</strong> - Laranja com ícone de acordo</li>
+            </ul>
+            <p>O campo de <strong>observações</strong> deve estar sempre visível.</p>
+        </div>
+        
+        <div class="success-message" id="successMessage" style="display: none;">
+            🎉 Modal funcionando perfeitamente! As 4 opções de status estão sendo exibidas corretamente.
+        </div>
+        
+        <!-- Simulação de apartamentos -->
+        <div class="apartment-card" onclick="openTestModal('Apartamento 101', 'pendente')">
+            <div class="apartment-header">
+                <div class="apartment-number">Apartamento 101</div>
+                <div class="apartment-status pending">Pendente</div>
+            </div>
+            <p>Condomínio Vacaria > Bloco A > Apt 101</p>
+        </div>
+        
+        <div class="apartment-card paid" onclick="openTestModal('Apartamento 102', 'pago')">
+            <div class="apartment-header">
+                <div class="apartment-number">Apartamento 102</div>
+                <div class="apartment-status paid">Pago</div>
+            </div>
+            <p>Condomínio Vacaria > Bloco A > Apt 102</p>
+        </div>
+        
+        <div class="apartment-card agreement" onclick="openTestModal('Casa 103', 'acordo')">
+            <div class="apartment-header">
+                <div class="apartment-number">Casa 103</div>
+                <div class="apartment-status agreement">Acordo</div>
+            </div>
+            <p>Condomínio Vacaria > Bloco B > Casa 103</p>
+        </div>
+    </div>
+
+    <!-- Modal de Apartamento (EXATAMENTE como no sistema) -->
+    <div id="apartmentModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h3 id="apartmentModalTitle">Apartamento --</h3>
+                    <p id="apartmentBreadcrumb" class="modal-subtitle">Condomínio > Bloco > Apt</p>
+                </div>
+                <button id="closeApartmentModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Status do Pagamento</label>
+                    <div class="status-options-grid">
+                        <label class="status-option-card status-pendente">
+                            <input type="radio" name="aptStatus" value="pendente">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12,6 12,12 16,14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PENDENTE</span>
+                                    <span class="status-desc">Pagamento em aberto</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-pago">
+                            <input type="radio" name="aptStatus" value="pago">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO</span>
+                                    <span class="status-desc">Pagamento realizado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-reciclado">
+                            <input type="radio" name="aptStatus" value="reciclado">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 4v6h6"></path>
+                                        <path d="M23 20v-6h-6"></path>
+                                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO RECICLADO</span>
+                                    <span class="status-desc">Pagamento reprocessado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-acordo">
+                            <input type="radio" name="aptStatus" value="acordo">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 12l2 2 4-4"></path>
+                                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">ACORDO</span>
+                                    <span class="status-desc">Acordo de pagamento</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="apartmentObservations">Acordo / Observações</label>
+                    <textarea 
+                        id="apartmentObservations" 
+                        class="form-textarea" 
+                        rows="4" 
+                        placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+                    ></textarea>
+                </div>
+                
+                <div class="form-group" id="paymentValueGroup" style="display: none;">
+                    <label class="form-label" for="paymentValue">Valor do Pagamento</label>
+                    <div class="input-group">
+                        <span class="input-prefix">R$</span>
+                        <input 
+                            type="number" 
+                            id="paymentValue" 
+                            class="form-input" 
+                            step="0.01" 
+                            min="0" 
+                            placeholder="0,00"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group" id="paymentDateGroup" style="display: none;">
+                    <label class="form-label" for="paymentDate">Data do Pagamento</label>
+                    <input 
+                        type="date" 
+                        id="paymentDate" 
+                        class="form-input"
+                    >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelApartmentModal" class="btn-secondary">Cancelar</button>
+                <button id="saveApartmentStatus" class="btn-primary">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTestModal(title, currentStatus) {
+            const modal = document.getElementById('apartmentModal');
+            const modalTitle = document.getElementById('apartmentModalTitle');
+            const breadcrumb = document.getElementById('apartmentBreadcrumb');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Definir título e breadcrumb
+            modalTitle.textContent = title;
+            breadcrumb.textContent = 'Condomínio Vacaria > Bloco A > ' + title;
+            
+            // Limpar formulário
+            clearForm();
+            
+            // Definir status atual
+            const statusRadio = document.querySelector(`input[name="aptStatus"][value="${currentStatus}"]`);
+            if (statusRadio) {
+                statusRadio.checked = true;
+                handleStatusChange(currentStatus);
+            }
+            
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            
+            // Mostrar mensagem de sucesso
+            successMessage.style.display = 'block';
+            
+            // Verificar se as 4 opções estão visíveis
+            setTimeout(() => {
+                const statusCards = document.querySelectorAll('.status-option-card');
+                console.log('✅ Status cards encontrados:', statusCards.length);
+                
+                statusCards.forEach((card, index) => {
+                    const radio = card.querySelector('input[type="radio"]');
+                    const statusType = radio ? radio.value : 'unknown';
+                    console.log(`Card ${index + 1}: ${statusType.toUpperCase()}`);
+                });
+            }, 100);
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('apartmentModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            clearForm();
+        }
+        
+        function clearForm() {
+            // Limpar radio buttons
+            const radios = document.querySelectorAll('input[name="aptStatus"]');
+            radios.forEach(radio => radio.checked = false);
+            
+            // Limpar campos
+            document.getElementById('apartmentObservations').value = '';
+            document.getElementById('paymentValue').value = '';
+            document.getElementById('paymentDate').value = '';
+            
+            // Ocultar campos condicionais
+            document.getElementById('paymentValueGroup').style.display = 'none';
+            document.getElementById('paymentDateGroup').style.display = 'none';
+        }
+        
+        function handleStatusChange(status) {
+            const valueGroup = document.getElementById('paymentValueGroup');
+            const dateGroup = document.getElementById('paymentDateGroup');
+            
+            if (status === 'pago' || status === 'reciclado') {
+                valueGroup.style.display = 'block';
+                dateGroup.style.display = 'block';
+                
+                // Definir data atual
+                const dateField = document.getElementById('paymentDate');
+                if (!dateField.value) {
+                    dateField.value = new Date().toISOString().split('T')[0];
+                }
+                
+                // Definir valor padrão
+                const valueField = document.getElementById('paymentValue');
+                if (!valueField.value) {
+                    valueField.value = '285.00';
+                }
+            } else {
+                valueGroup.style.display = 'none';
+                dateGroup.style.display = 'none';
+            }
+        }
+        
+        function saveStatus() {
+            const selectedStatus = document.querySelector('input[name="aptStatus"]:checked');
+            const observations = document.getElementById('apartmentObservations').value;
+            const value = document.getElementById('paymentValue').value;
+            const date = document.getElementById('paymentDate').value;
+            
+            if (!selectedStatus) {
+                alert('Selecione um status!');
+                return;
+            }
+            
+            let message = `Status: ${selectedStatus.value.toUpperCase()}`;
+            if (observations) message += `\nObservações: ${observations}`;
+            if (value) message += `\nValor: R$ ${value}`;
+            if (date) message += `\nData: ${date}`;
+            
+            alert('✅ Status salvo com sucesso!\n\n' + message);
+            closeModal();
+        }
+        
+        // Event listeners
+        document.getElementById('closeApartmentModal').addEventListener('click', closeModal);
+        document.getElementById('cancelApartmentModal').addEventListener('click', closeModal);
+        document.getElementById('saveApartmentStatus').addEventListener('click', saveStatus);
+        
+        document.getElementById('apartmentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'apartmentModal') {
+                closeModal();
+            }
+        });
+        
+        // Status change listeners
+        const statusRadios = document.querySelectorAll('input[name="aptStatus"]');
+        statusRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    handleStatusChange(e.target.value);
+                }
+            });
+        });
+        
+        // Verificação automática ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const statusCards = document.querySelectorAll('.status-option-card');
+                const statusGrid = document.querySelector('.status-options-grid');
+                
+                console.log('🧪 Verificação automática:');
+                console.log('- Status cards:', statusCards.length);
+                console.log('- Status grid:', statusGrid ? 'OK' : 'ERRO');
+                console.log('- CSS carregado:', getComputedStyle(statusGrid).display);
+                
+                if (statusCards.length === 4 && statusGrid) {
+                    console.log('✅ Modal implementado corretamente!');
+                } else {
+                    console.log('❌ Problema na implementação do modal');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

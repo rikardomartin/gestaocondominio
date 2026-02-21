@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forçar Atualização v79</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .version {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            background: #f8fafc;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        .step h3 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .step p {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .step code {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+        
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            display: block;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            display: block;
+        }
+        
+        .log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .log.show {
+            display: block;
+        }
+        
+        .log-line {
+            margin-bottom: 5px;
+        }
+        
+        .log-line.success {
+            color: #86efac;
+        }
+        
+        .log-line.error {
+            color: #fca5a5;
+        }
+        
+        .log-line.info {
+            color: #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Forçar Atualização</h1>
+        <p class="version">Sistema de Gestão Condominial v79</p>
+        
+        <div class="step">
+            <h3>📋 O que este script faz:</h3>
+            <p>1. Remove todos os Service Workers antigos</p>
+            <p>2. Limpa todo o cache do navegador</p>
+            <p>3. Limpa localStorage e sessionStorage</p>
+            <p>4. Força recarregamento completo</p>
+        </div>
+        
+        <div class="step">
+            <h3>⚠️ Importante:</h3>
+            <p>Você precisará fazer login novamente após a limpeza.</p>
+            <p>Todos os dados estão salvos no Firebase e não serão perdidos.</p>
+        </div>
+        
+        <button onclick="forceUpdate()">🚀 Executar Atualização Forçada</button>
+        
+        <div id="status" class="status"></div>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const logElement = document.getElementById('log');
+        const statusElement = document.getElementById('status');
+        
+        function addLog(message, type = 'info') {
+            logElement.classList.add('show');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.appendChild(line);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function showStatus(message, type) {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+        
+        async function forceUpdate() {
+            try {
+                addLog('🔄 Iniciando atualização forçada...', 'info');
+                
+                // 1. Desregistrar todos os Service Workers
+                addLog('📝 Desregistrando Service Workers...', 'info');
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    addLog(`Encontrados ${registrations.length} Service Workers`, 'info');
+                    
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        addLog('✅ Service Worker desregistrado', 'success');
+                    }
+                } else {
+                    addLog('⚠️ Service Worker não suportado', 'error');
+                }
+                
+                // 2. Limpar todos os caches
+                addLog('🗑️ Limpando caches...', 'info');
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    addLog(`Encontrados ${cacheNames.length} caches`, 'info');
+                    
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        addLog(`✅ Cache removido: ${cacheName}`, 'success');
+                    }
+                } else {
+                    addLog('⚠️ Cache API não suportada', 'error');
+                }
+                
+                // 3. Limpar localStorage
+                addLog('🗑️ Limpando localStorage...', 'info');
+                const localStorageKeys = Object.keys(localStorage);
+                addLog(`Encontradas ${localStorageKeys.length} chaves no localStorage`, 'info');
+                localStorage.clear();
+                addLog('✅ localStorage limpo', 'success');
+                
+                // 4. Limpar sessionStorage
+                addLog('🗑️ Limpando sessionStorage...', 'info');
+                sessionStorage.clear();
+                addLog('✅ sessionStorage limpo', 'success');
+                
+                // 5. Limpar cookies (opcional)
+                addLog('🍪 Limpando cookies...', 'info');
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf('=');
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+                }
+                addLog('✅ Cookies limpos', 'success');
+                
+                // 6. Sucesso
+                addLog('✅ Atualização forçada concluída!', 'success');
+                showStatus('✅ Atualização concluída! Redirecionando em 3 segundos...', 'success');
+                
+                // 7. Redirecionar para página principal
+                setTimeout(() => {
+                    addLog('🔄 Redirecionando para página principal...', 'info');
+                    window.location.href = '/index.html?v=' + Date.now();
+                }, 3000);
+                
+            } catch (error) {
+                addLog(`❌ Erro: ${error.message}`, 'error');
+                showStatus('❌ Erro ao executar atualização. Veja o log para detalhes.', 'error');
+                console.error('Erro na atualização forçada:', error);
+            }
+        }
+        
+        // Adicionar log inicial
+        addLog('✅ Script carregado e pronto', 'success');
+        addLog('👆 Clique no botão acima para iniciar', 'info');
+    </script>
+</body>
+</html>

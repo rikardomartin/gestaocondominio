@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mostrar Condomínios - Sistema</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; text-align: center; margin-bottom: 30px; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            font-weight: 500;
+            width: 100%;
+        }
+        button:hover { background: #1d4ed8; }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .condominio-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2563eb;
+        }
+        .condominio-card h3 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+        }
+        .condominio-card p {
+            margin: 5px 0;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Condomínios do Sistema</h1>
+        
+        <div class="info">
+            <strong>🎯 Objetivo:</strong> Mostrar os condomínios que já existem no sistema e corrigir a interface principal.
+        </div>
+
+        <button onclick="loadAndShowCondominios()">🔍 Carregar Condomínios</button>
+        
+        <div id="status"></div>
+        <div id="condominiosList"></div>
+        
+        <div class="success">
+            <strong>✅ Solução:</strong><br>
+            Os dados existem no Firestore, mas a interface principal não está carregando corretamente.<br>
+            Após ver os dados aqui, volte para a aplicação principal e recarregue a página (F5).
+        </div>
+        
+        <button onclick="goToMainApp()" style="background: #059669;">🚀 Ir para Aplicação Principal</button>
+    </div>
+
+    <script type="module">
+        import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { auth, db } from './firebase-config.js';
+
+        window.loadAndShowCondominios = async function() {
+            const status = document.getElementById('status');
+            const list = document.getElementById('condominiosList');
+            
+            try {
+                status.innerHTML = '<div class="info">🔐 Fazendo login...</div>';
+                
+                // Login
+                await signInWithEmailAndPassword(auth, 'admin@condominio.com', '123456');
+                
+                status.innerHTML = '<div class="info">📊 Carregando condomínios...</div>';
+                
+                // Buscar condomínios (sem orderBy para evitar erro de índice)
+                const q = query(
+                    collection(db, 'condominios'),
+                    where('active', '==', true)
+                );
+                
+                const querySnapshot = await getDocs(q);
+                const condominios = [];
+                
+                querySnapshot.forEach((doc) => {
+                    condominios.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                // Ordenar no cliente
+                condominios.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                status.innerHTML = `<div class="success">✅ ${condominios.length} condomínios encontrados!</div>`;
+                
+                // Mostrar condomínios
+                list.innerHTML = '';
+                condominios.forEach(cond => {
+                    const card = document.createElement('div');
+                    card.className = 'condominio-card';
+                    card.innerHTML = `
+                        <h3>${cond.nome}</h3>
+                        <p><strong>Endereço:</strong> ${cond.endereco}</p>
+                        <p><strong>Unidades:</strong> ${cond.totalUnidades} | <strong>Blocos:</strong> ${cond.totalBlocos} | <strong>Casas:</strong> ${cond.totalCasas}</p>
+                        <p><strong>ID:</strong> ${cond.id}</p>
+                    `;
+                    list.appendChild(card);
+                });
+                
+            } catch (error) {
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        };
+
+        window.goToMainApp = function() {
+            window.open('https://gestaodoscondominios.web.app', '_blank');
+        };
+    </script>
+</body>
+</html>

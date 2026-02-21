@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Status Acordo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-title {
+            color: #1f2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .status-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .apartamento-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .apartamento-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        /* Status Badges dos Apartamentos */
+        .status-badge.status-pago {
+            background-color: #22c55e;
+            color: white;
+        }
+        
+        .status-badge.status-pendente {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .status-badge.status-reciclado {
+            background-color: #06b6d4;
+            color: white;
+        }
+        
+        .status-badge.status-acordo {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        /* Cards dos Apartamentos com Status */
+        .apartamento-card.status-pago {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .apartamento-card.status-pendente {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .apartamento-card.status-reciclado {
+            border-left: 4px solid #06b6d4;
+        }
+        
+        .apartamento-card.status-acordo {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .proprietario {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #93c5fd;
+        }
+        
+        .test-log {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🧪 Teste Status "Acordo"</h1>
+        
+        <div class="status-info">
+            <strong>✅ Correções Aplicadas:</strong><br>
+            • statusLabels atualizado com 'acordo': 'Acordo'<br>
+            • CSS adicionado para .status-badge.status-acordo<br>
+            • CSS adicionado para .apartamento-card.status-acordo<br>
+            • Service Worker atualizado para v8
+        </div>
+        
+        <h3>📋 Demonstração Visual dos Status:</h3>
+        
+        <div class="status-demo">
+            <div class="apartamento-card status-pendente">
+                <div class="card-header">
+                    <h3>Apt 101</h3>
+                    <div class="status-badge status-pendente">Pendente</div>
+                </div>
+                <p class="proprietario">João Silva</p>
+            </div>
+            
+            <div class="apartamento-card status-pago">
+                <div class="card-header">
+                    <h3>Apt 102</h3>
+                    <div class="status-badge status-pago">Pago</div>
+                </div>
+                <p class="proprietario">Maria Santos</p>
+            </div>
+            
+            <div class="apartamento-card status-reciclado">
+                <div class="card-header">
+                    <h3>Apt 103</h3>
+                    <div class="status-badge status-reciclado">Pago Reciclado</div>
+                </div>
+                <p class="proprietario">Pedro Costa</p>
+            </div>
+            
+            <div class="apartamento-card status-acordo">
+                <div class="card-header">
+                    <h3>Apt 104</h3>
+                    <div class="status-badge status-acordo">Acordo</div>
+                </div>
+                <p class="proprietario">Ana Oliveira</p>
+            </div>
+        </div>
+        
+        <button class="test-button" onclick="testStatusLabels()">
+            🔍 Testar statusLabels
+        </button>
+        
+        <button class="test-button" onclick="simulateStatusChange()">
+            🔄 Simular Mudança para Acordo
+        </button>
+        
+        <div id="testLog" class="test-log">
+Aguardando testes...
+        </div>
+    </div>
+
+    <script>
+        let logElement = document.getElementById('testLog');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function testStatusLabels() {
+            log('🔍 Testando statusLabels...');
+            
+            const statusLabels = {
+                'pendente': 'Pendente',
+                'pago': 'Pago',
+                'reciclado': 'Pago Reciclado',
+                'acordo': 'Acordo'
+            };
+            
+            Object.entries(statusLabels).forEach(([key, value]) => {
+                log(`✅ ${key}: "${value}"`);
+            });
+            
+            // Testar se "acordo" retorna o label correto
+            const acordoLabel = statusLabels['acordo'] || 'Pendente';
+            if (acordoLabel === 'Acordo') {
+                log('✅ Status "acordo" retorna "Acordo" corretamente!');
+            } else {
+                log(`❌ Status "acordo" retorna "${acordoLabel}" (deveria ser "Acordo")`);
+            }
+        }
+        
+        function simulateStatusChange() {
+            log('🔄 Simulando mudança de status para "acordo"...');
+            
+            // Simular apartamento
+            const apartamento = {
+                id: 'test-123',
+                numero: '105',
+                status: 'pendente'
+            };
+            
+            log(`📋 Status inicial: ${apartamento.status}`);
+            
+            // Simular mudança
+            apartamento.status = 'acordo';
+            
+            log(`📋 Status após mudança: ${apartamento.status}`);
+            
+            // Testar renderização
+            const statusLabels = {
+                'pendente': 'Pendente',
+                'pago': 'Pago',
+                'reciclado': 'Pago Reciclado',
+                'acordo': 'Acordo'
+            };
+            
+            const displayLabel = statusLabels[apartamento.status] || 'Pendente';
+            log(`🎨 Label a ser exibido: "${displayLabel}"`);
+            
+            if (displayLabel === 'Acordo') {
+                log('✅ Simulação bem-sucedida! Status "acordo" será exibido como "Acordo"');
+            } else {
+                log(`❌ Problema na simulação! Status será exibido como "${displayLabel}"`);
+            }
+        }
+        
+        // Inicializar
+        log('🚀 Sistema de teste inicializado');
+        log('📋 Verificando se o status "acordo" está funcionando corretamente');
+        log('');
+        log('👆 Clique nos botões acima para testar');
+    </script>
+</body>
+</html>

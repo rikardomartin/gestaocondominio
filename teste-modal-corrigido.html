@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Modal Corrigido</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-title {
+            color: #1f2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .test-log {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🔧 Teste Modal Corrigido</h1>
+        
+        <div id="statusMessage" class="status-message status-info">
+            ✅ Sistema corrigido - Duplicatas removidas
+        </div>
+        
+        <button class="test-button" onclick="testJavaScriptSyntax()">
+            🔍 Testar Sintaxe JavaScript
+        </button>
+        
+        <button class="test-button" onclick="testModalFunctions()">
+            🎯 Testar Funções do Modal
+        </button>
+        
+        <button class="test-button" onclick="simulateApartmentClick()">
+            🏠 Simular Clique em Apartamento
+        </button>
+        
+        <button class="test-button" onclick="clearLog()">
+            🧹 Limpar Log
+        </button>
+        
+        <div id="testLog" class="test-log">
+Aguardando testes...
+        </div>
+    </div>
+
+    <script>
+        let logElement = document.getElementById('testLog');
+        let statusElement = document.getElementById('statusMessage');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            if (type === 'success') {
+                statusElement.className = 'status-message status-success';
+                statusElement.textContent = '✅ ' + message;
+            } else if (type === 'error') {
+                statusElement.className = 'status-message status-error';
+                statusElement.textContent = '❌ ' + message;
+            } else {
+                statusElement.className = 'status-message status-info';
+                statusElement.textContent = '🔍 ' + message;
+            }
+        }
+        
+        function clearLog() {
+            logElement.textContent = 'Log limpo...\n';
+            statusElement.className = 'status-message status-info';
+            statusElement.textContent = '🧹 Log limpo';
+        }
+        
+        function testJavaScriptSyntax() {
+            log('🔍 Testando sintaxe do JavaScript...');
+            
+            try {
+                // Tentar carregar o script app.js
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'app.js';
+                
+                script.onload = function() {
+                    log('✅ app.js carregado sem erros de sintaxe!', 'success');
+                };
+                
+                script.onerror = function(error) {
+                    log('❌ Erro ao carregar app.js: ' + error.message, 'error');
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                log('❌ Erro de sintaxe: ' + error.message, 'error');
+            }
+        }
+        
+        function testModalFunctions() {
+            log('🎯 Testando funções do modal...');
+            
+            // Verificar se as funções existem no escopo global
+            const functionsToTest = [
+                'openApartmentModal',
+                'closeApartmentModal',
+                'saveApartmentStatusNew',
+                'handleStatusChange',
+                'clearApartmentModalForm'
+            ];
+            
+            let allFunctionsExist = true;
+            
+            functionsToTest.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    log(`✅ Função ${funcName} encontrada`);
+                } else {
+                    log(`❌ Função ${funcName} NÃO encontrada`, 'error');
+                    allFunctionsExist = false;
+                }
+            });
+            
+            if (allFunctionsExist) {
+                log('✅ Todas as funções do modal estão disponíveis!', 'success');
+            } else {
+                log('❌ Algumas funções do modal estão faltando', 'error');
+            }
+        }
+        
+        function simulateApartmentClick() {
+            log('🏠 Simulando clique em apartamento...');
+            
+            // Criar apartamento de teste
+            const testApartment = {
+                id: 'test-123',
+                numero: '101',
+                tipo: 'apartamento',
+                status: 'pendente',
+                proprietario: 'Teste Silva',
+                observacao: 'Apartamento de teste'
+            };
+            
+            try {
+                if (typeof window.openApartmentModal === 'function') {
+                    log('🎯 Chamando openApartmentModal...');
+                    window.openApartmentModal(testApartment);
+                    log('✅ Modal chamado com sucesso!', 'success');
+                } else {
+                    log('❌ Função openApartmentModal não encontrada', 'error');
+                }
+            } catch (error) {
+                log('❌ Erro ao abrir modal: ' + error.message, 'error');
+            }
+        }
+        
+        // Inicializar teste
+        log('🚀 Sistema de teste inicializado');
+        log('📋 Correções aplicadas:');
+        log('   - Removidas funções duplicadas');
+        log('   - handleStatusChange: 1 instância');
+        log('   - saveApartmentStatusNew: 1 instância');
+        log('   - clearApartmentModalForm: 1 instância');
+        log('   - Cache do Service Worker atualizado para v7');
+        log('');
+        log('🔧 Clique nos botões acima para testar o sistema');
+    </script>
+</body>
+</html>

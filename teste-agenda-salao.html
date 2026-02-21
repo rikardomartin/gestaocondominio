@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Agenda do Salão</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-title {
+            color: #1f2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 20px auto;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Estilos do modal da agenda */
+        .agenda-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .agenda-modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .agenda-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .agenda-modal:not(.hidden) .agenda-modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .agenda-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 30px 30px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+        
+        .agenda-title-section h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .agenda-title-section h3::before {
+            content: '📅';
+            font-size: 28px;
+        }
+        
+        .agenda-subtitle {
+            margin: 4px 0 0 0;
+            color: #6b7280;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .agenda-modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .agenda-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .summary-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .summary-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .summary-icon.available {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        
+        .summary-icon.reserved {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .summary-icon.paid {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+        
+        .summary-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .summary-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .reservations-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .reservations-title::before {
+            content: '📋';
+            font-size: 20px;
+        }
+        
+        .reservations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .reservation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .reservation-item:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+        
+        .reservation-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+        
+        .reservation-date {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 80px;
+        }
+        
+        .reservation-day {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1;
+        }
+        
+        .reservation-month {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .reservation-details {
+            flex: 1;
+        }
+        
+        .reservation-apartment {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .reservation-resident {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .reservation-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .reservation-status.reserved {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .reservation-status.paid {
+            background: rgba(6, 182, 212, 0.1);
+            color: #0891b2;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+        
+        .reservation-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-left: 16px;
+        }
+        
+        .agenda-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">📅 Modal de Agenda do Salão</h1>
+        
+        <div class="status-info">
+            <strong>✅ Nova Funcionalidade Implementada:</strong><br>
+            • Modal de agenda com resumo mensal<br>
+            • Lista organizada de todas as reservas<br>
+            • Estatísticas visuais (disponível, reservado, pago)<br>
+            • Exportação para CSV<br>
+            • Clique nas reservas para editar
+        </div>
+        
+        <button class="demo-button" onclick="openDemoModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Ver Agenda do Mês (Demo)
+        </button>
+    </div>
+
+    <!-- Modal da Agenda -->
+    <div id="demoAgendaModal" class="agenda-modal hidden">
+        <div class="agenda-modal-content">
+            <div class="agenda-modal-header">
+                <div class="agenda-title-section">
+                    <h3>Agenda do Salão - Condomínio Exemplo</h3>
+                    <p class="agenda-subtitle">Janeiro 2025</p>
+                </div>
+                <button onclick="closeDemoModal()" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="agenda-modal-body">
+                <!-- Resumo do mês -->
+                <div class="agenda-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon available">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="summary-info">
+                            <span class="summary-number">26</span>
+                            <span class="summary-label">Dias Disponíveis</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon reserved">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="m7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div class="summary-info">
+                            <span class="summary-number">5</span>
+                            <span class="summary-label">Reservas</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon paid">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <div class="summary-info">
+                            <span class="summary-number">3</span>
+                            <span class="summary-label">Pagas</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de reservas -->
+                <div class="agenda-reservations">
+                    <h4 class="reservations-title">Reservas do Mês</h4>
+                    <div class="reservations-list">
+                        <div class="reservation-item">
+                            <div class="reservation-info">
+                                <div class="reservation-date">
+                                    <div class="reservation-day">05</div>
+                                    <div class="reservation-month">Jan</div>
+                                </div>
+                                <div class="reservation-details">
+                                    <div class="reservation-apartment">Apt 101</div>
+                                    <div class="reservation-resident">João Silva</div>
+                                </div>
+                            </div>
+                            <div class="reservation-status paid">💰 Pago</div>
+                            <div class="reservation-value">R$ 150,00</div>
+                        </div>
+                        
+                        <div class="reservation-item">
+                            <div class="reservation-info">
+                                <div class="reservation-date">
+                                    <div class="reservation-day">12</div>
+                                    <div class="reservation-month">Jan</div>
+                                </div>
+                                <div class="reservation-details">
+                                    <div class="reservation-apartment">Casa 3</div>
+                                    <div class="reservation-resident">Maria Santos</div>
+                                </div>
+                            </div>
+                            <div class="reservation-status reserved">📋 Reservado</div>
+                            <div class="reservation-value">R$ 150,00</div>
+                        </div>
+                        
+                        <div class="reservation-item">
+                            <div class="reservation-info">
+                                <div class="reservation-date">
+                                    <div class="reservation-day">18</div>
+                                    <div class="reservation-month">Jan</div>
+                                </div>
+                                <div class="reservation-details">
+                                    <div class="reservation-apartment">Apt 205</div>
+                                    <div class="reservation-resident">Pedro Costa</div>
+                                </div>
+                            </div>
+                            <div class="reservation-status paid">💰 Pago</div>
+                            <div class="reservation-value">R$ 150,00</div>
+                        </div>
+                        
+                        <div class="reservation-item">
+                            <div class="reservation-info">
+                                <div class="reservation-date">
+                                    <div class="reservation-day">25</div>
+                                    <div class="reservation-month">Jan</div>
+                                </div>
+                                <div class="reservation-details">
+                                    <div class="reservation-apartment">Apt 302</div>
+                                    <div class="reservation-resident">Ana Oliveira</div>
+                                </div>
+                            </div>
+                            <div class="reservation-status paid">💰 Pago</div>
+                            <div class="reservation-value">R$ 150,00</div>
+                        </div>
+                        
+                        <div class="reservation-item">
+                            <div class="reservation-info">
+                                <div class="reservation-date">
+                                    <div class="reservation-day">31</div>
+                                    <div class="reservation-month">Jan</div>
+                                </div>
+                                <div class="reservation-details">
+                                    <div class="reservation-apartment">Apt 104</div>
+                                    <div class="reservation-resident">Carlos Souza</div>
+                                </div>
+                            </div>
+                            <div class="reservation-status reserved">📋 Reservado</div>
+                            <div class="reservation-value">R$ 150,00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="agenda-modal-footer">
+                <button class="btn-secondary" onclick="exportDemo()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Exportar Agenda
+                </button>
+                <button class="btn-primary" onclick="closeDemoModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDemoModal() {
+            document.getElementById('demoAgendaModal').classList.remove('hidden');
+        }
+        
+        function closeDemoModal() {
+            document.getElementById('demoAgendaModal').classList.add('hidden');
+        }
+        
+        function exportDemo() {
+            alert('Funcionalidade de exportação ativada!\nNo sistema real, isso gerará um arquivo CSV com todas as reservas do mês.');
+        }
+        
+        // Adicionar clique nas reservas
+        document.querySelectorAll('.reservation-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const apartment = this.querySelector('.reservation-apartment').textContent;
+                const date = this.querySelector('.reservation-day').textContent;
+                alert(`Clicou na reserva:\n${apartment} - Dia ${date}\n\nNo sistema real, isso abriria o modal de edição da reserva.`);
+            });
+        });
+        
+        // Fechar modal clicando fora
+        document.getElementById('demoAgendaModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDemoModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Usuário de Teste - Sistema Condomínio</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .quick-options {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #0ea5e9;
+        }
+        .quick-btn {
+            background: #0ea5e9;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+        }
+        .quick-btn:hover { background: #0284c7; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Criar Usuário de Teste</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Objetivo:</strong><br>
+            Criar um usuário funcional para testar o sistema de login e resolver o problema de autenticação.
+        </div>
+
+        <div class="quick-options">
+            <h3>⚡ Opções Rápidas:</h3>
+            <button class="quick-btn" onclick="fillAdmin()">👨‍💼 Admin</button>
+            <button class="quick-btn" onclick="fillOperator()">👨‍💻 Operador</button>
+            <button class="quick-btn" onclick="fillViewer()">👁️ Viewer</button>
+            <button class="quick-btn" onclick="fillCustom()">🎯 Personalizado</button>
+        </div>
+
+        <form id="userForm">
+            <div class="form-group">
+                <label for="email">Email (deve ser válido):</label>
+                <input type="email" id="email" required placeholder="exemplo@gmail.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha (mínimo 6 caracteres):</label>
+                <input type="password" id="password" required placeholder="123456" minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="name">Nome do Usuário:</label>
+                <input type="text" id="name" required placeholder="Nome Completo">
+            </div>
+
+            <div class="form-group">
+                <label for="role">Perfil de Acesso:</label>
+                <select id="role" required>
+                    <option value="">Selecione o perfil</option>
+                    <option value="admin">Administrador (acesso total)</option>
+                    <option value="operator">Operador (pagamentos)</option>
+                    <option value="viewer">Visualizador (apenas leitura)</option>
+                </select>
+            </div>
+
+            <button type="submit" id="createBtn">🚀 Criar Usuário</button>
+        </form>
+
+        <div id="status"></div>
+
+        <div class="warning">
+            <strong>⚠️ Importante:</strong><br>
+            • Use um email real (Gmail, Outlook, etc.)<br>
+            • A senha deve ter pelo menos 6 caracteres<br>
+            • O perfil será criado automaticamente no Firestore<br>
+            • Após criar, teste o login na aplicação principal
+        </div>
+    </div>
+
+    <script type="module">
+        import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { auth, db } from './firebase-config.js';
+
+        // Opções rápidas
+        window.fillAdmin = () => {
+            document.getElementById('email').value = 'admin.sistema@gmail.com';
+            document.getElementById('password').value = '123456';
+            document.getElementById('name').value = 'Administrador Sistema';
+            document.getElementById('role').value = 'admin';
+        };
+
+        window.fillOperator = () => {
+            document.getElementById('email').value = 'operador.sistema@gmail.com';
+            document.getElementById('password').value = '123456';
+            document.getElementById('name').value = 'Operador Pagamentos';
+            document.getElementById('role').value = 'operator';
+        };
+
+        window.fillViewer = () => {
+            document.getElementById('email').value = 'viewer.sistema@gmail.com';
+            document.getElementById('password').value = '123456';
+            document.getElementById('name').value = 'Usuário Visualização';
+            document.getElementById('role').value = 'viewer';
+        };
+
+        window.fillCustom = () => {
+            document.getElementById('email').value = 'teste.condominio@gmail.com';
+            document.getElementById('password').value = '123456';
+            document.getElementById('name').value = 'Usuário Teste';
+            document.getElementById('role').value = 'admin';
+        };
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const role = document.getElementById('role').value;
+            
+            const btn = document.getElementById('createBtn');
+            const status = document.getElementById('status');
+            
+            // Validações
+            if (!email || !password || !name || !role) {
+                showStatus('Por favor, preencha todos os campos', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showStatus('A senha deve ter pelo menos 6 caracteres', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Criando usuário...';
+            
+            try {
+                // 1. Criar usuário no Firebase Auth
+                showStatus('1/4 Criando conta no Firebase Authentication...', 'info');
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // 2. Atualizar perfil do usuário
+                showStatus('2/4 Configurando perfil do usuário...', 'info');
+                await updateProfile(user, {
+                    displayName: name
+                });
+                
+                // 3. Criar documento no Firestore
+                showStatus('3/4 Criando perfil no banco de dados...', 'info');
+                await setDoc(doc(db, 'users', user.uid), {
+                    name: name,
+                    email: email,
+                    role: role,
+                    createdAt: new Date(),
+                    createdBy: 'manual-creation',
+                    active: true
+                });
+                
+                // 4. Testar login
+                showStatus('4/4 Testando login...', 'info');
+                await auth.signOut(); // Logout primeiro
+                const testLogin = await signInWithEmailAndPassword(auth, email, password);
+                await auth.signOut(); // Logout após teste
+                
+                showStatus(`✅ USUÁRIO CRIADO COM SUCESSO!<br><br>
+                    <strong>Email:</strong> ${email}<br>
+                    <strong>Senha:</strong> ${password}<br>
+                    <strong>Nome:</strong> ${name}<br>
+                    <strong>Perfil:</strong> ${role}<br>
+                    <strong>UID:</strong> ${user.uid}<br><br>
+                    🎉 <strong>Login testado e funcionando!</strong><br><br>
+                    <a href="https://gestaodoscondominios.web.app" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none; background: #dbeafe; padding: 10px 15px; border-radius: 6px; display: inline-block; margin-top: 10px;">
+                        🚀 Abrir Aplicação e Fazer Login
+                    </a>`, 'success');
+                
+                btn.textContent = '✅ Usuário Criado';
+                
+                // Limpar formulário
+                document.getElementById('userForm').reset();
+                
+            } catch (error) {
+                console.error('Erro ao criar usuário:', error);
+                
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email já está em uso. Tente fazer login ou use outro email.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Formato de email inválido. Use um email real como exemplo@gmail.com';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Senha muito fraca. Use pelo menos 6 caracteres.';
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMessage = 'Criação de usuários não está habilitada no Firebase.';
+                }
+                
+                showStatus(`❌ Erro ao criar usuário:<br><br>
+                    <strong>Código:</strong> ${error.code}<br>
+                    <strong>Mensagem:</strong> ${errorMessage}<br><br>
+                    💡 <strong>Sugestões:</strong><br>
+                    • Verifique se o email é válido (Gmail, Outlook, etc.)<br>
+                    • Use uma senha com pelo menos 6 caracteres<br>
+                    • Tente um email diferente se já estiver em uso`, 'error');
+                
+                btn.disabled = false;
+                btn.textContent = '🔄 Tentar Novamente';
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

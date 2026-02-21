@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Ícones PWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏢 Gerador de Ícones PWA</h1>
+    <p>Clique nos botões para baixar os ícones do sistema de gestão de condomínios.</p>
+    
+    <div>
+        <canvas id="canvas192" width="192" height="192"></canvas>
+        <canvas id="canvas512" width="512" height="512"></canvas>
+    </div>
+    
+    <div>
+        <button onclick="downloadIcon(192)">Baixar Ícone 192x192</button>
+        <button onclick="downloadIcon(512)">Baixar Ícone 512x512</button>
+        <button onclick="downloadBoth()">Baixar Ambos</button>
+    </div>
+    
+    <script>
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            
+            // Limpar canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Fundo azul
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Calcular proporções
+            const scale = size / 192;
+            
+            // Prédio principal
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(48 * scale, 48 * scale, 96 * scale, 120 * scale);
+            
+            // Janelas (grid 3x4)
+            ctx.fillStyle = '#2563eb';
+            const windowSize = 12 * scale;
+            const windowSpacing = 24 * scale;
+            const startX = 60 * scale;
+            const startY = 60 * scale;
+            
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 3; col++) {
+                    const x = startX + (col * windowSpacing);
+                    const y = startY + (row * windowSpacing);
+                    ctx.fillRect(x, y, windowSize, windowSize);
+                }
+            }
+            
+            // Porta
+            ctx.fillRect(84 * scale, 144 * scale, 24 * scale, 24 * scale);
+            
+            // Teto
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(40 * scale, 48 * scale);
+            ctx.lineTo(96 * scale, 24 * scale);
+            ctx.lineTo(152 * scale, 48 * scale);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Adicionar texto pequeno (apenas no ícone 512)
+            if (size === 512) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `${16 * scale}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText('GESTÃO', size / 2, size - 30 * scale);
+                ctx.fillText('CONDOMINIAL', size / 2, size - 10 * scale);
+            }
+        }
+        
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function downloadBoth() {
+            downloadIcon(192);
+            setTimeout(() => downloadIcon(512), 500);
+        }
+        
+        // Desenhar ícones ao carregar a página
+        window.onload = function() {
+            drawIcon(document.getElementById('canvas192'), 192);
+            drawIcon(document.getElementById('canvas512'), 512);
+        };
+    </script>
+</body>
+</html>

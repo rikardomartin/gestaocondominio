@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Condomínios - Sistema</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; text-align: center; margin-bottom: 30px; }
+        .test-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            font-weight: 500;
+            width: 100%;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .console-log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .data-display {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Condomínios</h1>
+        
+        <div class="info">
+            <strong>🎯 Objetivo:</strong> Verificar por que os condomínios não aparecem na interface após criar a estrutura.
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Passo 1: Login</h3>
+            <button onclick="doLogin()">🚀 Fazer Login</button>
+            <div id="loginStatus"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Passo 2: Verificar Dados no Firestore</h3>
+            <button onclick="checkFirestoreData()">🔍 Verificar Dados Existentes</button>
+            <div id="firestoreStatus"></div>
+            <div class="data-display" id="firestoreData">[Aguardando verificação...]</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🏗️ Passo 3: Criar Estrutura (se necessário)</h3>
+            <button onclick="createStructure()">➕ Criar Estrutura</button>
+            <div id="createStatus"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👂 Passo 4: Testar Listener em Tempo Real</h3>
+            <button onclick="testRealtimeListener()">📡 Testar Listener</button>
+            <div id="listenerStatus"></div>
+            <div class="data-display" id="listenerData">[Aguardando listener...]</div>
+        </div>
+
+        <div class="console-log" id="consoleLog">
+            [Debug iniciado...]
+        </div>
+    </div>
+
+    <script type="module">
+        import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            collection, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy,
+            onSnapshot
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { auth, db } from './firebase-config.js';
+        import { initializeCondominiosStructure } from './firebase-database.js';
+
+        const consoleLog = document.getElementById('consoleLog');
+        let realtimeUnsubscribe = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#e2e8f0';
+            consoleLog.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        window.doLogin = async function() {
+            const status = document.getElementById('loginStatus');
+            try {
+                log('Fazendo login...', 'info');
+                await signInWithEmailAndPassword(auth, 'admin@condominio.com', '123456');
+                log('✅ Login bem-sucedido', 'success');
+                status.innerHTML = '<div class="success">✅ Login realizado com sucesso</div>';
+            } catch (error) {
+                log(`❌ Erro no login: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        };
+
+        window.checkFirestoreData = async function() {
+            const status = document.getElementById('firestoreStatus');
+            const dataDiv = document.getElementById('firestoreData');
+            
+            try {
+                log('Verificando dados no Firestore...', 'info');
+                
+                // Buscar condomínios
+                const condominiosRef = collection(db, 'condominios');
+                const condominiosSnap = await getDocs(condominiosRef);
+                
+                log(`Encontrados ${condominiosSnap.size} condomínios`, 'info');
+                
+                if (condominiosSnap.size === 0) {
+                    status.innerHTML = '<div class="error">❌ Nenhum condomínio encontrado no Firestore</div>';
+                    dataDiv.innerHTML = 'Nenhum dado encontrado. Precisa criar a estrutura.';
+                    return;
+                }
+                
+                const condominios = [];
+                condominiosSnap.forEach(doc => {
+                    condominios.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                status.innerHTML = `<div class="success">✅ ${condominios.length} condomínios encontrados</div>`;
+                dataDiv.innerHTML = JSON.stringify(condominios, null, 2);
+                
+                log(`✅ Dados carregados: ${condominios.length} condomínios`, 'success');
+                
+            } catch (error) {
+                log(`❌ Erro ao verificar dados: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        };
+
+        window.createStructure = async function() {
+            const status = document.getElementById('createStatus');
+            
+            try {
+                log('Criando estrutura dos condomínios...', 'info');
+                status.innerHTML = '<div class="info">🏗️ Criando estrutura...</div>';
+                
+                await initializeCondominiosStructure();
+                
+                log('✅ Estrutura criada com sucesso', 'success');
+                status.innerHTML = '<div class="success">✅ Estrutura criada! Aguarde 2 segundos e verifique os dados novamente.</div>';
+                
+                // Aguardar e verificar automaticamente
+                setTimeout(() => {
+                    checkFirestoreData();
+                }, 2000);
+                
+            } catch (error) {
+                log(`❌ Erro ao criar estrutura: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        };
+
+        window.testRealtimeListener = async function() {
+            const status = document.getElementById('listenerStatus');
+            const dataDiv = document.getElementById('listenerData');
+            
+            try {
+                log('Configurando listener em tempo real...', 'info');
+                
+                // Limpar listener anterior se existir
+                if (realtimeUnsubscribe) {
+                    realtimeUnsubscribe();
+                }
+                
+                const q = query(
+                    collection(db, 'condominios'),
+                    where('active', '==', true),
+                    orderBy('nome')
+                );
+                
+                realtimeUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                    const condominios = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    log(`📡 Listener recebeu ${condominios.length} condomínios`, 'success');
+                    
+                    status.innerHTML = `<div class="success">✅ Listener ativo - ${condominios.length} condomínios</div>`;
+                    dataDiv.innerHTML = JSON.stringify(condominios, null, 2);
+                }, (error) => {
+                    log(`❌ Erro no listener: ${error.message}`, 'error');
+                    status.innerHTML = `<div class="error">❌ Erro no listener: ${error.message}</div>`;
+                });
+                
+                log('✅ Listener configurado', 'success');
+                
+            } catch (error) {
+                log(`❌ Erro ao configurar listener: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+            }
+        };
+
+        // Inicializar
+        log('🔍 Debug de condomínios inicializado', 'info');
+        log('📋 Execute os passos na ordem para diagnosticar o problema', 'info');
+    </script>
+</body>
+</html>

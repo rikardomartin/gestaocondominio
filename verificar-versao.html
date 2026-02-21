@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Versao do Sistema</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+        h1 { color: #2c3e50; text-align: center; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificar Versao do Sistema</h1>
+
+    <div class="box">
+        <h2>Informacoes</h2>
+        <p><strong>URL Atual:</strong> <span id="currentUrl"></span></p>
+        <p><strong>Protocolo:</strong> <span id="protocol"></span></p>
+        <p><strong>Navegador:</strong> <span id="browser"></span></p>
+    </div>
+
+    <div class="box" id="appJsBox">
+        <h2>📄 app.js</h2>
+        <p>Verificando...</p>
+    </div>
+
+    <div class="box" id="firebaseDbBox">
+        <h2>📄 firebase-database.js</h2>
+        <p>Verificando...</p>
+    </div>
+
+    <div class="box" id="swBox">
+        <h2>⚙️ Service Worker</h2>
+        <p>Verificando...</p>
+    </div>
+
+    <button onclick="window.location.href='https://gestaodoscondominios.web.app'">
+        🏠 Ir para Sistema
+    </button>
+
+    <button onclick="location.reload(true)">
+        🔄 Recarregar (Ctrl+F5)
+    </button>
+
+    <script>
+        // Informações básicas
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        document.getElementById('browser').textContent = navigator.userAgent;
+
+        // Verificar app.js
+        fetch('app.js')
+            .then(response => response.text())
+            .then(content => {
+                const appJsBox = document.getElementById('appJsBox');
+                const lines = content.split('\n').length;
+                const firstLine = content.split('\n')[0];
+                
+                let html = '<h2>📄 app.js</h2>';
+                html += `<p><strong>Linhas:</strong> ${lines}</p>`;
+                html += `<p><strong>Primeira linha:</strong></p>`;
+                html += `<pre>${firstLine}</pre>`;
+                
+                if (firstLine.includes('v40')) {
+                    appJsBox.className = 'box success';
+                    html += '<p>✅ <strong>Versao v40 carregada!</strong></p>';
+                } else {
+                    appJsBox.className = 'box error';
+                    html += '<p>❌ <strong>Versao antiga! Limpe o cache.</strong></p>';
+                }
+                
+                if (lines > 4500) {
+                    appJsBox.className = 'box error';
+                    html += `<p>❌ <strong>Arquivo muito grande (${lines} linhas)! Deveria ter ~4450 linhas.</strong></p>`;
+                }
+                
+                appJsBox.innerHTML = html;
+            })
+            .catch(error => {
+                const appJsBox = document.getElementById('appJsBox');
+                appJsBox.className = 'box error';
+                appJsBox.innerHTML = `<h2>📄 app.js</h2><p>❌ Erro ao carregar: ${error.message}</p>`;
+            });
+
+        // Verificar firebase-database.js
+        fetch('firebase-database.js')
+            .then(response => response.text())
+            .then(content => {
+                const firebaseDbBox = document.getElementById('firebaseDbBox');
+                const lines = content.split('\n').length;
+                const firstLine = content.split('\n')[0];
+                
+                let html = '<h2>📄 firebase-database.js</h2>';
+                html += `<p><strong>Linhas:</strong> ${lines}</p>`;
+                html += `<p><strong>Primeira linha:</strong></p>`;
+                html += `<pre>${firstLine}</pre>`;
+                
+                if (firstLine.includes('v40')) {
+                    firebaseDbBox.className = 'box success';
+                    html += '<p>✅ <strong>Versao v40 carregada!</strong></p>';
+                } else {
+                    firebaseDbBox.className = 'box error';
+                    html += '<p>❌ <strong>Versao antiga! Limpe o cache.</strong></p>';
+                }
+                
+                firebaseDbBox.innerHTML = html;
+            })
+            .catch(error => {
+                const firebaseDbBox = document.getElementById('firebaseDbBox');
+                firebaseDbBox.className = 'box error';
+                firebaseDbBox.innerHTML = `<h2>📄 firebase-database.js</h2><p>❌ Erro ao carregar: ${error.message}</p>`;
+            });
+
+        // Verificar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                const swBox = document.getElementById('swBox');
+                let html = '<h2>⚙️ Service Worker</h2>';
+                
+                if (registrations.length > 0) {
+                    html += `<p><strong>Registros ativos:</strong> ${registrations.length}</p>`;
+                    registrations.forEach((reg, index) => {
+                        html += `<p><strong>SW ${index + 1}:</strong> ${reg.scope}</p>`;
+                    });
+                    swBox.className = 'box warning';
+                    html += '<p>⚠️ <strong>Service Worker ativo. Se houver problemas, desregistre-o.</strong></p>';
+                } else {
+                    swBox.className = 'box success';
+                    html += '<p>✅ <strong>Nenhum Service Worker registrado.</strong></p>';
+                }
+                
+                swBox.innerHTML = html;
+            });
+        } else {
+            const swBox = document.getElementById('swBox');
+            swBox.className = 'box warning';
+            swBox.innerHTML = '<h2>⚙️ Service Worker</h2><p>⚠️ Service Worker nao suportado neste navegador.</p>';
+        }
+    </script>
+</body>
+</html>

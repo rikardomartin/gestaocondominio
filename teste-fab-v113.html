@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste FAB v113</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-button {
+            padding: 12px 24px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h1>🧪 Teste FAB Pagamentos Hoje - v113</h1>
+        <p>Este teste verifica se o botão flutuante (FAB) aparece corretamente.</p>
+        <ul>
+            <li>✅ FAB deve aparecer no canto inferior direito</li>
+            <li>✅ Badge deve mostrar número de pagamentos</li>
+            <li>✅ Modal deve abrir ao clicar no FAB</li>
+            <li>✅ Deve ser responsivo (testar no mobile)</li>
+        </ul>
+    </div>
+
+    <button class="test-button" onclick="mostrarFAB()">Mostrar FAB</button>
+    <button class="test-button" onclick="abrirModal()">Abrir Modal</button>
+    <button class="test-button" onclick="testarResponsivo()">Testar Responsivo</button>
+
+    <!-- FAB Button -->
+    <button id="fabPagamentosHoje" class="fab-button" title="Pagamentos de Hoje">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+        <span class="fab-badge" id="fabBadge">5</span>
+    </button>
+
+    <!-- Modal Pagamentos Hoje -->
+    <div id="modalPagamentosHoje" class="modal-pagamentos-hoje hidden">
+        <div class="modal-pagamentos-content">
+            <div class="modal-pagamentos-header">
+                <div>
+                    <h2>💰 Pagamentos de Hoje</h2>
+                    <p class="modal-pagamentos-subtitle">Terça-feira, 03 de Fevereiro de 2026</p>
+                </div>
+                <button id="closePagamentosHoje" class="btn-close-modal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-pagamentos-stats">
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">🏢</div>
+                    <div class="stat-info">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Condomínios</div>
+                    </div>
+                </div>
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">🏠</div>
+                    <div class="stat-info">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Apartamentos</div>
+                    </div>
+                </div>
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">💵</div>
+                    <div class="stat-info">
+                        <div class="stat-value">R$ 960,00</div>
+                        <div class="stat-label">Total Arrecadado</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-pagamentos-body">
+                <!-- Condomínio 1 -->
+                <div class="condominio-group-hoje">
+                    <div class="condominio-header-hoje">
+                        <div class="condominio-nome-hoje">
+                            🏢 Condomínio Vacaria
+                        </div>
+                        <div class="condominio-stats-hoje">
+                            <span>🏠 5 apts</span>
+                            <span>💵 R$ 400,00</span>
+                        </div>
+                    </div>
+                    <div class="pagamentos-list-hoje">
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 01 - Apt 101</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 01 - Apt 102</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 02 - Apt 201</div>
+                                <div class="pagamento-status-hoje reciclado">RECICLADO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 40,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 02 - Apt 202</div>
+                                <div class="pagamento-status-hoje acordo">ACORDO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 03 - Apt 301</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Condomínio 2 -->
+                <div class="condominio-group-hoje">
+                    <div class="condominio-header-hoje">
+                        <div class="condominio-nome-hoje">
+                            🏢 Condomínio Ayres
+                        </div>
+                        <div class="condominio-stats-hoje">
+                            <span>🏠 4 apts</span>
+                            <span>💵 R$ 320,00</span>
+                        </div>
+                    </div>
+                    <div class="pagamentos-list-hoje">
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 05 - Apt 501</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 05 - Apt 502</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 06 - Apt 601</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 06 - Apt 602</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Condomínio 3 -->
+                <div class="condominio-group-hoje">
+                    <div class="condominio-header-hoje">
+                        <div class="condominio-nome-hoje">
+                            🏢 Condomínio Vidal
+                        </div>
+                        <div class="condominio-stats-hoje">
+                            <span>🏠 3 apts</span>
+                            <span>💵 R$ 240,00</span>
+                        </div>
+                    </div>
+                    <div class="pagamentos-list-hoje">
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 10 - Apt 1001</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 10 - Apt 1002</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                        <div class="pagamento-item-hoje">
+                            <div class="pagamento-info-hoje">
+                                <div class="pagamento-apt-hoje">Bloco 11 - Apt 1101</div>
+                                <div class="pagamento-status-hoje pago">PAGO</div>
+                            </div>
+                            <div class="pagamento-valor-hoje">R$ 80,00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🧪 Teste FAB v113 carregado');
+
+        // Mostrar FAB
+        function mostrarFAB() {
+            const fab = document.getElementById('fabPagamentosHoje');
+            fab.style.display = 'flex';
+            console.log('✅ FAB mostrado');
+        }
+
+        // Abrir modal
+        function abrirModal() {
+            const modal = document.getElementById('modalPagamentosHoje');
+            modal.classList.remove('hidden');
+            console.log('✅ Modal aberto');
+        }
+
+        // Testar responsivo
+        function testarResponsivo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            alert(`Tamanho da tela:\nLargura: ${width}px\nAltura: ${height}px\n\n` +
+                  `Mobile: ${width <= 768 ? 'SIM' : 'NÃO'}\n` +
+                  `Tablet: ${width > 768 && width <= 1024 ? 'SIM' : 'NÃO'}\n` +
+                  `Desktop: ${width > 1024 ? 'SIM' : 'NÃO'}`);
+        }
+
+        // Event listeners
+        document.getElementById('fabPagamentosHoje').addEventListener('click', () => {
+            console.log('🖱️ FAB clicado');
+            abrirModal();
+        });
+
+        document.getElementById('closePagamentosHoje').addEventListener('click', () => {
+            console.log('❌ Fechar modal');
+            const modal = document.getElementById('modalPagamentosHoje');
+            modal.classList.add('hidden');
+        });
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modalPagamentosHoje').addEventListener('click', (e) => {
+            if (e.target.id === 'modalPagamentosHoje') {
+                console.log('❌ Fechar modal (clique fora)');
+                e.target.classList.add('hidden');
+            }
+        });
+
+        // Mostrar FAB automaticamente
+        window.addEventListener('load', () => {
+            mostrarFAB();
+            console.log('✅ Teste carregado - FAB visível');
+        });
+    </script>
+</body>
+</html>

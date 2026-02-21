@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Firebase Direto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; text-align: center; }
+        .test-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            font-weight: 500;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        .result {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Teste Firebase Direto</h1>
+        
+        <div class="test-section">
+            <h3>🧪 Teste Manual</h3>
+            <input type="email" id="testEmail" placeholder="Email para testar" value="admin.condominio@gmail.com">
+            <input type="password" id="testPassword" placeholder="Senha" value="123456">
+            <button onclick="testDirectLogin()">🔍 Testar Login Direto</button>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Testes Automáticos</h3>
+            <button onclick="testAllUsers()">🚀 Testar Todos os Usuários</button>
+            <button onclick="createWorkingUser()">➕ Criar Usuário Funcional</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { auth } from './firebase-config.js';
+
+        const results = document.getElementById('results');
+
+        window.testDirectLogin = async function() {
+            const email = document.getElementById('testEmail').value.trim();
+            const password = document.getElementById('testPassword').value.trim();
+            
+            if (!email || !password) {
+                showResult('Por favor, preencha email e senha', 'error');
+                return;
+            }
+            
+            await testLogin(email, password);
+        };
+
+        window.testAllUsers = async function() {
+            results.innerHTML = '<div class="info">🔍 Testando todos os usuários...</div>';
+            
+            const testUsers = [
+                { email: 'admin.condominio@gmail.com', password: '123456', name: 'Admin Gmail' },
+                { email: 'operador.condominio@gmail.com', password: '123456', name: 'Operador Gmail' },
+                { email: 'viewer.condominio@gmail.com', password: '123456', name: 'Viewer Gmail' },
+                { email: 'admin@condominio.com', password: '123456', name: 'Admin Antigo' },
+                { email: 'operador@condominio.com', password: '123456', name: 'Operador Antigo' },
+                { email: 'viewer@condominio.com', password: '123456', name: 'Viewer Antigo' }
+            ];
+            
+            let workingUsers = [];
+            let failedUsers = [];
+            
+            for (const user of testUsers) {
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, user.email, user.password);
+                    workingUsers.push({ ...user, uid: userCredential.user.uid });
+                    await auth.signOut(); // Logout para próximo teste
+                } catch (error) {
+                    failedUsers.push({ ...user, error: error.code });
+                }
+            }
+            
+            let resultHtml = '<div class="info"><h3>📊 Resultados dos Testes:</h3></div>';
+            
+            if (workingUsers.length > 0) {
+                resultHtml += '<div class="success"><h4>✅ Usuários que FUNCIONAM:</h4>';
+                workingUsers.forEach(user => {
+                    resultHtml += `<p><strong>${user.name}:</strong> ${user.email} (UID: ${user.uid.substring(0, 8)}...)</p>`;
+                });
+                resultHtml += '</div>';
+            }
+            
+            if (failedUsers.length > 0) {
+                resultHtml += '<div class="error"><h4>❌ Usuários que FALHARAM:</h4>';
+                failedUsers.forEach(user => {
+                    resultHtml += `<p><strong>${user.name}:</strong> ${user.email} - ${user.error}</p>`;
+                });
+                resultHtml += '</div>';
+            }
+            
+            if (workingUsers.length === 0) {
+                resultHtml += '<div class="error"><h4>🚨 NENHUM USUÁRIO FUNCIONA!</h4><p>Todos os usuários falharam no login. Vamos criar um usuário funcional.</p></div>';
+            }
+            
+            results.innerHTML = resultHtml;
+        };
+
+        window.createWorkingUser = async function() {
+            const email = 'teste.sistema@gmail.com';
+            const password = '123456';
+            const name = 'Usuário Teste Sistema';
+            
+            showResult('➕ Criando usuário funcional...', 'info');
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                await updateProfile(user, {
+                    displayName: name
+                });
+                
+                showResult(`✅ Usuário criado com sucesso!<br><br>
+                    <strong>Email:</strong> ${email}<br>
+                    <strong>Senha:</strong> ${password}<br>
+                    <strong>UID:</strong> ${user.uid}<br><br>
+                    🎉 Use este usuário para fazer login na aplicação!`, 'success');
+                
+            } catch (error) {
+                let errorMessage = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    // Se já existe, vamos testar se funciona
+                    showResult('📧 Email já existe, testando login...', 'info');
+                    await testLogin(email, password);
+                } else {
+                    showResult(`❌ Erro ao criar usuário: ${errorMessage}`, 'error');
+                }
+            }
+        };
+
+        async function testLogin(email, password) {
+            showResult(`🔍 Testando login: ${email}...`, 'info');
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                showResult(`✅ LOGIN BEM-SUCEDIDO!<br><br>
+                    <strong>Email:</strong> ${user.email}<br>
+                    <strong>UID:</strong> ${user.uid}<br>
+                    <strong>Nome:</strong> ${user.displayName || 'Não definido'}<br>
+                    <strong>Verificado:</strong> ${user.emailVerified ? 'Sim' : 'Não'}<br>
+                    <strong>Criado em:</strong> ${new Date(user.metadata.creationTime).toLocaleString('pt-BR')}<br><br>
+                    🎉 Este usuário funciona! Use-o na aplicação principal.<br>
+                    <a href="https://gestaodoscondominios.web.app" target="_blank" style="color: #2563eb; font-weight: bold;">🚀 Abrir Aplicação</a>`, 'success');
+                
+                // Fazer logout para permitir outros testes
+                setTimeout(() => {
+                    auth.signOut();
+                }, 2000);
+                
+            } catch (error) {
+                let errorMessage = error.message;
+                let errorCode = error.code;
+                
+                if (errorCode === 'auth/invalid-credential') {
+                    errorMessage = 'Credenciais inválidas - usuário não existe ou senha incorreta';
+                } else if (errorCode === 'auth/user-not-found') {
+                    errorMessage = 'Usuário não encontrado no Firebase Authentication';
+                } else if (errorCode === 'auth/wrong-password') {
+                    errorMessage = 'Senha incorreta';
+                } else if (errorCode === 'auth/invalid-email') {
+                    errorMessage = 'Formato de email inválido';
+                } else if (errorCode === 'auth/user-disabled') {
+                    errorMessage = 'Usuário foi desabilitado';
+                }
+                
+                showResult(`❌ ERRO NO LOGIN<br><br>
+                    <strong>Email:</strong> ${email}<br>
+                    <strong>Código:</strong> ${errorCode}<br>
+                    <strong>Mensagem:</strong> ${errorMessage}<br><br>
+                    💡 Este usuário não funciona ou não existe.`, 'error');
+            }
+        }
+
+        function showResult(message, type) {
+            results.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

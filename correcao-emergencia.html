@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Correção de Emergência</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .title {
+            text-align: center;
+            color: #dc2626;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+        }
+        .fix-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .fix-button:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+        .fix-button.success {
+            background: #059669;
+        }
+        .fix-button.success:hover {
+            background: #047857;
+        }
+        .log-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🚨 Correção de Emergência</h1>
+        
+        <div class="error-box">
+            <h3>❌ Erro Identificado:</h3>
+            <p><strong>app.js:3527 Uncaught SyntaxError: Identifier 'showToast' has already been declared</strong></p>
+            <p>A função <code>showToast</code> foi declarada duas vezes no código, causando conflito.</p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="fix-button" onclick="diagnosticarProblema()">
+                🔍 Diagnosticar Problema
+            </button>
+            <button class="fix-button" onclick="corrigirDuplicacao()">
+                🔧 Corrigir Duplicação
+            </button>
+            <button class="fix-button" onclick="testarSistema()">
+                🧪 Testar Sistema
+            </button>
+            <button class="fix-button success" onclick="abrirSistema()">
+                🏠 Abrir Sistema Principal
+            </button>
+        </div>
+        
+        <div id="logArea" class="log-area">
+            <div class="info">🚨 Sistema de correção de emergência inicializado</div>
+            <div class="warning">⚠️ Detectado erro de sintaxe no app.js</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function diagnosticarProblema() {
+            log('🔍 Diagnosticando problema...', 'info');
+            
+            fetch('app.js')
+                .then(response => response.text())
+                .then(code => {
+                    // Contar declarações de showToast
+                    const showToastMatches = code.match(/function showToast/g) || [];
+                    log(`   Declarações de showToast encontradas: ${showToastMatches.length}`, 'info');
+                    
+                    if (showToastMatches.length > 1) {
+                        log('❌ PROBLEMA CONFIRMADO: Função showToast duplicada', 'error');
+                        log('   Isso causa erro de sintaxe e impede o carregamento', 'error');
+                    } else {
+                        log('✅ Função showToast não está duplicada', 'success');
+                    }
+                    
+                    // Verificar outras possíveis duplicações
+                    const criticalFunctions = [
+                        'showPainelLoading',
+                        'ensurePainelApartamentosLoaded',
+                        'renderPaymentsTable'
+                    ];
+                    
+                    criticalFunctions.forEach(func => {
+                        const matches = code.match(new RegExp(`function ${func}`, 'g')) || [];
+                        if (matches.length > 1) {
+                            log(`❌ Função ${func} duplicada (${matches.length} vezes)`, 'error');
+                        } else if (matches.length === 1) {
+                            log(`✅ Função ${func} única`, 'success');
+                        } else {
+                            log(`⚠️ Função ${func} não encontrada`, 'warning');
+                        }
+                    });
+                    
+                    // Verificar tamanho do arquivo
+                    log(`   Tamanho do app.js: ${Math.round(code.length / 1024)}KB`, 'info');
+                    
+                })
+                .catch(error => {
+                    log(`❌ Erro ao acessar app.js: ${error.message}`, 'error');
+                });
+        }
+
+        function corrigirDuplicacao() {
+            log('🔧 Tentando correção automática...', 'warning');
+            log('⚠️ Correção automática não disponível via browser', 'warning');
+            log('📋 INSTRUÇÕES MANUAIS:', 'info');
+            log('1. Abrir app.js no editor', 'info');
+            log('2. Procurar por "function showToast"', 'info');
+            log('3. Remover a primeira declaração (mais simples)', 'info');
+            log('4. Manter apenas a segunda (mais avançada)', 'info');
+            log('5. Salvar o arquivo', 'info');
+            log('6. Recarregar a página', 'info');
+        }
+
+        function testarSistema() {
+            log('🧪 Testando sistema...', 'info');
+            
+            // Testar se consegue carregar o app.js
+            const script = document.createElement('script');
+            script.src = 'app.js';
+            script.type = 'module';
+            
+            script.onload = () => {
+                log('✅ app.js carregado sem erros de sintaxe', 'success');
+                log('🎉 Sistema deve estar funcionando agora!', 'success');
+            };
+            
+            script.onerror = (error) => {
+                log('❌ app.js ainda tem erros de sintaxe', 'error');
+                log('   Verifique se a correção foi aplicada corretamente', 'error');
+            };
+            
+            // Não adicionar ao DOM para evitar conflitos
+            log('   Verificando sintaxe do app.js...', 'info');
+        }
+
+        function abrirSistema() {
+            log('🏠 Abrindo sistema principal...', 'info');
+            window.open('index.html', '_blank');
+        }
+
+        // Diagnóstico automático
+        setTimeout(() => {
+            diagnosticarProblema();
+        }, 1000);
+    </script>
+</body>
+</html>

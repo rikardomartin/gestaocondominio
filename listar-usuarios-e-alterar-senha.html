@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Usuários e Alterar Senha Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .user-list {
+            margin-top: 20px;
+        }
+        .user-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .user-email {
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 16px;
+        }
+        .user-role {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 5px 5px 5px 0;
+            background: #4CAF50;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .user-role.admin {
+            background: #f44336;
+        }
+        .user-role.sindico {
+            background: #FF9800;
+        }
+        .user-role.morador {
+            background: #2196F3;
+        }
+        .user-uid {
+            color: #666;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log div {
+            margin: 5px 0;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #f44336;
+        }
+        .info {
+            color: #2196F3;
+        }
+        .warning {
+            color: #FF9800;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+            border-top: 4px solid #4CAF50;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Gerenciamento de Usuários</h1>
+        
+        <div class="section" id="loginSection">
+            <h2>🔑 Login Necessário</h2>
+            <p>Faça login para gerenciar usuários:</p>
+            <div style="margin: 20px 0;">
+                <input type="email" id="loginEmail" placeholder="Email" value="admin@condominio.com" 
+                       style="padding: 10px; width: 300px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="password" id="loginPassword" placeholder="Senha atual" 
+                       style="padding: 10px; width: 200px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <button onclick="fazerLogin()">Entrar</button>
+            </div>
+            <p style="color: #666; font-size: 14px;">Use suas credenciais de administrador</p>
+        </div>
+
+        <div class="section" id="mainSection" style="display: none;">
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <strong>✅ Logado como:</strong> <span id="currentUserEmail"></span>
+                <button onclick="fazerLogout()" style="float: right; background: #666; padding: 8px 16px;">Sair</button>
+            </div>
+
+            <h2>📋 Listar Todos os Usuários</h2>
+            <button onclick="listarUsuarios()">Listar Usuários do Firestore</button>
+            
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">Total de Usuários</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAdmins">0</div>
+                    <div class="stat-label">Administradores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSindicos">0</div>
+                    <div class="stat-label">Síndicos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMoradores">0</div>
+                    <div class="stat-label">Moradores</div>
+                </div>
+            </div>
+            
+            <div class="user-list" id="userList"></div>
+        
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
+                <h2>🔑 Alterar Minha Senha</h2>
+                <p><strong>Nova Senha:</strong> a10b20c30@</p>
+                <button class="danger" onclick="alterarMinhaSenha()">Alterar Minha Senha para a10b20c30@</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword,
+            updatePassword,
+            EmailAuthProvider,
+            reauthenticateWithCredential
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            query,
+            orderBy
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let logElement;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(div);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        window.fazerLogin = async function() {
+            logElement = document.getElementById('log');
+            logElement.innerHTML = '';
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                log('❌ Preencha email e senha', 'error');
+                return;
+            }
+
+            log('🔐 Fazendo login...', 'info');
+            showLoading(true);
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                log('✅ Login realizado com sucesso!', 'success');
+                log(`📧 Logado como: ${userCredential.user.email}`, 'success');
+                
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainSection').style.display = 'block';
+                document.getElementById('currentUserEmail').textContent = userCredential.user.email;
+                
+                // Auto-listar usuários após login
+                setTimeout(() => listarUsuarios(), 500);
+
+            } catch (error) {
+                log(`❌ Erro no login: ${error.message}`, 'error');
+                if (error.code === 'auth/wrong-password') {
+                    log('❌ Senha incorreta!', 'error');
+                } else if (error.code === 'auth/user-not-found') {
+                    log('❌ Usuário não encontrado!', 'error');
+                } else if (error.code === 'auth/invalid-credential') {
+                    log('❌ Credenciais inválidas!', 'error');
+                }
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        window.fazerLogout = function() {
+            auth.signOut();
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('userList').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+            logElement.innerHTML = '';
+            log('👋 Logout realizado', 'info');
+        };
+
+        window.listarUsuarios = async function() {
+            logElement = document.getElementById('log');
+            logElement.innerHTML = '';
+            log('🔍 Iniciando listagem de usuários...', 'info');
+            showLoading(true);
+
+            try {
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, orderBy('email'));
+                const snapshot = await getDocs(q);
+
+                log(`✅ ${snapshot.size} usuário(s) encontrado(s)`, 'success');
+
+                const userList = document.getElementById('userList');
+                userList.innerHTML = '';
+
+                let stats = {
+                    total: 0,
+                    admin: 0,
+                    sindico: 0,
+                    morador: 0
+                };
+
+                snapshot.forEach((doc) => {
+                    const user = doc.data();
+                    stats.total++;
+
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+
+                    let rolesHtml = '';
+                    if (user.role) {
+                        const roleClass = user.role.toLowerCase();
+                        rolesHtml = `<span class="user-role ${roleClass}">${user.role}</span>`;
+                        
+                        if (user.role === 'ADMIN') stats.admin++;
+                        else if (user.role === 'SINDICO') stats.sindico++;
+                        else if (user.role === 'MORADOR') stats.morador++;
+                    }
+
+                    let condominiosHtml = '';
+                    if (user.condominios && user.condominios.length > 0) {
+                        condominiosHtml = `<div style="margin-top: 8px;">
+                            <strong>Condomínios:</strong> ${user.condominios.join(', ')}
+                        </div>`;
+                    }
+
+                    userDiv.innerHTML = `
+                        <div class="user-email">${user.email}</div>
+                        <div style="margin-top: 5px;">
+                            ${rolesHtml}
+                            <span class="user-uid">UID: ${doc.id}</span>
+                        </div>
+                        ${condominiosHtml}
+                    `;
+
+                    userList.appendChild(userDiv);
+
+                    log(`📧 ${user.email} - ${user.role || 'SEM ROLE'}`, 'info');
+                });
+
+                // Atualizar estatísticas
+                document.getElementById('stats').style.display = 'grid';
+                document.getElementById('totalUsers').textContent = stats.total;
+                document.getElementById('totalAdmins').textContent = stats.admin;
+                document.getElementById('totalSindicos').textContent = stats.sindico;
+                document.getElementById('totalMoradores').textContent = stats.morador;
+
+                log('✅ Listagem concluída!', 'success');
+
+            } catch (error) {
+                log(`❌ Erro ao listar usuários: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        window.alterarMinhaSenha = async function() {
+            logElement = document.getElementById('log');
+            logElement.innerHTML = '';
+            
+            const novaSenha = 'a10b20c30@';
+            const user = auth.currentUser;
+
+            if (!user) {
+                log('❌ Você precisa estar logado!', 'error');
+                return;
+            }
+
+            log('🔐 Iniciando alteração de senha...', 'info');
+            log(`📧 Usuário: ${user.email}`, 'info');
+            showLoading(true);
+
+            try {
+                log('🔄 Alterando senha...', 'info');
+                await updatePassword(user, novaSenha);
+                
+                log('✅ Senha alterada com sucesso!', 'success');
+                log(`📧 Email: ${user.email}`, 'success');
+                log(`🔑 Nova senha: ${novaSenha}`, 'success');
+                log('', 'info');
+                log('✅ Use esta senha no próximo login!', 'success');
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                
+                if (error.code === 'auth/requires-recent-login') {
+                    log('❌ Sessão expirada! Faça logout e login novamente.', 'error');
+                }
+                
+                console.error(error);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // Auto-executar ao carregar
+        window.addEventListener('load', () => {
+            logElement = document.getElementById('log');
+            log('🚀 Sistema carregado. Faça login para começar.', 'info');
+            
+            // Verificar se já está logado
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('mainSection').style.display = 'block';
+                    document.getElementById('currentUserEmail').textContent = user.email;
+                    log(`✅ Já logado como: ${user.email}`, 'success');
+                }
+            });
+        });
+
+        // Permitir Enter no campo de senha
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('loginPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        fazerLogin();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

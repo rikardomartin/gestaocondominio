@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Persistência v70</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .version {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .status-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .status-box.success {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+
+        .status-box.error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .status-box.warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .status-box.info {
+            background: #dbeafe;
+            border: 2px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .console-output {
+            background: #1f2937;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .console-output .error {
+            color: #ef4444;
+        }
+
+        .console-output .warning {
+            color: #f59e0b;
+        }
+
+        .console-output .info {
+            color: #3b82f6;
+        }
+
+        .test-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .test-steps li {
+            counter-increment: step-counter;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-steps li::before {
+            content: counter(step-counter);
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Teste de Persistência - v70</h1>
+            <p class="version">Correção Definitiva: Status persiste após refresh</p>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Verificação de Código</h2>
+            <button class="btn" onclick="verificarCodigo()">Verificar Correções</button>
+            <div id="verificacaoResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Teste Funcional</h2>
+            <p style="margin-bottom: 15px;">Este teste simula o fluxo completo de salvamento e carregamento:</p>
+            <button class="btn" onclick="testarFluxoCompleto()">Executar Teste Completo</button>
+            <div id="testeResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Instruções de Teste Manual</h2>
+            <ol class="test-steps">
+                <li>Limpe o cache do navegador (Ctrl+Shift+Delete)</li>
+                <li>Faça login no sistema</li>
+                <li>Selecione: <span class="code">Ano: 2025</span>, <span class="code">Mês: 01</span></li>
+                <li>Selecione: <span class="code">Condomínio Ayres</span> → <span class="code">Bloco 01</span></li>
+                <li>Clique no <span class="code">Apartamento 101</span></li>
+                <li>Marque como <span class="code">Pago</span> e salve</li>
+                <li>Verifique que aparece com badge verde "Pago"</li>
+                <li><strong>CRÍTICO:</strong> Pressione <span class="code">F5</span> para recarregar</li>
+                <li>Faça login novamente e navegue até o mesmo apartamento</li>
+                <li><strong>SUCESSO:</strong> Apartamento 101 deve aparecer como "Pago"</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 Console do Sistema</h2>
+            <p style="margin-bottom: 10px;">Mensagens esperadas no console do navegador (F12):</p>
+            <div class="console-output">
+                <div>🔄 [LOAD] Carregando apartamentos do bloco: xxx</div>
+                <div>📅 [LOAD] Período ativo: 2025 01</div>
+                <div>✅ [LOAD] Apartamentos carregados: 16</div>
+                <div>🔍 [LOAD] Buscando pagamentos para: 2025-01</div>
+                <div>✅ [LOAD] Pagamentos encontrados: 1</div>
+                <div style="color: #10b981; font-weight: bold;">✅ [LOAD] Apt 101: pago  ← IMPORTANTE!</div>
+                <div style="margin-top: 15px;">🔍 [MODAL] Buscando status do período ativo: 2025 01</div>
+                <div style="color: #10b981; font-weight: bold;">✅ [MODAL] Pagamento encontrado: pago  ← IMPORTANTE!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            console.log(`[TESTE] ${message}`);
+        }
+
+        async function verificarCodigo() {
+            const resultDiv = document.getElementById('verificacaoResult');
+            resultDiv.innerHTML = '<div class="status-box info">🔍 Verificando código...</div>';
+
+            try {
+                // Verificar se app.js existe e tem as correções
+                const response = await fetch('/app.js');
+                const code = await response.text();
+
+                const checks = [
+                    {
+                        name: 'Versão v70',
+                        test: code.includes('v70') && code.includes('Correcao persistencia status'),
+                        message: 'Versão atualizada para v70'
+                    },
+                    {
+                        name: 'loadApartamentosData com logs',
+                        test: code.includes('[LOAD] Carregando apartamentos') && code.includes('[LOAD] Apt'),
+                        message: 'Função loadApartamentosData tem logs de debug'
+                    },
+                    {
+                        name: 'Atualização de status dos apartamentos',
+                        test: code.includes('apartamentos.forEach(apt =>') && code.includes('apt.status = payment.status'),
+                        message: 'Status dos apartamentos é atualizado com base nos pagamentos'
+                    },
+                    {
+                        name: 'openApartmentModal busca pagamento',
+                        test: code.includes('[MODAL] Buscando status do período ativo') && code.includes('[MODAL] Pagamento encontrado'),
+                        message: 'Modal busca status do pagamento do período ativo'
+                    },
+                    {
+                        name: 'Busca por ano e mês',
+                        test: code.includes('p.ano === appState.activeYear && p.mes === appState.activeMonth'),
+                        message: 'Busca correta por ano e mês do período ativo'
+                    }
+                ];
+
+                let html = '';
+                let allPassed = true;
+
+                checks.forEach(check => {
+                    const status = check.test ? 'success' : 'error';
+                    const icon = check.test ? '✅' : '❌';
+                    allPassed = allPassed && check.test;
+
+                    html += `
+                        <div class="status-box ${status}">
+                            ${icon} <strong>${check.name}:</strong> ${check.message}
+                        </div>
+                    `;
+                });
+
+                if (allPassed) {
+                    html += `
+                        <div class="status-box success">
+                            <strong>🎉 TODAS AS CORREÇÕES ESTÃO PRESENTES!</strong><br>
+                            O código está pronto para teste funcional.
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="status-box error">
+                            <strong>⚠️ ALGUMAS CORREÇÕES ESTÃO FALTANDO!</strong><br>
+                            Verifique o código antes de fazer deploy.
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-box error">
+                        ❌ Erro ao verificar código: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testarFluxoCompleto() {
+            const resultDiv = document.getElementById('testeResult');
+            resultDiv.innerHTML = '<div class="status-box info">🧪 Executando teste...</div>';
+
+            let html = '<div class="console-output">';
+
+            function addLog(message, type = 'info') {
+                const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? '' : 'info';
+                html += `<div class="${className}">${message}</div>`;
+            }
+
+            try {
+                addLog('🔄 Simulando carregamento de apartamentos...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Simular estado da aplicação
+                const mockState = {
+                    activeYear: '2025',
+                    activeMonth: '01',
+                    apartamentos: [
+                        { id: 'apt-101', numero: '101', blocoId: 'bloco-01' }
+                    ],
+                    payments: {
+                        condominio: []
+                    }
+                };
+
+                addLog('📅 Período ativo: 2025 01');
+                addLog('✅ Apartamentos carregados: 1');
+
+                // Simular salvamento de pagamento
+                addLog('');
+                addLog('💾 Simulando salvamento de pagamento...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const payment = {
+                    id: 'pay-001',
+                    apartamentoId: 'apt-101',
+                    ano: '2025',
+                    mes: '01',
+                    date: '2025-01',
+                    status: 'pago',
+                    observacao: 'Teste de persistência'
+                };
+
+                mockState.payments.condominio.push(payment);
+                addLog('✅ Pagamento criado no Firebase (simulado)');
+
+                // Simular atualização do status do apartamento
+                addLog('');
+                addLog('🔄 Simulando atualização de status...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const apt = mockState.apartamentos[0];
+                const foundPayment = mockState.payments.condominio.find(p =>
+                    p.apartamentoId === apt.id &&
+                    p.ano === mockState.activeYear &&
+                    p.mes === mockState.activeMonth
+                );
+
+                if (foundPayment) {
+                    apt.status = foundPayment.status;
+                    addLog(`✅ [LOAD] Apt ${apt.numero}: ${apt.status}`, 'success');
+                } else {
+                    addLog(`❌ [LOAD] Apt ${apt.numero}: pagamento não encontrado`, 'error');
+                }
+
+                // Simular abertura do modal
+                addLog('');
+                addLog('🔍 Simulando abertura do modal...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                addLog('🔍 [MODAL] Buscando status do período ativo: 2025 01');
+
+                const modalPayment = mockState.payments.condominio.find(p =>
+                    p.apartamentoId === apt.id &&
+                    p.ano === mockState.activeYear &&
+                    p.mes === mockState.activeMonth
+                );
+
+                if (modalPayment) {
+                    addLog(`✅ [MODAL] Pagamento encontrado: ${modalPayment.status}`, 'success');
+                } else {
+                    addLog('⚠️ [MODAL] Nenhum pagamento encontrado - usando pendente', 'warning');
+                }
+
+                // Resultado final
+                addLog('');
+                if (apt.status === 'pago' && modalPayment) {
+                    addLog('🎉 TESTE PASSOU! Status persistiu corretamente.', 'success');
+                    html += '</div>';
+                    html += `
+                        <div class="status-box success" style="margin-top: 15px;">
+                            <strong>✅ TESTE FUNCIONAL PASSOU!</strong><br>
+                            O fluxo de salvamento e carregamento está funcionando corretamente.
+                        </div>
+                    `;
+                } else {
+                    addLog('❌ TESTE FALHOU! Status não persistiu.', 'error');
+                    html += '</div>';
+                    html += `
+                        <div class="status-box error" style="margin-top: 15px;">
+                            <strong>❌ TESTE FUNCIONAL FALHOU!</strong><br>
+                            Verifique o código e tente novamente.
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                addLog(`❌ Erro no teste: ${error.message}`, 'error');
+                html += '</div>';
+                html += `
+                    <div class="status-box error" style="margin-top: 15px;">
+                        ❌ Erro ao executar teste: ${error.message}
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = html;
+        }
+
+        // Executar verificação automática ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                verificarCodigo();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

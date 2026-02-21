@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Condominial - Versão Simplificada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="painelLoading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Carregando...</div>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🏠 Gestão Condominial</h1>
+            <div id="userInfo" style="display: none;">
+                <span id="userName"></span>
+                <button onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-container">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" value="admin@condominio.com" required>
+                    <input type="password" id="loginPassword" placeholder="Senha" value="123456" required>
+                    <button type="submit">Entrar</button>
+                </form>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Tela Principal -->
+        <div id="mainScreen" class="screen">
+            <div class="main-content">
+                <h2>Sistema Funcionando!</h2>
+                <p>Se você está vendo esta tela, o sistema foi carregado com sucesso.</p>
+                
+                <div class="test-buttons">
+                    <button onclick="testToast()">🔔 Testar Notificação</button>
+                    <button onclick="testLoading()">⏳ Testar Loading</button>
+                    <button onclick="openFullSystem()">🏠 Abrir Sistema Completo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <!-- Scripts Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Configuração Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Função de toast simplificada
+        window.showToast = function(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        };
+
+        // Função de loading
+        window.showLoading = function(show) {
+            const loading = document.getElementById('painelLoading');
+            loading.style.display = show ? 'flex' : 'none';
+        };
+
+        // Função de login
+        window.login = async function(email, password) {
+            try {
+                showLoading(true);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                document.getElementById('loginScreen').classList.remove('active');
+                document.getElementById('mainScreen').classList.add('active');
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userName').textContent = userCredential.user.email;
+                
+                showToast('Login realizado com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro no login:', error);
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+                showToast('Erro no login: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // Função de logout
+        window.logout = function() {
+            auth.signOut();
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('userInfo').style.display = 'none';
+            showToast('Logout realizado', 'info');
+        };
+
+        // Funções de teste
+        window.testToast = function() {
+            showToast('Teste de notificação funcionando!', 'success');
+        };
+
+        window.testLoading = function() {
+            showLoading(true);
+            setTimeout(() => {
+                showLoading(false);
+                showToast('Teste de loading concluído!', 'info');
+            }, 2000);
+        };
+
+        window.openFullSystem = function() {
+            window.open('index.html', '_blank');
+        };
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            login(email, password);
+        });
+
+        // Verificar se usuário já está logado
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('loginScreen').classList.remove('active');
+                document.getElementById('mainScreen').classList.add('active');
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userName').textContent = user.email;
+            }
+        });
+
+        console.log('✅ Sistema simplificado carregado com sucesso!');
+    </script>
+
+    <style>
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--primary, #2563eb);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .screen {
+            display: none;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary, #2563eb);
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background: var(--primary-dark, #1d4ed8);
+        }
+
+        .main-content {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .test-buttons button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .test-buttons button:hover {
+            background: var(--primary-dark, #1d4ed8);
+        }
+
+        .error-message {
+            color: #ef4444;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: #fef2f2;
+            border-radius: 4px;
+        }
+
+        #userInfo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #userInfo button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #userInfo button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</body>
+</html>

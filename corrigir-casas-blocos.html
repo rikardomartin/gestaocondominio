@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigir Casas nos Blocos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .error-box {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+        .login-section {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .login-section input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .user-info {
+            background: #d4edda;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button.logout {
+            background: #f44336;
+        }
+        button.logout:hover {
+            background: #da190b;
+        }
+        #log {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info-log { color: #2196F3; }
+        .hidden { display: none; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Corrigir Casas nos Blocos</h1>
+        
+        <!-- Login Section -->
+        <div class="login-section" id="loginSection">
+            <h3>🔐 Login Necessário</h3>
+            <p>Faça login com admin@condominio.com ou admin2@condominio.com</p>
+            <input type="email" id="emailInput" placeholder="Email" value="admin@condominio.com">
+            <input type="password" id="passwordInput" placeholder="Senha">
+            <button onclick="fazerLogin()">Entrar</button>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info" id="userInfo">
+            <strong>✅ Logado como:</strong> <span id="userEmail"></span>
+            <button class="logout" onclick="fazerLogout()" style="float: right; padding: 5px 15px; margin: 0;">Sair</button>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" class="hidden">
+            <div class="error-box">
+                <strong>❌ Problema Identificado:</strong><br>
+                Casas foram criadas em blocos que não existem ou estão separadas quando deveriam estar junto com apartamentos.
+            </div>
+
+            <div class="info">
+                <strong>📋 Estrutura Correta (conforme condominio.md):</strong>
+                <table>
+                    <tr>
+                        <th>Condomínio</th>
+                        <th>Blocos de Apts</th>
+                        <th>Casas</th>
+                        <th>Localização</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Ayres</strong></td>
+                        <td>29 blocos</td>
+                        <td>5 casas</td>
+                        <td>Bloco 01 (2 casas) + Bloco 30 (3 casas)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vidal</strong></td>
+                        <td>19 blocos</td>
+                        <td>4 casas</td>
+                        <td>Bloco 20 (4 casas) - SEPARADO</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Taroni</strong></td>
+                        <td>15 blocos</td>
+                        <td>3 casas</td>
+                        <td>Bloco 01 (3 casas) - JUNTO com apts</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Speranza</strong></td>
+                        <td>25 blocos</td>
+                        <td>4 casas</td>
+                        <td>Bloco 26 (4 casas) - SEPARADO</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Destri</strong></td>
+                        <td>26 blocos</td>
+                        <td>5 casas</td>
+                        <td>Bloco 27 (2) + Bloco 28 (3) - SEPARADOS</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vacaria</strong></td>
+                        <td>24 blocos</td>
+                        <td>4 casas</td>
+                        <td>Bloco 25 (4 casas) - SEPARADO</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ O que este script faz:</strong><br>
+                1. Remove casas de blocos incorretos (Bloco 16, 20, 26 que não existem)<br>
+                2. Remove blocos vazios criados incorretamente<br>
+                3. Recria as casas nos blocos corretos conforme documentação<br>
+                4. Atualiza o contador totalCasas de cada condomínio
+            </div>
+
+            <button id="corrigirBtn" onclick="corrigirCasas()">🔧 Corrigir Estrutura de Casas</button>
+
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            getDocs,
+            getDoc,
+            setDoc,
+            updateDoc,
+            deleteDoc,
+            query, 
+            where,
+            serverTimestamp
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+
+        // Configuração correta das casas
+        const casasConfig = {
+            'Ayres': [
+                { blocoNumero: 1, quantidade: 2 },
+                { blocoNumero: 30, quantidade: 3 }
+            ],
+            'Vidal': [
+                { blocoNumero: 20, quantidade: 4 }
+            ],
+            'Taroni': [
+                { blocoNumero: 1, quantidade: 3 }
+            ],
+            'Speranza': [
+                { blocoNumero: 26, quantidade: 4 }
+            ],
+            'Destri': [
+                { blocoNumero: 27, quantidade: 2 },
+                { blocoNumero: 28, quantidade: 3 }
+            ],
+            'Vacaria': [
+                { blocoNumero: 25, quantidade: 4 }
+            ]
+        };
+
+        // Monitor auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = user.email;
+                log('✅ Login realizado com sucesso!', 'success');
+            } else {
+                currentUser = null;
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('mainContent').classList.add('hidden');
+            }
+        });
+
+        window.fazerLogin = async function() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                alert('Preencha email e senha!');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert('Erro no login: ' + error.message);
+                console.error(error);
+            }
+        };
+
+        window.fazerLogout = async function() {
+            try {
+                await signOut(auth);
+                document.getElementById('log').innerHTML = '';
+            } catch (error) {
+                alert('Erro ao sair: ' + error.message);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('passwordInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    fazerLogin();
+                }
+            });
+        });
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info-log';
+            logDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        window.corrigirCasas = async function() {
+            if (!currentUser) {
+                alert('Faça login primeiro!');
+                return;
+            }
+
+            if (!confirm('⚠️ ATENÇÃO: Este script vai remover casas incorretas e recriar nos blocos corretos. Confirma?')) {
+                return;
+            }
+
+            const btn = document.getElementById('corrigirBtn');
+            btn.disabled = true;
+            document.getElementById('log').innerHTML = '';
+
+            try {
+                log('🔧 Iniciando correção da estrutura de casas...', 'info');
+                log('', 'info');
+
+                // Buscar todos os condomínios
+                const condQuery = query(
+                    collection(db, 'condominios'),
+                    where('active', '==', true)
+                );
+                const condSnap = await getDocs(condQuery);
+
+                for (const condDoc of condSnap.docs) {
+                    const condData = condDoc.data();
+                    const condNome = condData.nome;
+                    
+                    // Extrair nome curto (ex: "Condomínio Ayres" -> "Ayres")
+                    const nomeSimples = condNome.replace('Condomínio ', '');
+                    
+                    if (!casasConfig[nomeSimples]) {
+                        log(`⏭️ ${condNome} - sem casas configuradas, pulando`, 'info');
+                        continue;
+                    }
+
+                    log(`📍 Processando ${condNome}...`, 'info');
+
+                    // 1. REMOVER todas as casas existentes deste condomínio
+                    const casasQuery = query(
+                        collection(db, 'apartamentos'),
+                        where('condominioId', '==', condDoc.id),
+                        where('tipo', '==', 'casa')
+                    );
+                    const casasSnap = await getDocs(casasQuery);
+                    
+                    log(`  🗑️ Removendo ${casasSnap.size} casa(s) antiga(s)...`, 'info');
+                    for (const casaDoc of casasSnap.docs) {
+                        await deleteDoc(casaDoc.ref);
+                    }
+                    log(`  ✅ Casas antigas removidas`, 'success');
+
+                    // 2. RECRIAR casas nos blocos corretos
+                    const configCasas = casasConfig[nomeSimples];
+                    let totalCasasCriadas = 0;
+
+                    for (const config of configCasas) {
+                        // Buscar o bloco
+                        const blocoQuery = query(
+                            collection(db, 'blocos'),
+                            where('condominioId', '==', condDoc.id),
+                            where('numero', '==', config.blocoNumero)
+                        );
+                        const blocoSnap = await getDocs(blocoQuery);
+
+                        let blocoId, blocoNome;
+
+                        if (blocoSnap.empty) {
+                            // Criar bloco se não existir
+                            log(`  🏗️ Criando Bloco ${config.blocoNumero}...`, 'info');
+                            const blocoRef = doc(collection(db, 'blocos'));
+                            blocoNome = 'Bloco ' + (config.blocoNumero < 10 ? '0' + config.blocoNumero : config.blocoNumero);
+                            
+                            await setDoc(blocoRef, {
+                                nome: blocoNome,
+                                numero: config.blocoNumero,
+                                condominioId: condDoc.id,
+                                condominioNome: condNome,
+                                totalApartamentos: config.quantidade,
+                                tipo: 'casas',
+                                createdAt: serverTimestamp(),
+                                createdBy: currentUser.uid,
+                                active: true
+                            });
+                            
+                            blocoId = blocoRef.id;
+                            log(`  ✅ Bloco ${config.blocoNumero} criado`, 'success');
+                        } else {
+                            blocoId = blocoSnap.docs[0].id;
+                            blocoNome = blocoSnap.docs[0].data().nome;
+                            log(`  ✓ Bloco ${config.blocoNumero} já existe`, 'info');
+                        }
+
+                        // Criar casas neste bloco
+                        for (let i = 1; i <= config.quantidade; i++) {
+                            const numeroCasa = 'Casa ' + (i < 10 ? '0' + i : i);
+                            
+                            const casaRef = doc(collection(db, 'apartamentos'));
+                            await setDoc(casaRef, {
+                                numero: numeroCasa,
+                                tipo: 'casa',
+                                blocoId: blocoId,
+                                blocoNome: blocoNome,
+                                condominioId: condDoc.id,
+                                condominioNome: condNome,
+                                proprietario: 'Proprietário ' + numeroCasa,
+                                status: 'pendente',
+                                posicao: i,
+                                createdAt: serverTimestamp(),
+                                createdBy: currentUser.uid,
+                                active: true
+                            });
+
+                            totalCasasCriadas++;
+                        }
+
+                        log(`  ✅ ${config.quantidade} casa(s) criada(s) no Bloco ${config.blocoNumero}`, 'success');
+                    }
+
+                    // 3. Atualizar contador no condomínio
+                    await updateDoc(doc(db, 'condominios', condDoc.id), {
+                        totalCasas: totalCasasCriadas
+                    });
+
+                    log(`  📊 Contador atualizado: ${totalCasasCriadas} casas`, 'success');
+                    log('', 'info');
+                }
+
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                log('🎉 CORREÇÃO CONCLUÍDA COM SUCESSO!', 'success');
+                log('', 'info');
+                log('✅ Estrutura de casas corrigida conforme documentação', 'success');
+                log('✅ Contadores atualizados', 'success');
+                log('', 'info');
+                log('🔄 Recarregue o sistema principal para ver as mudanças', 'info');
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

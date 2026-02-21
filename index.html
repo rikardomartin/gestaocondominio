@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Gestao Condominial</title>
+    
+    <!-- Cache Control - FORÇAR RECARREGAMENTO -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json?v=131">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Condominio">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Condominio">
+    
+    <!-- Performance -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=131">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=131">
+    <link rel="apple-touch-icon" href="icon-192.png?v=131">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png?v=131">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png?v=131">
+    
+    <!-- Splash Screen iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-startup-image" href="icon-512.png?v=131">
+    
+    <!-- SEO -->
+    <meta name="description" content="Sistema de gestao de pagamentos condominiais e reserva de salao de festas">
+    <meta name="keywords" content="condominio, pagamentos, gestao, salao, reservas">
+    <meta name="author" content="Gestao Condominial">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css?v=131" as="style">
+    
+    <link rel="stylesheet" href="styles.css?v=131">
+    
+    <!-- Sistema de Atualização Automática v131 - DESATIVADO TEMPORARIAMENTE -->
+    <script>
+        (function() {
+            console.log('[Update System v131] ⏸️ Sistema desativado temporariamente para debug');
+            // DESATIVADO: Causando loop infinito
+            // Será reativado após correção do bug do salão
+        })();
+    </script>
+</head>
+<body>
+    <!-- Loading Overlay para Painel -->
+    <div id="painelLoading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Carregando dados do painel...</div>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="installBanner" class="install-banner hidden">
+        <div class="install-content">
+            <div class="install-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </div>
+            <div class="install-text">
+                <h4>Instalar App</h4>
+                <p>Adicione à tela inicial para acesso rápido</p>
+            </div>
+            <button id="installBtn" class="install-btn">Instalar</button>
+            <button id="dismissInstall" class="dismiss-btn">×</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading" class="loading-screen">
+            <div class="loading-content">
+                <div class="loading-logo">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9,22 9,12 15,12 15,22"/>
+                    </svg>
+                </div>
+                <div class="loading-spinner"></div>
+                <h2>Gestao Condominial</h2>
+                <p>Carregando sistema...</p>
+            </div>
+        </div>
+
+        <!-- Navigation Header -->
+        <header id="header" class="header hidden">
+            <button id="backBtn" class="back-btn hidden">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
+            <h1 id="pageTitle">Gestao Condominial</h1>
+            
+            <!-- User Info -->
+            <div id="userInfo" class="user-info hidden">
+                <div class="user-details">
+                    <span id="userName">Usuário</span>
+                    <span id="userRole" class="user-role">Perfil</span>
+                </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16,17 21,12 16,7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main" class="main hidden">
+            <!-- Login Screen -->
+            <div id="loginScreen" class="screen active">
+                <div class="login-container">
+                    <div class="login-header">
+                        <div class="login-logo">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                <polyline points="9,22 9,12 15,12 15,22"/>
+                            </svg>
+                        </div>
+                        <h2>Gestao Condominial</h2>
+                        <p>Faca login para acessar o sistema</p>
+                    </div>
+                    
+                    <form id="loginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" name="email" required autocomplete="email" placeholder="seu@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Senha</label>
+                            <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Sua senha">
+                        </div>
+                        
+                        <div id="loginError" class="login-error hidden">
+                            E-mail ou senha incorretos
+                        </div>
+                        
+                        <button type="submit" id="loginBtn" class="login-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                                <polyline points="10,17 15,12 10,7"/>
+                                <line x1="15" y1="12" x2="3" y2="12"/>
+                            </svg>
+                            Entrar
+                        </button>
+                    </form>
+                    
+                </div>
+            </div>
+            <!-- Condomínios Screen -->
+            <div id="condominiosScreen" class="screen">
+                <div class="screen-header">
+                    <h2>Condomínios</h2>
+                </div>
+
+                <!-- Seletor de Ano/Mês Ativo -->
+                <div class="period-selector">
+                    <div class="period-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span>Gerenciando:</span>
+                    </div>
+                    <div class="period-controls">
+                        <select id="activeYear" class="period-select">
+                            <option value="">Selecione o ano</option>
+                        </select>
+                        <select id="activeMonth" class="period-select">
+                            <option value="">Selecione o mês</option>
+                            <option value="01">Janeiro</option>
+                            <option value="02">Fevereiro</option>
+                            <option value="03">Março</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Maio</option>
+                            <option value="06">Junho</option>
+                            <option value="07">Julho</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div id="activePeriodDisplay" class="period-display">
+                        <span class="period-label">Período ativo:</span>
+                        <span id="activePeriodText" class="period-text">Nenhum período selecionado</span>
+                    </div>
+                </div>
+
+                <div id="condominiosList" class="items-list"></div>
+            </div>
+
+
+
+            <!-- Blocos Screen -->
+            <div id="blocosScreen" class="screen">
+                <div class="screen-header">
+                    <h2>Blocos</h2>
+                </div>
+                
+                <div class="dashboard-menu" style="margin-bottom: 32px;">
+                    <button id="goToSalaoBtn" class="dashboard-card-btn">
+                        <div class="btn-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="btn-content">
+                            <h3>Salão de Festas</h3>
+                            <p>Reservas e disponibilidade</p>
+                        </div>
+                        <div class="btn-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="blocosList" class="items-list"></div>
+
+                <div id="casasSection" class="casas-section hidden" style="margin-top: 48px;">
+                    <div class="screen-header">
+                        <h2>Casas do Condomínio</h2>
+                    </div>
+                    <div id="casasList" class="items-list"></div>
+                </div>
+            </div>
+
+            <!-- Apartamentos Screen -->
+            <div id="apartamentosScreen" class="screen">
+                <div class="screen-header">
+                    <h2>Apartamentos</h2>
+                </div>
+                
+                <div id="apartamentosList" class="items-list"></div>
+            </div>
+
+            <!-- Salão Screen -->
+            <div id="salaoScreen" class="screen">
+                <div class="salao-header">
+                    <div class="salao-title">
+                        <h2>Salão de Festas</h2>
+                        <p id="salaoCondominio"></p>
+                    </div>
+                </div>
+
+                <!-- Calendar Navigation -->
+                <div class="calendar-nav">
+                    <button id="prevMonth" class="calendar-nav-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m15 18-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="calendar-month-year">
+                        <h3 id="calendarMonth">Janeiro</h3>
+                        <span id="calendarYear">2025</span>
+                    </div>
+                    <button id="nextMonth" class="calendar-nav-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Agenda Button -->
+                <div class="agenda-controls">
+                    <button id="openAgendaBtn" class="agenda-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        Ver Agenda do Mês
+                    </button>
+                </div>
+
+                <!-- Calendar Legend -->
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-color available"></div>
+                        <span>Disponível</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color reserved"></div>
+                        <span>Reservado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color paid"></div>
+                        <span>Pago</span>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="calendar-container">
+                    <div class="calendar-weekdays">
+                        <div class="weekday">Dom</div>
+                        <div class="weekday">Seg</div>
+                        <div class="weekday">Ter</div>
+                        <div class="weekday">Qua</div>
+                        <div class="weekday">Qui</div>
+                        <div class="weekday">Sex</div>
+                        <div class="weekday">Sáb</div>
+                    </div>
+                    <div id="calendarGrid" class="calendar-grid"></div>
+                </div>
+
+                <!-- Reservation Modal -->
+                <div id="reservationModal" class="reservation-modal hidden">
+                    <div class="reservation-modal-content">
+                        <div class="reservation-modal-header">
+                            <h3 id="reservationModalTitle">Nova Reserva</h3>
+                            <button id="closeReservationModal" class="close-btn">×</button>
+                        </div>
+                        <div class="reservation-modal-body">
+                            <div class="reservation-details">
+                                <p id="reservationDate"></p>
+                                
+                                <div class="apartment-selector">
+                                    <label for="apartmentSelect">Apartamento Responsável:</label>
+                                    <select id="apartmentSelect" class="apartment-select">
+                                        <option value="">Selecione o apartamento</option>
+                                    </select>
+                                </div>
+
+                                <div class="reservation-value-input">
+                                    <label for="reservationValue">Valor (R$):</label>
+                                    <input type="number" id="reservationValue" step="0.01" min="0" placeholder="150,00">
+                                </div>
+
+                                 <div class="reservation-status">
+                                    <label>Status:</label>
+                                    <div class="status-options-pills">
+                                        <label class="status-pill">
+                                            <input type="radio" name="reservationStatus" value="reserved" checked>
+                                            <div class="pill-content reserved">
+                                                <span class="status-indicator"></span>
+                                                RESERVADO
+                                            </div>
+                                        </label>
+                                        <label class="status-pill">
+                                            <input type="radio" name="reservationStatus" value="paid">
+                                            <div class="pill-content paid">
+                                                <span class="status-indicator"></span>
+                                                PAGO
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="reservation-observations">
+                                    <label for="reservationObs">Observações:</label>
+                                    <textarea id="reservationObs" rows="3" placeholder="Ex: Churrasqueira liberada, Limpeza inclusa..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="reservation-modal-footer">
+                            <button id="cancelReservation" class="btn-secondary">Cancelar</button>
+                            <button id="deleteReservation" class="btn-delete hidden">Excluir</button>
+                            <button id="confirmReservation" class="btn-primary">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agenda Modal -->
+            <div id="agendaModal" class="agenda-modal hidden">
+                <div class="agenda-modal-content">
+                    <div class="agenda-modal-header">
+                        <div class="agenda-title-section">
+                            <h3 id="agendaModalTitle">Agenda do Salão</h3>
+                            <p id="agendaMonthYear" class="agenda-subtitle">Janeiro 2025</p>
+                        </div>
+                        <button id="closeAgendaModal" class="close-btn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="agenda-modal-body">
+                        <!-- Resumo do mês -->
+                        <div class="agenda-summary">
+                            <div class="summary-card">
+                                <div class="summary-icon available">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12,6 12,12 16,14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="summary-info">
+                                    <span class="summary-number" id="availableDays">0</span>
+                                    <span class="summary-label">Dias Disponíveis</span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <div class="summary-icon reserved">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="m7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </div>
+                                <div class="summary-info">
+                                    <span class="summary-number" id="reservedDays">0</span>
+                                    <span class="summary-label">Reservas</span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <div class="summary-icon paid">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                </div>
+                                <div class="summary-info">
+                                    <span class="summary-number" id="paidReservations">0</span>
+                                    <span class="summary-label">Pagas</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de reservas -->
+                        <div class="agenda-reservations">
+                            <h4 class="reservations-title">Reservas do Mês</h4>
+                            <div id="reservationsList" class="reservations-list">
+                                <!-- Reservas serão inseridas aqui dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="agenda-modal-footer">
+                        <button id="exportAgenda" class="btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Exportar Agenda
+                        </button>
+                        <button id="closeAgendaModalBtn" class="btn-primary">Fechar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagamentos Screen -->
+            <div id="pagamentosScreen" class="screen">
+                <div class="apartment-header">
+                    <div class="apartment-title">
+                        <h2 id="apartmentTitle"></h2>
+                        <p id="apartmentLocation"></p>
+                    </div>
+                    <div class="apartment-actions">
+                        <button id="payYearBtn" class="pay-year-btn operator-only">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"/>
+                                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
+                            </svg>
+                            Quitar Ano
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Aviso de Débitos -->
+                <div id="debtAlert" class="debt-alert hidden">
+                    <div class="alert-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m21,16l-4,-5l4,-5l-4,0l0,-4l-4,4l-5,-4l-5,4l0,4l-4,0l4,5l-4,5l4,0l0,4l5,-4l5,4l0,-4l4,0z"/>
+                        </svg>
+                    </div>
+                    <div class="alert-content">
+                        <h4>Atenção: Débitos Anteriores</h4>
+                        <p id="debtMessage"></p>
+                    </div>
+                </div>
+
+                <!-- Lista de Meses -->
+                <div class="months-container">
+                    <div class="year-selector">
+                        <button id="prevYear" class="year-nav-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m15 18-6-6 6-6"/>
+                            </svg>
+                        </button>
+                        <h3 id="currentYear">2025</h3>
+                        <button id="nextYear" class="year-nav-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="monthsGrid" class="months-grid"></div>
+                </div>
+
+                <!-- Modal de Confirmação de Pagamento -->
+                <div id="paymentModal" class="payment-modal hidden">
+                    <div class="payment-modal-content">
+                        <div class="payment-modal-header">
+                            <h3 id="paymentModalTitle">Confirmar Pagamento</h3>
+                            <button id="closePaymentModal" class="close-btn">×</button>
+                        </div>
+                        <div class="payment-modal-body">
+                            <div class="payment-details">
+                                <p id="paymentMonth"></p>
+                                <div class="payment-value-input">
+                                    <label for="paymentValue">Valor (R$):</label>
+                                    <input type="number" id="paymentValue" step="0.01" min="0" placeholder="285,00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="payment-modal-footer">
+                            <button id="cancelPayment" class="btn-secondary">Cancelar</button>
+                            <button id="confirmPayment" class="btn-primary">Confirmar Pagamento</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Taxa do Condomínio Screen -->
+            <div id="taxaScreen" class="screen">
+                <div class="taxa-header">
+                    <div class="taxa-title">
+                        <h2>Taxa do Condomínio</h2>
+                        <p id="taxaCondominio"></p>
+                    </div>
+                </div>
+
+                <!-- Taxa Atual -->
+                <div class="current-tax-card">
+                    <div class="current-tax-header">
+                        <h3>Taxa Atual</h3>
+                        <div class="current-tax-value">
+                            R$ <span id="currentTaxValue">285,00</span>
+                        </div>
+                    </div>
+                    <div class="current-tax-info">
+                        <p id="currentTaxEffective">Vigente desde: --</p>
+                        <p id="currentTaxReason">--</p>
+                    </div>
+                </div>
+
+                <!-- Alterar Taxa -->
+                <div class="update-tax-card admin-only">
+                    <div class="update-tax-header">
+                        <h3>Alterar Taxa</h3>
+                        <p>As alterações entram em vigor imediatamente para novos pagamentos</p>
+                    </div>
+                    
+                    <form id="updateTaxForm" class="update-tax-form">
+                        <div class="form-group">
+                            <label for="newTaxValue">Nova Taxa (R$)</label>
+                            <input type="number" id="newTaxValue" step="0.01" min="0" placeholder="285,00" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="taxReason">Motivo da Alteração</label>
+                            <textarea id="taxReason" placeholder="Ex: Aumento devido à inflação, Redução por economia..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" id="updateTaxBtn" class="update-tax-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                            Atualizar Taxa
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Histórico de Alterações -->
+                <div class="tax-history-card">
+                    <div class="tax-history-header">
+                        <h3>Histórico de Alterações</h3>
+                        <p>Todas as alterações de taxa são registradas permanentemente</p>
+                    </div>
+                    
+                    <div id="taxHistoryList" class="tax-history-list">
+                        <!-- Histórico será inserido aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel Geral Screen -->
+            <div id="painelScreen" class="screen">
+                <div class="painel-header">
+                    <div class="painel-title">
+                        <h2>Painel Geral</h2>
+                        <p>Visão completa de todos os pagamentos</p>
+                    </div>
+                    <div class="painel-actions">
+                        <button id="exportExcel" class="export-btn excel admin-only">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="16" y1="13" x2="8" y2="21"/>
+                                <line x1="8" y1="13" x2="16" y2="21"/>
+                            </svg>
+                            Excel
+                        </button>
+                        <button id="exportCSV" class="export-btn csv admin-only">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                            CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filters-container">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="filterAno">Ano:</label>
+                            <select id="filterAno" class="filter-select">
+                                <option value="">Todos os anos</option>
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filterCondominio">Condomínio:</label>
+                            <select id="filterCondominio" class="filter-select">
+                                <option value="">Todos os condomínios</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filterBloco">Bloco:</label>
+                            <select id="filterBloco" class="filter-select">
+                                <option value="">Todos os blocos</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filterMes">Mês:</label>
+                            <select id="filterMes" class="filter-select">
+                                <option value="">Todos os meses</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <button id="clearFilters" class="clear-filters-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                                Limpar
+                            </button>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <button id="refreshPainelData" class="refresh-btn" title="Recarregar dados">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"/>
+                                    <polyline points="1 20 1 14 7 14"/>
+                                    <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                </svg>
+                                Atualizar
+                            </button>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <button id="clearPainelCache" class="cache-btn" title="Limpar cache">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                                Cache
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Planilha de Pagamentos</h3>
+                        <div class="table-info">
+                            <span id="tableInfo">0 registros</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table id="paymentsTable" class="payments-table">
+                            <thead>
+                                <tr>
+                                    <th>Condomínio</th>
+                                    <th>Bloco</th>
+                                    <th>Apartamento</th>
+                                    <th>Proprietário</th>
+                                    <th>Mês/Ano</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody">
+                                <!-- Dados serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal de Status -->
+                <div id="statusModal" class="status-modal hidden">
+                    <div class="status-modal-content">
+                        <div class="status-modal-header">
+                            <h3>Alterar Status</h3>
+                            <button id="closeStatusModal" class="close-btn">×</button>
+                        </div>
+                        <div class="status-modal-body">
+                            <p id="statusApartmentInfo"></p>
+                            <div class="status-options">
+                                <label class="status-option">
+                                    <input type="radio" name="newStatus" value="pendente">
+                                    <span class="status-indicator pending"></span>
+                                    Pendente
+                                </label>
+                                <label class="status-option">
+                                    <input type="radio" name="newStatus" value="pago">
+                                    <span class="status-indicator paid"></span>
+                                    Pago
+                                </label>
+                                <label class="status-option">
+                                    <input type="radio" name="newStatus" value="reciclado">
+                                    <span class="status-indicator paid"></span>
+                                    Pago Reciclado
+                                </label>
+                                <label class="status-option">
+                                    <input type="radio" name="newStatus" value="acordo">
+                                    <span class="status-indicator agreement"></span>
+                                    Acordo
+                                </label>
+                            </div>
+                        </div>
+                        <div class="status-modal-footer">
+                            <button id="cancelStatus" class="btn-secondary">Cancelar</button>
+                            <button id="confirmStatus" class="btn-primary">Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <!-- Apartment Status Modal -->
+                <div id="apartmentModal" class="modal-overlay hidden">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div>
+                                <h3 id="apartmentModalTitle">Apartamento --</h3>
+                                <p id="apartmentBreadcrumb" class="modal-subtitle text-sm text-gray-500 mt-1">Condomínio > Bloco > Apt</p>
+                            </div>
+                            <button id="closeApartmentModal" class="close-btn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label">Status do Pagamento</label>
+                                <div class="status-options-grid">
+                                    <label class="status-option-card status-pendente">
+                                        <input type="radio" name="aptStatus" value="pendente">
+                                        <div class="status-content">
+                                            <div class="status-icon">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <polyline points="12,6 12,12 16,14"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div class="status-text">
+                                                <span class="status-title">PENDENTE</span>
+                                                <span class="status-desc">Pagamento em aberto</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="status-option-card status-pago">
+                                        <input type="radio" name="aptStatus" value="pago">
+                                        <div class="status-content">
+                                            <div class="status-icon">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div class="status-text">
+                                                <span class="status-title">PAGO</span>
+                                                <span class="status-desc">Pagamento realizado</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="status-option-card status-reciclado">
+                                        <input type="radio" name="aptStatus" value="reciclado">
+                                        <div class="status-content">
+                                            <div class="status-icon">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M1 4v6h6"></path>
+                                                    <path d="M23 20v-6h-6"></path>
+                                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="status-text">
+                                                <span class="status-title">PAGO RECICLADO</span>
+                                                <span class="status-desc">Pagamento reprocessado</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="status-option-card status-acordo">
+                                        <input type="radio" name="aptStatus" value="acordo">
+                                        <div class="status-content">
+                                            <div class="status-icon">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M9 12l2 2 4-4"></path>
+                                                    <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="status-text">
+                                                <span class="status-title">ACORDO</span>
+                                                <span class="status-desc">Acordo de pagamento</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Campo específico para Casas -->
+                            <!-- Campos específicos para Casas -->
+                            <div id="houseNameGroup" class="form-group hidden">
+                                <label class="form-label" for="houseNameInput">Nome/Número da Casa</label>
+                                <input 
+                                    type="text" 
+                                    id="houseNameInput" 
+                                    class="form-input" 
+                                    placeholder="Ex: Casa 01, Casa do Zelador, Casa da Piscina..."
+                                >
+                            </div>
+                            
+                            <div id="houseResidentGroup" class="form-group hidden">
+                                <label class="form-label" for="houseResidentName">Nome do Morador</label>
+                                <input 
+                                    type="text" 
+                                    id="houseResidentName" 
+                                    class="form-input" 
+                                    placeholder="Digite o nome do morador da casa..."
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="apartmentObservations">Acordo / Observações</label>
+                                <textarea 
+                                    id="apartmentObservations" 
+                                    class="form-textarea" 
+                                    rows="4" 
+                                    placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+                                ></textarea>
+                            </div>
+                            
+
+                        </div>
+                        <div class="modal-footer">
+                            <button id="cancelApartmentModal" class="btn-secondary">Cancelar</button>
+                            <button id="saveApartmentStatus" class="btn-primary">Salvar Alterações</button>
+                        </div>
+                    </div>
+                </div>
+
+        </main>
+
+        <!-- Modal -->
+        <div id="modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle"></h3>
+                    <button id="closeModal" class="close-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="modalInput" placeholder="" class="modal-input">
+                </div>
+                <div class="modal-footer">
+                    <button id="modalCancel" class="btn-secondary">Cancelar</button>
+                    <button id="modalConfirm" class="btn-primary">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <!-- FAB Button - Pagamentos Hoje (apenas para admin) -->
+    <button id="fabPagamentosHoje" class="fab-button" title="Pagamentos de Hoje" style="display: none;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+        <span class="fab-badge" id="fabBadge">0</span>
+    </button>
+
+    <!-- Modal Pagamentos Hoje -->
+    <div id="modalPagamentosHoje" class="modal-pagamentos-hoje hidden">
+        <div class="modal-pagamentos-content">
+            <div class="modal-pagamentos-header">
+                <div>
+                    <h2>💰 Pagamentos de Hoje</h2>
+                    <p class="modal-pagamentos-subtitle" id="dataHoje"></p>
+                </div>
+                <button id="closePagamentosHoje" class="btn-close-modal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-pagamentos-stats">
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">🏢</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalCondominiosHoje">0</div>
+                        <div class="stat-label">Condomínios</div>
+                    </div>
+                </div>
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">🏠</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalApartamentosHoje">0</div>
+                        <div class="stat-label">Apartamentos</div>
+                    </div>
+                </div>
+                <div class="stat-card-hoje">
+                    <div class="stat-icon">💵</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalValorHoje">R$ 0</div>
+                        <div class="stat-label">Total Arrecadado</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-pagamentos-body" id="listaPagamentosHoje">
+                <div class="loading-pagamentos">
+                    <div class="spinner-small"></div>
+                    <p>Carregando pagamentos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import Firebase modules
+        import './firebase-config.js';
+        import './firebase-auth.js';
+        import './firebase-database.js?v=131';
+    </script>
+    
+    <script type="module" src="app.js?v=131"></script>
+    <script src="fix-save-single-month-v2.js?v=131"></script>
+</body>
+</html>

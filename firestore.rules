@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // CHATBOT: Permitir leitura pública de dados do condomínio (DEVE VIR PRIMEIRO)
+    match /condominios/{condominioId} {
+      allow read: if true; // Leitura pública
+      allow write: if request.auth != null; // Escrita apenas autenticado
+    }
+    
+    match /blocos/{blocoId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /apartamentos/{apartamentoId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /salaoReservations/{reservationId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /condominioTaxes/{taxId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Tokens FCM - usuários podem gerenciar seus próprios tokens
+    match /fcmTokens/{tokenId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == tokenId;
+    }
+    
+    // Notificações - admins podem criar, todos podem ler
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if false; // Não permitir deletar
+    }
+    
+    // Regra geral (DEVE VIR POR ÚLTIMO) - apenas usuários autenticados
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

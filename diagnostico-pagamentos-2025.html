@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnóstico Pagamentos 2025</title>
+</head>
+<body>
+    <h1>Diagnóstico de Pagamentos 2025</h1>
+    <button onclick="diagnosticar()">Diagnosticar</button>
+    <pre id="resultado"></pre>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNfMHt6t4kus0kG7f_8qzLsLOmVbpZ-Yw",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "71775362714",
+            appId: "1:71775362714:web:e5e5e5e5e5e5e5e5e5e5e5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.diagnosticar = async function() {
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Diagnosticando...\n\n';
+
+            try {
+                // 1. Buscar TODOS os pagamentos (sem filtro)
+                resultado.textContent += '1. Buscando todos os pagamentos...\n';
+                const allPaymentsQuery = query(collection(db, 'payments'), limit(100));
+                const allPaymentsSnap = await getDocs(allPaymentsQuery);
+                
+                resultado.textContent += `   Total encontrado: ${allPaymentsSnap.size}\n\n`;
+                
+                // 2. Analisar estrutura dos primeiros 10
+                resultado.textContent += '2. Estrutura dos primeiros 10 pagamentos:\n';
+                let count = 0;
+                allPaymentsSnap.forEach(doc => {
+                    if (count < 10) {
+                        const data = doc.data();
+                        resultado.textContent += `   ID: ${doc.id}\n`;
+                        resultado.textContent += `   Campos: ${Object.keys(data).join(', ')}\n`;
+                        resultado.textContent += `   date: ${data.date || 'NÃO TEM'}\n`;
+                        resultado.textContent += `   ano: ${data.ano || 'NÃO TEM'}\n`;
+                        resultado.textContent += `   mes: ${data.mes || 'NÃO TEM'}\n`;
+                        resultado.textContent += `   status: ${data.status}\n`;
+                        resultado.textContent += `   apartamentoId: ${data.apartamentoId}\n`;
+                        resultado.textContent += '\n';
+                        count++;
+                    }
+                });
+
+                // 3. Buscar pagamentos de 2025 especificamente
+                resultado.textContent += '3. Buscando pagamentos de 2025...\n';
+                
+                // Tentar com campo 'date'
+                const query2025Date = query(
+                    collection(db, 'payments'),
+                    where('date', '>=', '2025-01'),
+                    where('date', '<=', '2025-12'),
+                    limit(50)
+                );
+                
+                try {
+                    const snap2025Date = await getDocs(query2025Date);
+                    resultado.textContent += `   Com campo 'date': ${snap2025Date.size} encontrados\n`;
+                    
+                    if (snap2025Date.size > 0) {
+                        resultado.textContent += '   Exemplos:\n';
+                        let exCount = 0;
+                        snap2025Date.forEach(doc => {
+                            if (exCount < 5) {
+                                const data = doc.data();
+                                resultado.textContent += `     - ${data.date} | ${data.status} | Apt: ${data.apartamentoId}\n`;
+                                exCount++;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    resultado.textContent += `   Erro com campo 'date': ${e.message}\n`;
+                }
+
+                // Tentar com campo 'ano'
+                resultado.textContent += '\n';
+                const query2025Ano = query(
+                    collection(db, 'payments'),
+                    where('ano', '==', '2025'),
+                    limit(50)
+                );
+                
+                try {
+                    const snap2025Ano = await getDocs(query2025Ano);
+                    resultado.textContent += `   Com campo 'ano': ${snap2025Ano.size} encontrados\n`;
+                    
+                    if (snap2025Ano.size > 0) {
+                        resultado.textContent += '   Exemplos:\n';
+                        let exCount = 0;
+                        snap2025Ano.forEach(doc => {
+                            if (exCount < 5) {
+                                const data = doc.data();
+                                resultado.textContent += `     - ${data.ano}-${data.mes} | ${data.status} | Apt: ${data.apartamentoId}\n`;
+                                exCount++;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    resultado.textContent += `   Erro com campo 'ano': ${e.message}\n`;
+                }
+
+                // 4. Contar por status
+                resultado.textContent += '\n4. Contagem por status (primeiros 100):\n';
+                const statusCount = {};
+                allPaymentsSnap.forEach(doc => {
+                    const status = doc.data().status || 'sem-status';
+                    statusCount[status] = (statusCount[status] || 0) + 1;
+                });
+                
+                Object.entries(statusCount).forEach(([status, count]) => {
+                    resultado.textContent += `   ${status}: ${count}\n`;
+                });
+
+                resultado.textContent += '\n✅ Diagnóstico concluído!';
+
+            } catch (error) {
+                resultado.textContent += `\n❌ Erro: ${error.message}\n`;
+                console.error(error);
+            }
+        };
+    </script>
+</body>
+</html>

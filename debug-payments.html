@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Payments</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .box { background: #252526; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 3px solid #007acc; }
+        button { background: #007acc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #005a9e; }
+        pre { background: #1e1e1e; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .error { border-left-color: #f48771; }
+        .success { border-left-color: #89d185; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug - Payments Collection</h1>
+    
+    <div class="box">
+        <button onclick="loadAllPayments()">Carregar Todos os Pagamentos</button>
+        <button onclick="loadPaymentsByApartment()">Carregar por Apartamento 103</button>
+        <button onclick="checkAppState()">Verificar appState</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLkvjYDA_L7RiCGO5ksaxNLdVUHX-Dn0I",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "673605863349",
+            appId: "1:673605863349:web:c0e0e8c0f8e8c0f8e8c0f8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.loadAllPayments = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="box">⏳ Carregando...</div>';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'payments'));
+                const payments = [];
+                
+                querySnapshot.forEach((doc) => {
+                    payments.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                let html = `<div class="box success">`;
+                html += `<h3>✅ Total de Pagamentos: ${payments.length}</h3>`;
+                html += `<pre>${JSON.stringify(payments, null, 2)}</pre>`;
+                html += `</div>`;
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="box error"><h3>❌ Erro:</h3><pre>${error.message}</pre></div>`;
+            }
+        };
+
+        window.loadPaymentsByApartment = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="box">⏳ Carregando pagamentos do apartamento 103...</div>';
+
+            try {
+                // Buscar apartamento 103 primeiro
+                const aptQuery = query(collection(db, 'apartamentos'), where('numero', '==', '103'));
+                const aptSnapshot = await getDocs(aptQuery);
+                
+                if (aptSnapshot.empty) {
+                    resultDiv.innerHTML = '<div class="box error">❌ Apartamento 103 não encontrado</div>';
+                    return;
+                }
+
+                const apartamento = { id: aptSnapshot.docs[0].id, ...aptSnapshot.docs[0].data() };
+                
+                // Buscar pagamentos deste apartamento
+                const payQuery = query(collection(db, 'payments'), where('apartamentoId', '==', apartamento.id));
+                const paySnapshot = await getDocs(payQuery);
+                
+                const payments = [];
+                paySnapshot.forEach((doc) => {
+                    payments.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                let html = `<div class="box success">`;
+                html += `<h3>🏢 Apartamento 103</h3>`;
+                html += `<pre>${JSON.stringify(apartamento, null, 2)}</pre>`;
+                html += `<h3>💰 Pagamentos (${payments.length})</h3>`;
+                html += `<pre>${JSON.stringify(payments, null, 2)}</pre>`;
+                html += `</div>`;
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="box error"><h3>❌ Erro:</h3><pre>${error.message}</pre></div>`;
+            }
+        };
+
+        window.checkAppState = function() {
+            const resultDiv = document.getElementById('result');
+            
+            if (typeof appState === 'undefined') {
+                resultDiv.innerHTML = '<div class="box error">❌ appState não está disponível. Abra esta página a partir do sistema principal.</div>';
+                return;
+            }
+
+            let html = `<div class="box success">`;
+            html += `<h3>📊 appState.payments.condominio</h3>`;
+            html += `<p>Total: ${appState.payments.condominio.length}</p>`;
+            html += `<pre>${JSON.stringify(appState.payments.condominio, null, 2)}</pre>`;
+            html += `</div>`;
+
+            resultDiv.innerHTML = html;
+        };
+    </script>
+</body>
+</html>

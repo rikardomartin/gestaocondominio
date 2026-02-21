@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verificar Nome Condomínio</title>
+</head>
+<body>
+    <h1>Verificar Nome do Condomínio</h1>
+    <button onclick="verificar()">Verificar</button>
+    <pre id="resultado"></pre>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNfMHt6t4kus0kG7f_8qzLsLOmVbpZ-Yw",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "71775362714",
+            appId: "1:71775362714:web:e5e5e5e5e5e5e5e5e5e5e5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.verificar = async function() {
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Buscando...\n\n';
+
+            try {
+                const condominiosSnap = await getDocs(collection(db, 'condominios'));
+                
+                resultado.textContent += `Total: ${condominiosSnap.size} condomínios\n\n`;
+                
+                condominiosSnap.forEach(doc => {
+                    const data = doc.data();
+                    resultado.textContent += `ID: ${doc.id}\n`;
+                    resultado.textContent += `Nome: "${data.nome}"\n`;
+                    resultado.textContent += `Nome exato: [${data.nome}]\n`;
+                    resultado.textContent += `Comparação: "${data.nome}" === "Condominio Ayres" ? ${data.nome === 'Condominio Ayres'}\n`;
+                    resultado.textContent += `Comparação: "${data.nome}" === "Condomínio Ayres" ? ${data.nome === 'Condomínio Ayres'}\n`;
+                    resultado.textContent += '\n';
+                });
+
+            } catch (error) {
+                resultado.textContent += `Erro: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>

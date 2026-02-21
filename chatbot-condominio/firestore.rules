@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Mensagens do chat - permitir leitura e escrita para todos
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+    
+    // Conversas - permitir leitura e escrita para todos
+    match /conversations/{conversationId} {
+      allow read, write: if true;
+    }
+    
+    // Permitir leitura de todas as collections (para buscar dados)
+    match /{document=**} {
+      allow read: if true;
+    }
+  }
+}

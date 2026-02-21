@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Rápido 2025 - Loop Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Teste Rápido - Loop Fix 2025</h1>
+        <p>Teste otimizado para verificar se o loop infinito foi resolvido.</p>
+
+        <div class="info">
+            <strong>Problema:</strong> O sistema estava tentando carregar TODOS os meses de 2025 (12 meses × todos os blocos), 
+            causando loop infinito e sobrecarga.
+        </div>
+
+        <div class="warning">
+            <strong>Solução:</strong> Carregar APENAS o mês selecionado e limitar logs de debug.
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPayments">0</div>
+                <div class="stat-label">Pagamentos 2025</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="paidCount">0</div>
+                <div class="stat-label">Status "Pago"</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Status "Pendente"</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="loadTime">0ms</div>
+                <div class="stat-label">Tempo Carregamento</div>
+            </div>
+        </div>
+
+        <button onclick="testJanuary2025()">Testar Janeiro 2025</button>
+        <button onclick="testFebruary2025()">Testar Fevereiro 2025</button>
+        <button onclick="testAllMonths()">Testar Todos (Cuidado!)</button>
+        <button onclick="clearLogs()">Limpar Logs</button>
+
+        <div id="status"></div>
+        <div class="log" id="logs"></div>
+    </div>
+
+    <script type="module">
+        import { 
+            getCondominios,
+            getBlocosByCondominio,
+            getPaymentsByBlocoAndPeriod
+        } from './firebase-database.js';
+
+        let testResults = {};
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.textContent += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+
+        function updateStats(total, paid, pending, time) {
+            document.getElementById('totalPayments').textContent = total;
+            document.getElementById('paidCount').textContent = paid;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('loadTime').textContent = `${time}ms`;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').textContent = '';
+            document.getElementById('status').textContent = '';
+        }
+
+        async function testMonth(month, monthName) {
+            const startTime = performance.now();
+            showStatus(`🔄 Testando ${monthName} 2025...`, 'info');
+            log(`🚀 Iniciando teste para ${monthName} 2025`);
+            
+            try {
+                // Carregar condomínios
+                log(`📦 Carregando condomínios...`);
+                const condominios = await getCondominios();
+                log(`✅ ${condominios.length} condomínios carregados`);
+
+                let totalPayments = 0;
+                let paidCount = 0;
+                let pendingCount = 0;
+                let blocosProcessados = 0;
+
+                // Processar apenas os primeiros 3 condomínios para teste rápido
+                for (const condominio of condominios.slice(0, 3)) {
+                    log(`🏢 Processando: ${condominio.nome}`);
+                    
+                    const blocos = await getBlocosByCondominio(condominio.id);
+                    log(`📋 ${blocos.length} blocos encontrados`);
+                    
+                    // Processar apenas os primeiros 5 blocos para teste rápido
+                    for (const bloco of blocos.slice(0, 5)) {
+                        try {
+                            const date = `2025-${month}`;
+                            const payments = await getPaymentsByBlocoAndPeriod(bloco.id, date);
+                            
+                            totalPayments += payments.length;
+                            paidCount += payments.filter(p => p.status === 'pago').length;
+                            pendingCount += payments.filter(p => p.status === 'pendente').length;
+                            blocosProcessados++;
+                            
+                            if (payments.length > 0) {
+                                log(`💰 ${bloco.nome}: ${payments.length} pagamentos (${payments.filter(p => p.status === 'pago').length} pagos)`);
+                            }
+                        } catch (error) {
+                            log(`❌ Erro em ${bloco.nome}: ${error.message}`);
+                        }
+                    }
+                }
+
+                const endTime = performance.now();
+                const loadTime = Math.round(endTime - startTime);
+
+                updateStats(totalPayments, paidCount, pendingCount, loadTime);
+
+                const successRate = totalPayments > 0 ? (paidCount / totalPayments * 100).toFixed(1) : 0;
+                
+                showStatus(
+                    `✅ ${monthName} 2025: ${totalPayments} pagamentos, ${successRate}% pagos, ${loadTime}ms`, 
+                    'success'
+                );
+
+                log(`📊 Estatísticas finais:`);
+                log(`   Total: ${totalPayments}`);
+                log(`   Pagos: ${paidCount} (${successRate}%)`);
+                log(`   Pendentes: ${pendingCount}`);
+                log(`   Blocos processados: ${blocosProcessados}`);
+                log(`   Tempo: ${loadTime}ms`);
+                log(`🎯 Teste concluído com sucesso!`);
+
+                return { totalPayments, paidCount, pendingCount, loadTime };
+
+            } catch (error) {
+                showStatus(`❌ Erro no teste: ${error.message}`, 'error');
+                log(`❌ Erro: ${error.message}`);
+                log(`📍 Stack: ${error.stack}`);
+                return null;
+            }
+        }
+
+        // Funções globais para os botões
+        window.testJanuary2025 = () => testMonth('01', 'Janeiro');
+        window.testFebruary2025 = () => testMonth('02', 'Fevereiro');
+        window.testAllMonths = async () => {
+            showStatus('⚠️ Testando todos os meses (isso pode demorar)...', 'warning');
+            const months = [
+                ['01', 'Janeiro'], ['02', 'Fevereiro'], ['03', 'Março'],
+                ['04', 'Abril'], ['05', 'Maio'], ['06', 'Junho']
+            ];
+            
+            let totalGeral = 0;
+            let pagosGeral = 0;
+            let pendentesGeral = 0;
+            
+            for (const [month, name] of months) {
+                log(`\n🔄 === INICIANDO ${name.toUpperCase()} ===`);
+                const result = await testMonth(month, name);
+                if (result) {
+                    totalGeral += result.totalPayments;
+                    pagosGeral += result.paidCount;
+                    pendentesGeral += result.pendingCount;
+                }
+                // Pequena pausa entre meses
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            const successRateGeral = totalGeral > 0 ? (pagosGeral / totalGeral * 100).toFixed(1) : 0;
+            showStatus(
+                `🎉 TODOS OS MESES: ${totalGeral} pagamentos, ${successRateGeral}% pagos`, 
+                'success'
+            );
+            log(`\n🏆 RESUMO GERAL:`);
+            log(`   Total geral: ${totalGeral}`);
+            log(`   Pagos gerais: ${pagosGeral} (${successRateGeral}%)`);
+            log(`   Pendentes gerais: ${pendentesGeral}`);
+        };
+        window.clearLogs = clearLogs;
+
+        // Estado inicial
+        log('🔧 Sistema de teste inicializado');
+        log('💡 Use os botões acima para testar diferentes meses de 2025');
+        showStatus('✅ Pronto para testar', 'success');
+    </script>
+</body>
+</html>

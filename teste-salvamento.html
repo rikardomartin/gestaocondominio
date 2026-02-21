@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Salvamento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+        h1 { color: #2c3e50; }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2980b9; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .step {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Salvamento - Passo a Passo</h1>
+
+    <div class="box warning">
+        <h2>⚠️ IMPORTANTE: Ordem Correta</h2>
+        <div class="step">
+            <strong>PASSO 1:</strong> Selecione o ANO (ex: 2026)
+        </div>
+        <div class="step">
+            <strong>PASSO 2:</strong> Selecione o MÊS (ex: 01 - Janeiro)
+        </div>
+        <div class="step">
+            <strong>PASSO 3:</strong> Clique no apartamento
+        </div>
+        <div class="step">
+            <strong>PASSO 4:</strong> Marque o status (PAGO, PENDENTE, etc)
+        </div>
+        <div class="step">
+            <strong>PASSO 5:</strong> Clique em SALVAR
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>🔍 Verificar Estado Atual</h2>
+        <button onclick="verificarEstado()">Verificar Estado do Sistema</button>
+        <div id="estadoResult"></div>
+    </div>
+
+    <div class="box">
+        <h2>📝 O que NÃO fazer</h2>
+        <ul>
+            <li>❌ NÃO clique no apartamento SEM selecionar ano e mês primeiro</li>
+            <li>❌ NÃO espere que o sistema selecione automaticamente</li>
+            <li>❌ NÃO use o sistema sem ver os seletores de ano/mês no topo</li>
+        </ul>
+    </div>
+
+    <div class="box">
+        <h2>✅ Resultado Esperado</h2>
+        <p>Ao salvar Janeiro como PAGO:</p>
+        <ul>
+            <li>✅ Janeiro fica PAGO</li>
+            <li>✅ Fevereiro continua PENDENTE</li>
+            <li>✅ Março continua PENDENTE</li>
+            <li>✅ Todos os outros meses continuam PENDENTE</li>
+        </ul>
+    </div>
+
+    <div class="box">
+        <h2>🐛 Se der erro</h2>
+        <p><strong>Erro: "Selecione o ano e mes antes de salvar"</strong></p>
+        <p>Solução: Você esqueceu de selecionar o ano e/ou mês no topo da tela!</p>
+        <br>
+        <p><strong>Erro: "Nenhum apartamento selecionado"</strong></p>
+        <p>Solução: Clique em um apartamento antes de tentar salvar.</p>
+    </div>
+
+    <button onclick="window.location.href='https://gestaodoscondominios.web.app'">
+        🏠 Voltar para o Sistema
+    </button>
+
+    <script>
+        function verificarEstado() {
+            const resultDiv = document.getElementById('estadoResult');
+            
+            // Tentar acessar appState do sistema
+            if (typeof appState !== 'undefined') {
+                let html = '<div class="box success">';
+                html += '<h3>✅ Estado do Sistema:</h3>';
+                html += '<pre>';
+                html += `Ano Ativo: ${appState.activeYear || 'NÃO SELECIONADO'}\n`;
+                html += `Mês Ativo: ${appState.activeMonth || 'NÃO SELECIONADO'}\n`;
+                html += `Condomínio: ${appState.selectedCondominio?.nome || 'Nenhum'}\n`;
+                html += `Apartamento: ${appState.selectedApartamento?.numero || 'Nenhum'}\n`;
+                html += '</pre>';
+                html += '</div>';
+                
+                if (!appState.activeYear || !appState.activeMonth) {
+                    html += '<div class="box error">';
+                    html += '<p>❌ <strong>PROBLEMA:</strong> Ano e/ou Mês não estão selecionados!</p>';
+                    html += '<p>Selecione o ano e mês no topo da tela antes de clicar em um apartamento.</p>';
+                    html += '</div>';
+                }
+                
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = '<div class="box error"><p>❌ Sistema não carregado. Abra esta página a partir do sistema principal.</p></div>';
+            }
+        }
+    </script>
+</body>
+</html>

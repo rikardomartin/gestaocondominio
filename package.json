@@ -1,0 +1,39 @@
+{
+  "name": "condominio-management-pwa",
+  "version": "2.0.0",
+  "description": "Sistema PWA de Gestão Condominial com Firebase",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "setup-users": "node setup-demo-users.js",
+    "build": "echo 'PWA build complete'",
+    "deploy": "firebase deploy"
+  },
+  "keywords": [
+    "pwa",
+    "condominio",
+    "firebase",
+    "gestao",
+    "pagamentos"
+  ],
+  "author": "Sistema de Gestão Condominial",
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^10.7.1"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/condominio-management"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/condominio-management/issues"
+  },
+  "homepage": "https://condominio-management.web.app"
+}

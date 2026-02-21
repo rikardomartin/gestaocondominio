@@ -1,0 +1,99 @@
+========================================
+  COMANDOS PARA DEPLOY - NOTIFICAÇÕES
+========================================
+
+PASSO 1: Verificar Login
+-------------------------
+firebase login
+
+Se já estiver logado, vai mostrar:
+"Already logged in as seu-email@gmail.com"
+
+
+PASSO 2: Verificar Projeto
+---------------------------
+firebase use gestaodoscondominios
+
+Deve mostrar:
+"Now using project gestaodoscondominios"
+
+
+PASSO 3: Instalar Dependências
+-------------------------------
+cd functions
+npm install
+cd ..
+
+
+PASSO 4: Deploy das Functions
+------------------------------
+firebase deploy --only functions
+
+OU use o script:
+deploy-functions.bat
+
+
+PASSO 5: Deploy das Regras
+---------------------------
+firebase deploy --only firestore:rules
+
+
+PASSO 6: Testar
+---------------
+Abra no navegador:
+https://us-central1-gestaodoscondominios.cloudfunctions.net/sendTestNotification
+
+Deve retornar:
+{
+  "success": true,
+  "message": "Notificação de teste criada",
+  "notificationId": "..."
+}
+
+
+========================================
+  TROUBLESHOOTING
+========================================
+
+ERRO: "Cannot understand what targets to deploy"
+SOLUÇÃO: firebase.json foi atualizado, tente novamente
+
+ERRO: "Permission denied"
+SOLUÇÃO: firebase login --reauth
+
+ERRO: "Project not found"
+SOLUÇÃO: firebase use --add
+         Selecione: gestaodoscondominios
+
+ERRO: "npm not found"
+SOLUÇÃO: Instale Node.js de https://nodejs.org/
+
+
+========================================
+  VERIFICAR SE FUNCIONOU
+========================================
+
+1. Firebase Console > Functions
+   Deve mostrar 3 functions:
+   - sendPaymentNotification
+   - cleanupOldTokens  
+   - sendTestNotification
+
+2. Firebase Console > Firestore
+   Deve ter as coleções:
+   - fcmTokens
+   - notifications
+
+3. No App (após login como admin):
+   Console deve mostrar:
+   "✅ Token FCM obtido: ..."
+   "✅ Token salvo no Firestore"
+   "✅ Notificações habilitadas!"
+
+
+========================================
+  PRONTO!
+========================================
+
+Agora faça um pagamento de teste e veja
+a notificação aparecer! 🔔💰

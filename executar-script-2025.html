@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar 2025 como Pago</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .warning-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+
+        .info-list {
+            color: #0c5460;
+            font-size: 14px;
+            padding-left: 20px;
+        }
+
+        .info-list li {
+            margin-bottom: 5px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-execute {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-execute:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-execute:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .progress {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            display: none;
+        }
+
+        .log.active {
+            display: block;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-error {
+            color: #dc3545;
+        }
+
+        .log-info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Marcar Ano 2025 como Pago</h1>
+        <p class="subtitle">Script automático para marcar todos os pagamentos de 2025</p>
+
+        <div class="warning">
+            <div class="warning-title">⚠️ Atenção!</div>
+            <div class="warning-text">
+                Este script irá criar/atualizar pagamentos para TODOS os apartamentos e casas de TODOS os condomínios para o ano de 2025 (12 meses). Esta ação não pode ser desfeita facilmente.
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-title">📋 O que será feito:</div>
+            <ul class="info-list">
+                <li>Buscar todos os condomínios</li>
+                <li>Buscar todos os blocos de cada condomínio</li>
+                <li>Buscar todos os apartamentos e casas</li>
+                <li>Criar/atualizar pagamentos para Janeiro a Dezembro de 2025</li>
+                <li>Marcar todos como status "PAGO"</li>
+            </ul>
+        </div>
+
+        <div class="button-container">
+            <button class="btn-cancel" onclick="window.close()">Cancelar</button>
+            <button class="btn-execute" id="executeBtn" onclick="confirmarExecucao()">
+                Executar Script
+            </button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processando...</div>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            doc,
+            setDoc,
+            query,
+            where
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnTyF00Pnie-se5vGNqLl7DqzhJEsr8Ck",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20770393188",
+            appId: "1:20770393188:web:c1b7e5c8b5e0a8e8e8e8e8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('active');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.confirmarExecucao = function() {
+            const confirmacao = confirm(
+                '⚠️ CONFIRMAÇÃO FINAL\n\n' +
+                'Você está prestes a marcar TODO O ANO DE 2025 como PAGO para TODOS os apartamentos.\n\n' +
+                'Isso pode criar milhares de registros no banco de dados.\n\n' +
+                'Deseja continuar?'
+            );
+
+            if (confirmacao) {
+                executarScript();
+            }
+        };
+
+        async function executarScript() {
+            const executeBtn = document.getElementById('executeBtn');
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progressText');
+
+            executeBtn.disabled = true;
+            executeBtn.textContent = 'Executando...';
+            progress.classList.add('active');
+
+            try {
+                const ano = 2025;
+                const meses = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+                
+                let totalCriados = 0;
+                let totalAtualizados = 0;
+                let totalErros = 0;
+
+                addLog('🚀 Iniciando script...', 'info');
+
+                // Buscar condomínios
+                progressText.textContent = 'Buscando condomínios...';
+                const condominiosSnapshot = await getDocs(collection(db, 'condominios'));
+                const condominios = condominiosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                addLog(`✅ Encontrados ${condominios.length} condomínios`, 'success');
+
+                let processados = 0;
+                const total = condominios.length;
+
+                for (const condominio of condominios) {
+                    addLog(`🏢 Processando: ${condominio.nome}`, 'info');
+                    progressText.textContent = `Processando ${condominio.nome}...`;
+
+                    // Buscar blocos
+                    const blocosSnapshot = await getDocs(
+                        query(collection(db, 'blocos'), where('condominioId', '==', condominio.id))
+                    );
+                    const blocos = blocosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                    for (const bloco of blocos) {
+                        const apartamentosSnapshot = await getDocs(
+                            query(collection(db, 'apartamentos'), where('blocoId', '==', bloco.id))
+                        );
+                        const apartamentos = apartamentosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        for (const apartamento of apartamentos) {
+                            for (const mes of meses) {
+                                const date = `${ano}-${mes}`;
+                                
+                                try {
+                                    const paymentsSnapshot = await getDocs(
+                                        query(
+                                            collection(db, 'payments'),
+                                            where('apartamentoId', '==', apartamento.id),
+                                            where('ano', '==', ano),
+                                            where('mes', '==', mes)
+                                        )
+                                    );
+
+                                    const paymentData = {
+                                        apartamentoId: apartamento.id,
+                                        condominioId: condominio.id,
+                                        blocoId: bloco.id,
+                                        apartamentoNumero: apartamento.numero,
+                                        ano: ano,
+                                        mes: mes,
+                                        date: date,
+                                        type: 'condominio',
+                                        status: 'pago',
+                                        observacao: `Pagamento automático - Script 2025`,
+                                        createdAt: new Date(),
+                                        updatedAt: new Date()
+                                    };
+
+                                    if (paymentsSnapshot.empty) {
+                                        const newPaymentRef = doc(collection(db, 'payments'));
+                                        await setDoc(newPaymentRef, paymentData);
+                                        totalCriados++;
+                                    } else {
+                                        const existingPayment = paymentsSnapshot.docs[0];
+                                        await setDoc(doc(db, 'payments', existingPayment.id), paymentData, { merge: true });
+                                        totalAtualizados++;
+                                    }
+                                } catch (error) {
+                                    totalErros++;
+                                    addLog(`❌ Erro no apt ${apartamento.numero} mês ${mes}`, 'error');
+                                }
+                            }
+                        }
+                    }
+
+                    // Processar casas
+                    const casasSnapshot = await getDocs(
+                        query(collection(db, 'casas'), where('condominioId', '==', condominio.id))
+                    );
+                    const casas = casasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                    for (const casa of casas) {
+                        for (const mes of meses) {
+                            const date = `${ano}-${mes}`;
+                            
+                            try {
+                                const paymentsSnapshot = await getDocs(
+                                    query(
+                                        collection(db, 'payments'),
+                                        where('apartamentoId', '==', casa.id),
+                                        where('ano', '==', ano),
+                                        where('mes', '==', mes)
+                                    )
+                                );
+
+                                const paymentData = {
+                                    apartamentoId: casa.id,
+                                    condominioId: condominio.id,
+                                    blocoId: null,
+                                    apartamentoNumero: casa.numero,
+                                    ano: ano,
+                                    mes: mes,
+                                    date: date,
+                                    type: 'condominio',
+                                    status: 'pago',
+                                    observacao: `Pagamento automático - Script 2025`,
+                                    createdAt: new Date(),
+                                    updatedAt: new Date()
+                                };
+
+                                if (paymentsSnapshot.empty) {
+                                    const newPaymentRef = doc(collection(db, 'payments'));
+                                    await setDoc(newPaymentRef, paymentData);
+                                    totalCriados++;
+                                } else {
+                                    const existingPayment = paymentsSnapshot.docs[0];
+                                    await setDoc(doc(db, 'payments', existingPayment.id), paymentData, { merge: true });
+                                    totalAtualizados++;
+                                }
+                            } catch (error) {
+                                totalErros++;
+                                addLog(`❌ Erro na casa ${casa.numero} mês ${mes}`, 'error');
+                            }
+                        }
+                    }
+
+                    processados++;
+                    const percentual = Math.round((processados / total) * 100);
+                    document.getElementById('progressFill').style.width = percentual + '%';
+                }
+
+                // Resumo final
+                addLog('='.repeat(50), 'info');
+                addLog('✅ SCRIPT CONCLUÍDO!', 'success');
+                addLog(`📊 Criados: ${totalCriados}`, 'success');
+                addLog(`🔄 Atualizados: ${totalAtualizados}`, 'success');
+                addLog(`❌ Erros: ${totalErros}`, totalErros > 0 ? 'error' : 'success');
+                addLog('='.repeat(50), 'info');
+
+                progressText.textContent = 'Concluído!';
+                executeBtn.textContent = 'Concluído ✅';
+
+                alert(`✅ Script concluído!\n\nCriados: ${totalCriados}\nAtualizados: ${totalAtualizados}\nErros: ${totalErros}`);
+
+            } catch (error) {
+                addLog(`❌ Erro fatal: ${error.message}`, 'error');
+                alert('❌ Erro ao executar script: ' + error.message);
+                executeBtn.disabled = false;
+                executeBtn.textContent = 'Tentar Novamente';
+            }
+        }
+
+        window.executarScript = executarScript;
+    </script>
+</body>
+</html>

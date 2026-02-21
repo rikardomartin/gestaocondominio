@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renomear Blocos de Casas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        .info {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0c5460;
+        }
+        .login-section {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .login-section input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .user-info {
+            background: #d4edda;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #log {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info-log { color: #17a2b8; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Renomear Blocos de Casas</h1>
+        
+        <div class="login-section" id="loginSection">
+            <h3>🔐 Login</h3>
+            <input type="email" id="emailInput" placeholder="Email" value="admin@condominio.com">
+            <input type="password" id="passwordInput" placeholder="Senha">
+            <button onclick="fazerLogin()">Entrar</button>
+        </div>
+
+        <div class="user-info" id="userInfo">
+            <strong>✅ Logado:</strong> <span id="userEmail"></span>
+        </div>
+
+        <div id="mainContent" class="hidden">
+            <div class="info">
+                <strong>🔧 O QUE SERÁ FEITO:</strong><br><br>
+                <strong>Vidal:</strong> Bloco 20 → "Casas do Condomínio" (número 999)<br>
+                <strong>Taroni:</strong> Bloco 16 → "Casas do Condomínio" (número 999)<br>
+                <strong>Speranza:</strong> Bloco 26 → "Casas do Condomínio" (número 999)<br><br>
+                <em>O número 999 faz o bloco aparecer por último na lista</em>
+            </div>
+
+            <button onclick="renomearBlocos()">🏠 Renomear Blocos para "Casas do Condomínio"</button>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, signInWithEmailAndPassword, onAuthStateChanged
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getFirestore, collection, doc, getDocs, updateDoc, query, where
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = user.email;
+            }
+        });
+
+        window.fazerLogin = async function() {
+            try {
+                await signInWithEmailAndPassword(auth, 
+                    document.getElementById('emailInput').value,
+                    document.getElementById('passwordInput').value
+                );
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        };
+
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info-log';
+            logDiv.innerHTML += `<span class="${className}">${msg}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.renomearBlocos = async function() {
+            if (!confirm('⚠️ Isso vai renomear os blocos de casas para "Casas do Condomínio". Confirma?')) return;
+
+            document.getElementById('log').innerHTML = '';
+            log('🔧 Iniciando renomeação de blocos...', 'info');
+            log('', 'info');
+
+            try {
+                const config = {
+                    'Vidal': { blocoNumero: 20 },
+                    'Taroni': { blocoNumero: 16 },
+                    'Speranza': { blocoNumero: 26 }
+                };
+
+                const condQuery = query(collection(db, 'condominios'), where('active', '==', true));
+                const condSnap = await getDocs(condQuery);
+
+                for (const condDoc of condSnap.docs) {
+                    const condData = condDoc.data();
+                    const nomeSimples = condData.nome.replace('Condomínio ', '');
+                    
+                    if (!config[nomeSimples]) continue;
+
+                    log(`📍 Processando ${condData.nome}...`, 'info');
+
+                    const cfg = config[nomeSimples];
+
+                    // Buscar o bloco
+                    const blocoQuery = query(
+                        collection(db, 'blocos'),
+                        where('condominioId', '==', condDoc.id),
+                        where('numero', '==', cfg.blocoNumero)
+                    );
+                    const blocoSnap = await getDocs(blocoQuery);
+
+                    if (blocoSnap.empty) {
+                        log(`  ⚠️ Bloco ${cfg.blocoNumero} não encontrado`, 'error');
+                        continue;
+                    }
+
+                    const blocoDoc = blocoSnap.docs[0];
+                    const blocoId = blocoDoc.id;
+
+                    // Renomear o bloco
+                    await updateDoc(blocoDoc.ref, {
+                        nome: 'Casas do Condomínio',
+                        numero: 999, // Número alto para aparecer por último
+                        tipo: 'casas'
+                    });
+
+                    log(`  ✅ Bloco ${cfg.blocoNumero} renomeado para "Casas do Condomínio"`, 'success');
+
+                    // Atualizar blocoNome nas casas
+                    const casasQuery = query(
+                        collection(db, 'apartamentos'),
+                        where('blocoId', '==', blocoId),
+                        where('tipo', '==', 'casa')
+                    );
+                    const casasSnap = await getDocs(casasQuery);
+
+                    for (const casaDoc of casasSnap.docs) {
+                        await updateDoc(casaDoc.ref, {
+                            blocoNome: 'Casas do Condomínio'
+                        });
+                    }
+
+                    log(`  ✅ ${casasSnap.size} casa(s) atualizadas`, 'success');
+                    log('', 'info');
+                }
+
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                log('🎉 CONCLUÍDO! Blocos renomeados', 'success');
+                log('', 'info');
+                log('✅ Blocos agora se chamam "Casas do Condomínio"', 'success');
+                log('✅ Aparecerão por último na lista (número 999)', 'success');
+                log('', 'info');
+                log('🔄 Recarregue o sistema principal', 'info');
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                console.error(error);
+            }
+        };
+    </script>
+</body>
+</html>

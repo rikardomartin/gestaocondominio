@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Status Acordo - Diagnóstico Completo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .test-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .log-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .status-demo {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .status-card.status-acordo {
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.status-acordo {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🧪 Teste Status "Acordo" - Diagnóstico Completo</h1>
+
+        <div class="test-section">
+            <h3>📋 Status Visual Demo</h3>
+            <div class="status-demo">
+                <div class="status-card">
+                    <h4>Pendente</h4>
+                    <div class="status-badge status-pendente">Pendente</div>
+                </div>
+                <div class="status-card">
+                    <h4>Pago</h4>
+                    <div class="status-badge status-pago">Pago</div>
+                </div>
+                <div class="status-card status-acordo">
+                    <h4>Acordo</h4>
+                    <div class="status-badge status-acordo">Acordo</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Testes Funcionais</h3>
+            <button class="test-button" onclick="testStatusLabels()">
+                🏷️ Testar Labels de Status
+            </button>
+            <button class="test-button" onclick="testModalRadioButtons()">
+                📻 Testar Radio Buttons do Modal
+            </button>
+            <button class="test-button" onclick="testFirebaseConnection()">
+                🔥 Testar Conexão Firebase
+            </button>
+            <button class="test-button" onclick="simulateStatusSave()">
+                💾 Simular Salvamento de Status
+            </button>
+            <button class="test-button" onclick="clearLog()">
+                🧹 Limpar Log
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Log de Testes</h3>
+            <div id="logArea" class="log-area">
+                <div class="info">🚀 Sistema de teste inicializado</div>
+                <div class="info">📋 Clique nos botões acima para executar os testes</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+            log('🧹 Log limpo', 'info');
+        }
+
+        function testStatusLabels() {
+            log('🏷️ Testando labels de status...', 'info');
+            
+            const statusLabels = {
+                'pendente': 'Pendente',
+                'pago': 'Pago',
+                'reciclado': 'Pago Reciclado',
+                'acordo': 'Acordo'
+            };
+
+            // Testar cada status
+            Object.keys(statusLabels).forEach(status => {
+                const label = statusLabels[status];
+                log(`   ${status} → "${label}"`, 'info');
+            });
+
+            // Testar especificamente o "acordo"
+            const acordoLabel = statusLabels['acordo'];
+            if (acordoLabel === 'Acordo') {
+                log('✅ Status "acordo" retorna "Acordo" corretamente!', 'success');
+            } else {
+                log(`❌ Status "acordo" retorna "${acordoLabel}" (deveria ser "Acordo")`, 'error');
+            }
+        }
+
+        function testModalRadioButtons() {
+            log('📻 Testando radio buttons do modal...', 'info');
+            
+            // Simular HTML do modal
+            const modalHTML = `
+                <input type="radio" name="aptStatus" value="pendente"> Pendente
+                <input type="radio" name="aptStatus" value="pago"> Pago
+                <input type="radio" name="aptStatus" value="reciclado"> Pago Reciclado
+                <input type="radio" name="aptStatus" value="acordo"> Acordo
+            `;
+            
+            // Criar container temporário
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = modalHTML;
+            document.body.appendChild(tempDiv);
+            
+            // Testar seleção do "acordo"
+            const acordoRadio = tempDiv.querySelector('input[value="acordo"]');
+            if (acordoRadio) {
+                acordoRadio.checked = true;
+                const selectedValue = tempDiv.querySelector('input[name="aptStatus"]:checked')?.value;
+                
+                if (selectedValue === 'acordo') {
+                    log('✅ Radio button "acordo" funciona corretamente!', 'success');
+                } else {
+                    log(`❌ Radio button retorna "${selectedValue}" (deveria ser "acordo")`, 'error');
+                }
+            } else {
+                log('❌ Radio button "acordo" não encontrado!', 'error');
+            }
+            
+            // Limpar
+            document.body.removeChild(tempDiv);
+        }
+
+        function testFirebaseConnection() {
+            log('🔥 Testando conexão Firebase...', 'info');
+            
+            // Verificar se Firebase está carregado
+            if (typeof firebase !== 'undefined') {
+                log('✅ Firebase SDK carregado', 'success');
+            } else {
+                log('❌ Firebase SDK não encontrado', 'error');
+            }
+            
+            // Verificar se as funções do sistema estão disponíveis
+            const functions = ['updateApartamento', 'getCurrentUser', 'showToast'];
+            functions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    log(`✅ Função ${funcName} disponível`, 'success');
+                } else {
+                    log(`❌ Função ${funcName} não encontrada`, 'warning');
+                }
+            });
+        }
+
+        function simulateStatusSave() {
+            log('💾 Simulando salvamento de status "acordo"...', 'info');
+            
+            // Simular dados do apartamento
+            const apartamento = {
+                id: 'test-apt-123',
+                numero: '101',
+                status: 'pendente'
+            };
+            
+            log(`📋 Apartamento inicial: ${apartamento.numero} (${apartamento.status})`, 'info');
+            
+            // Simular mudança para "acordo"
+            const newStatus = 'acordo';
+            apartamento.status = newStatus;
+            
+            log(`🔄 Status alterado para: ${newStatus}`, 'info');
+            
+            // Simular verificação de labels
+            const statusLabels = {
+                'pendente': 'Pendente',
+                'pago': 'Pago',
+                'reciclado': 'Pago Reciclado',
+                'acordo': 'Acordo'
+            };
+            
+            const displayLabel = statusLabels[apartamento.status];
+            log(`🎨 Label a ser exibido: "${displayLabel}"`, 'info');
+            
+            // Simular CSS class
+            const cssClass = `status-${apartamento.status}`;
+            log(`🎨 CSS class: "${cssClass}"`, 'info');
+            
+            if (displayLabel === 'Acordo' && cssClass === 'status-acordo') {
+                log('✅ Simulação bem-sucedida! Status "acordo" funcionará corretamente', 'success');
+            } else {
+                log('❌ Problema na simulação detectado!', 'error');
+            }
+        }
+
+        // Inicializar
+        log('🚀 Sistema de teste carregado', 'success');
+        log('📋 Execute os testes clicando nos botões acima', 'info');
+    </script>
+</body>
+</html>

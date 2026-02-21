@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Modal no Sistema</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        .test-btn:hover {
+            background: #1d4ed8;
+        }
+        .test-result {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+        }
+        .success {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+        }
+        .error {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+        .warning {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste do Modal no Sistema Principal</h1>
+        
+        <p>Este teste verifica se o modal de apartamento está funcionando corretamente no sistema principal.</p>
+        
+        <button class="test-btn" onclick="testModalInMainSystem()">🔍 Testar Modal no Sistema</button>
+        <button class="test-btn" onclick="clearAllCaches()">🗑️ Limpar Cache</button>
+        <button class="test-btn" onclick="forceReload()">🔄 Recarregar Forçado</button>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        async function testModalInMainSystem() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<h3>🧪 Executando Testes...</h3>';
+            
+            try {
+                // Teste 1: Verificar se conseguimos acessar o sistema principal
+                const response = await fetch('/index.html');
+                const html = await response.text();
+                
+                // Teste 2: Verificar se o modal está no HTML
+                const hasModal = html.includes('id="apartmentModal"');
+                const hasStatusCards = html.includes('status-option-card');
+                const hasNewStructure = html.includes('status-options-grid');
+                
+                // Teste 3: Verificar CSS
+                const cssResponse = await fetch('/styles.css');
+                const css = await cssResponse.text();
+                const hasModalCSS = css.includes('.status-option-card');
+                const hasGridCSS = css.includes('.status-options-grid');
+                
+                // Teste 4: Verificar JavaScript
+                const jsResponse = await fetch('/app.js');
+                const js = await jsResponse.text();
+                const hasModalJS = js.includes('openApartmentModal');
+                const hasStatusChangeJS = js.includes('handleStatusChange');
+                
+                let resultHTML = '<div class="test-result">';
+                resultHTML += '<h3>📋 Resultados dos Testes</h3>';
+                
+                // HTML Tests
+                resultHTML += `<div class="${hasModal ? 'success' : 'error'}">`;
+                resultHTML += `${hasModal ? '✅' : '❌'} Modal encontrado no HTML: ${hasModal ? 'SIM' : 'NÃO'}</div>`;
+                
+                resultHTML += `<div class="${hasStatusCards ? 'success' : 'error'}">`;
+                resultHTML += `${hasStatusCards ? '✅' : '❌'} Cards de status no HTML: ${hasStatusCards ? 'SIM' : 'NÃO'}</div>`;
+                
+                resultHTML += `<div class="${hasNewStructure ? 'success' : 'error'}">`;
+                resultHTML += `${hasNewStructure ? '✅' : '❌'} Nova estrutura no HTML: ${hasNewStructure ? 'SIM' : 'NÃO'}</div>`;
+                
+                // CSS Tests
+                resultHTML += `<div class="${hasModalCSS ? 'success' : 'error'}">`;
+                resultHTML += `${hasModalCSS ? '✅' : '❌'} CSS do modal: ${hasModalCSS ? 'SIM' : 'NÃO'}</div>`;
+                
+                resultHTML += `<div class="${hasGridCSS ? 'success' : 'error'}">`;
+                resultHTML += `${hasGridCSS ? '✅' : '❌'} CSS do grid: ${hasGridCSS ? 'SIM' : 'NÃO'}</div>`;
+                
+                // JS Tests
+                resultHTML += `<div class="${hasModalJS ? 'success' : 'error'}">`;
+                resultHTML += `${hasModalJS ? '✅' : '❌'} JavaScript do modal: ${hasModalJS ? 'SIM' : 'NÃO'}</div>`;
+                
+                resultHTML += `<div class="${hasStatusChangeJS ? 'success' : 'error'}">`;
+                resultHTML += `${hasStatusChangeJS ? '✅' : '❌'} Função de mudança de status: ${hasStatusChangeJS ? 'SIM' : 'NÃO'}</div>`;
+                
+                // Diagnóstico
+                const allGood = hasModal && hasStatusCards && hasNewStructure && hasModalCSS && hasGridCSS && hasModalJS && hasStatusChangeJS;
+                
+                if (allGood) {
+                    resultHTML += '<div class="success"><h4>🎉 Tudo OK!</h4><p>O modal está implementado corretamente. Se ainda está vendo o visual antigo, tente:</p>';
+                    resultHTML += '<ul><li>Limpar cache do navegador (Ctrl+Shift+R)</li><li>Abrir em aba anônima</li><li>Verificar se o Service Worker está atualizado</li></ul></div>';
+                } else {
+                    resultHTML += '<div class="error"><h4>⚠️ Problemas Encontrados</h4><p>Alguns componentes não foram encontrados. Isso pode explicar por que o visual antigo ainda aparece.</p></div>';
+                }
+                
+                resultHTML += '</div>';
+                results.innerHTML = resultHTML;
+                
+            } catch (error) {
+                results.innerHTML = `<div class="test-result error"><h3>❌ Erro no Teste</h3><p>${error.message}</p></div>`;
+            }
+        }
+        
+        async function clearAllCaches() {
+            const results = document.getElementById('testResults');
+            
+            try {
+                // Limpar caches do navegador
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => caches.delete(cacheName))
+                    );
+                }
+                
+                // Desregistrar Service Worker
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(
+                        registrations.map(registration => registration.unregister())
+                    );
+                }
+                
+                results.innerHTML = `
+                    <div class="test-result success">
+                        <h3>✅ Cache Limpo</h3>
+                        <p>Todos os caches foram limpos e o Service Worker foi desregistrado.</p>
+                        <p><strong>Próximo passo:</strong> Recarregue a página principal (F5 ou Ctrl+R)</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="test-result error">
+                        <h3>❌ Erro ao Limpar Cache</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function forceReload() {
+            // Força recarregamento sem cache
+            window.location.href = '/?t=' + Date.now();
+        }
+        
+        // Auto-executar teste ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(testModalInMainSystem, 1000);
+        });
+    </script>
+</body>
+</html>

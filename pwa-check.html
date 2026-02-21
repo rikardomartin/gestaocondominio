@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação PWA - Gestão Condominial</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .check-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .check-item.success { border-left-color: #22c55e; }
+        .check-item.error { border-left-color: #ef4444; }
+        .check-item.warning { border-left-color: #f59e0b; }
+        .status { font-weight: bold; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        h1 { color: #2563eb; text-align: center; }
+        .summary { background: #2563eb; color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1d4ed8; }
+        .install-section { background: white; padding: 20px; border-radius: 12px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificação PWA - Gestão Condominial</h1>
+    
+    <div class="summary">
+        <h2>Status Geral: <span id="overallStatus">Verificando...</span></h2>
+        <p id="overallMessage">Executando verificações...</p>
+    </div>
+
+    <div id="checks"></div>
+
+    <div class="install-section">
+        <h3>📱 Teste de Instalação</h3>
+        <p>Para testar a instalação do PWA:</p>
+        <button onclick="testInstall()">🚀 Testar Instalação</button>
+        <button onclick="window.open('/', '_blank')">🌐 Abrir App Principal</button>
+        <button onclick="window.open('generate-icons.html', '_blank')">🎨 Gerar Ícones</button>
+    </div>
+
+    <script>
+        const checks = [
+            {
+                name: 'Service Worker',
+                test: () => 'serviceWorker' in navigator,
+                message: 'Service Worker suportado pelo navegador'
+            },
+            {
+                name: 'Manifest',
+                test: async () => {
+                    try {
+                        const response = await fetch('/manifest.json');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                message: 'Arquivo manifest.json acessível'
+            },
+            {
+                name: 'HTTPS',
+                test: () => location.protocol === 'https:' || location.hostname === 'localhost',
+                message: 'Executando em HTTPS ou localhost'
+            },
+            {
+                name: 'Ícone 192px',
+                test: async () => {
+                    try {
+                        const response = await fetch('/icon-192.png');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                message: 'Ícone 192x192 disponível'
+            },
+            {
+                name: 'Ícone 512px',
+                test: async () => {
+                    try {
+                        const response = await fetch('/icon-512.png');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                message: 'Ícone 512x512 disponível'
+            },
+            {
+                name: 'Display Standalone',
+                test: () => window.matchMedia('(display-mode: standalone)').matches,
+                message: 'App rodando em modo standalone (se instalado)'
+            }
+        ];
+
+        async function runChecks() {
+            const checksContainer = document.getElementById('checks');
+            let passedChecks = 0;
+            let totalChecks = checks.length;
+
+            for (const check of checks) {
+                const result = await check.test();
+                const checkElement = document.createElement('div');
+                checkElement.className = `check-item ${result ? 'success' : 'error'}`;
+                
+                checkElement.innerHTML = `
+                    <span class="status ${result ? 'success' : 'error'}">
+                        ${result ? '✅' : '❌'}
+                    </span>
+                    <div>
+                        <strong>${check.name}</strong><br>
+                        <small>${check.message}</small>
+                    </div>
+                `;
+                
+                checksContainer.appendChild(checkElement);
+                
+                if (result) passedChecks++;
+            }
+
+            // Atualizar status geral
+            const overallStatus = document.getElementById('overallStatus');
+            const overallMessage = document.getElementById('overallMessage');
+            
+            if (passedChecks === totalChecks) {
+                overallStatus.textContent = '🎉 PWA Pronto!';
+                overallMessage.textContent = 'Todas as verificações passaram. O PWA está configurado corretamente.';
+            } else if (passedChecks >= totalChecks - 2) {
+                overallStatus.textContent = '⚠️ Quase Pronto';
+                overallMessage.textContent = `${passedChecks}/${totalChecks} verificações passaram. Alguns ajustes podem ser necessários.`;
+            } else {
+                overallStatus.textContent = '❌ Configuração Incompleta';
+                overallMessage.textContent = `${passedChecks}/${totalChecks} verificações passaram. Configuração PWA precisa de ajustes.`;
+            }
+        }
+
+        function testInstall() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        alert('✅ Service Worker registrado com sucesso!\n\nAgora você pode:\n1. Procurar o banner de instalação\n2. Usar o menu do navegador para "Adicionar à tela inicial"\n3. Testar a funcionalidade offline');
+                    })
+                    .catch(error => {
+                        alert('❌ Erro ao registrar Service Worker:\n' + error.message);
+                    });
+            } else {
+                alert('❌ Service Worker não suportado neste navegador');
+            }
+        }
+
+        // Executar verificações ao carregar
+        window.onload = runChecks;
+    </script>
+</body>
+</html>

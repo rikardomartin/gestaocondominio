@@ -1,0 +1,38 @@
+# COMANDOS RÁPIDOS - DEPLOY v70
+
+## 1. FAZER DEPLOY
+firebase deploy --only hosting
+
+## 2. VERIFICAR VERSÃO NO CONSOLE (após deploy)
+Abrir F12 e procurar:
+📋 Versão: v70 - Correcao persistencia status apos refresh
+
+## 3. TESTE RÁPIDO
+1. Login
+2. Ano: 2025, Mês: 01
+3. Condomínio Ayres → Bloco 01
+4. Apartamento 101 → Marcar como Pago
+5. F5 (recarregar)
+6. Login novamente
+7. Navegar até Apartamento 101
+8. DEVE APARECER COMO PAGO ✅
+
+## 4. LOGS ESPERADOS NO CONSOLE
+✅ [LOAD] Apt 101: pago
+✅ [MODAL] Pagamento encontrado: pago
+
+## 5. SE NÃO FUNCIONAR
+- Limpar cache: Ctrl+Shift+Delete
+- Hard refresh: Ctrl+Shift+R
+- Verificar Firebase Console → payments collection
+- Verificar se versão é v70 no console
+
+## 6. ARQUIVO DE TESTE
+http://localhost:5000/teste-persistencia-v70.html
+(antes do deploy, para verificar código)
+
+## 7. DOCUMENTAÇÃO COMPLETA
+- CORRECAO-FINAL-v70.md (resumo executivo)
+- DEPLOY-v70-INSTRUCOES.md (passo a passo)
+- TESTE-PERSISTENCIA-v70.md (instruções de teste)
+- SOLUCAO-PERSISTENCIA-STATUS.md (análise técnica)

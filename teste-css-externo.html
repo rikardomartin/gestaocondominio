@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Teste CSS Externo</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        .test-btn:hover {
+            background: #1d4ed8;
+        }
+        .status-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .success-info {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+        .error-info {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Teste CSS Externo</h1>
+        
+        <div class="status-info">
+            <h3>🔧 Verificação do CSS</h3>
+            <p>Este teste verifica se o arquivo <code>styles.css</code> está sendo carregado corretamente e se as regras do modal funcionam.</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button class="test-btn" onclick="testCSS()">🔍 Verificar CSS</button>
+            <button class="test-btn" onclick="testModal()">🚀 Testar Modal</button>
+            <button class="test-btn" onclick="forceModal()">💪 Forçar Modal</button>
+            <button class="test-btn" onclick="closeModal()">❌ Fechar</button>
+        </div>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <!-- Modal usando CSS externo -->
+    <div id="apartmentModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h3 id="apartmentModalTitle">Apartamento TESTE CSS</h3>
+                    <p id="apartmentBreadcrumb" class="modal-subtitle">Teste > CSS Externo > Modal</p>
+                </div>
+                <button id="closeApartmentModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Status do Pagamento</label>
+                    <div class="status-options-grid">
+                        <label class="status-option-card status-pendente">
+                            <input type="radio" name="aptStatus" value="pendente">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12,6 12,12 16,14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PENDENTE</span>
+                                    <span class="status-desc">Pagamento em aberto</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-pago">
+                            <input type="radio" name="aptStatus" value="pago">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO</span>
+                                    <span class="status-desc">Pagamento realizado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-reciclado">
+                            <input type="radio" name="aptStatus" value="reciclado">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 4v6h6"></path>
+                                        <path d="M23 20v-6h-6"></path>
+                                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO RECICLADO</span>
+                                    <span class="status-desc">Pagamento reprocessado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-acordo">
+                            <input type="radio" name="aptStatus" value="acordo">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 12l2 2 4-4"></path>
+                                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">ACORDO</span>
+                                    <span class="status-desc">Acordo de pagamento</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="apartmentObservations">Acordo / Observações</label>
+                    <textarea 
+                        id="apartmentObservations" 
+                        class="form-textarea" 
+                        rows="4" 
+                        placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+                    ></textarea>
+                </div>
+                
+                <div class="form-group" id="paymentValueGroup" style="display: none;">
+                    <label class="form-label" for="paymentValue">Valor do Pagamento</label>
+                    <div class="input-group">
+                        <span class="input-prefix">R$</span>
+                        <input 
+                            type="number" 
+                            id="paymentValue" 
+                            class="form-input" 
+                            step="0.01" 
+                            min="0" 
+                            placeholder="0,00"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group" id="paymentDateGroup" style="display: none;">
+                    <label class="form-label" for="paymentDate">Data do Pagamento</label>
+                    <input 
+                        type="date" 
+                        id="paymentDate" 
+                        class="form-input"
+                    >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelApartmentModal" class="btn-secondary">Cancelar</button>
+                <button id="saveApartmentStatus" class="btn-primary">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const className = type === 'success' ? 'success-info' : type === 'error' ? 'error-info' : 'status-info';
+            results.innerHTML = `<div class="${className}"><p>${message}</p></div>`;
+        }
+        
+        function testCSS() {
+            console.log('🔍 Verificando CSS externo...');
+            
+            const modal = document.getElementById('apartmentModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado no DOM', 'error');
+                return;
+            }
+            
+            // Verificar se CSS foi carregado
+            const styles = window.getComputedStyle(modal);
+            
+            let report = '<h3>📊 Relatório CSS Externo:</h3>';
+            report += `<p><strong>Position:</strong> ${styles.position}</p>`;
+            report += `<p><strong>Z-index:</strong> ${styles.zIndex}</p>`;
+            report += `<p><strong>Background:</strong> ${styles.backgroundColor}</p>`;
+            
+            // Verificar se as classes específicas existem
+            const statusGrid = document.querySelector('.status-options-grid');
+            const statusCards = document.querySelectorAll('.status-option-card');
+            
+            report += `<p><strong>Status Grid:</strong> ${statusGrid ? 'Encontrado' : 'Não encontrado'}</p>`;
+            report += `<p><strong>Status Cards:</strong> ${statusCards.length} encontrados</p>`;
+            
+            // Verificar se o CSS está sendo aplicado
+            if (statusGrid) {
+                const gridStyles = window.getComputedStyle(statusGrid);
+                report += `<p><strong>Grid Display:</strong> ${gridStyles.display}</p>`;
+                report += `<p><strong>Grid Template:</strong> ${gridStyles.gridTemplateColumns}</p>`;
+            }
+            
+            if (styles.position === 'fixed' && styles.zIndex !== 'auto') {
+                showResult(report + '<p><strong>✅ CSS externo está funcionando!</strong></p>', 'success');
+            } else {
+                showResult(report + '<p><strong>❌ CSS externo não está sendo aplicado corretamente</strong></p>', 'error');
+            }
+        }
+        
+        function testModal() {
+            console.log('🚀 Testando modal com CSS externo...');
+            
+            const modal = document.getElementById('apartmentModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado', 'error');
+                return;
+            }
+            
+            // Usar nova abordagem
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-visible');
+            
+            setTimeout(() => {
+                const computedDisplay = window.getComputedStyle(modal).display;
+                const hasVisibleClass = modal.classList.contains('modal-visible');
+                
+                console.log('Display computado:', computedDisplay);
+                console.log('Classe modal-visible:', hasVisibleClass);
+                
+                if (computedDisplay === 'flex') {
+                    showResult('✅ SUCESSO! Modal funcionando com CSS externo!', 'success');
+                } else {
+                    showResult(`❌ Modal não visível. Display: ${computedDisplay}`, 'error');
+                }
+            }, 100);
+        }
+        
+        function forceModal() {
+            console.log('💪 Forçando modal...');
+            
+            const modal = document.getElementById('apartmentModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado', 'error');
+                return;
+            }
+            
+            // Forçar com JavaScript
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-visible');
+            modal.style.setProperty('display', 'flex', 'important');
+            modal.style.setProperty('position', 'fixed', 'important');
+            modal.style.setProperty('top', '0', 'important');
+            modal.style.setProperty('left', '0', 'important');
+            modal.style.setProperty('width', '100%', 'important');
+            modal.style.setProperty('height', '100%', 'important');
+            modal.style.setProperty('z-index', '9999', 'important');
+            modal.style.setProperty('background-color', 'rgba(0, 0, 0, 0.5)', 'important');
+            
+            showResult('💪 Modal forçado com JavaScript + CSS!', 'success');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('apartmentModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('modal-visible');
+                modal.style.display = 'none';
+                showResult('🔒 Modal fechado', 'info');
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('closeApartmentModal').addEventListener('click', closeModal);
+        document.getElementById('cancelApartmentModal').addEventListener('click', closeModal);
+        
+        document.getElementById('apartmentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'apartmentModal') {
+                closeModal();
+            }
+        });
+        
+        // Status change listeners
+        const statusRadios = document.querySelectorAll('input[name="aptStatus"]');
+        statusRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    const valueGroup = document.getElementById('paymentValueGroup');
+                    const dateGroup = document.getElementById('paymentDateGroup');
+                    
+                    if (e.target.value === 'pago' || e.target.value === 'reciclado') {
+                        valueGroup.style.display = 'block';
+                        dateGroup.style.display = 'block';
+                        
+                        const dateField = document.getElementById('paymentDate');
+                        if (dateField && !dateField.value) {
+                            dateField.value = new Date().toISOString().split('T')[0];
+                        }
+                        
+                        const valueField = document.getElementById('paymentValue');
+                        if (valueField && !valueField.value) {
+                            valueField.value = '285.00';
+                        }
+                    } else {
+                        valueGroup.style.display = 'none';
+                        dateGroup.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Auto-teste ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showResult('🔧 Página carregada. Clique em "Verificar CSS" para testar o arquivo externo.', 'info');
+                testCSS(); // Auto-executar verificação
+            }, 500);
+        });
+    </script>
+</body>
+</html>

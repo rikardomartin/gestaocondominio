@@ -1,0 +1,43 @@
+{
+  "name": "Chatbot Condomínio",
+  "short_name": "Chatbot",
+  "description": "Assistente inteligente para gestão condominial com filtros avançados",
+  "version": "4.0.0",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b141a",
+  "theme_color": "#202c33",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Resumo do Mês",
+      "short_name": "Resumo",
+      "description": "Ver resumo de pagamentos",
+      "url": "/?action=resumo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Inadimplentes",
+      "short_name": "Inadimplentes",
+      "description": "Ver lista de inadimplentes",
+      "url": "/?action=inadimplentes",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

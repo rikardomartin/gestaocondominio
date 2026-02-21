@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Melhorias Salão</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-title {
+            color: #1f2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+        
+        .demo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        
+        /* Importar estilos das opções de status */
+        .status-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .status-option-card {
+            position: relative;
+            display: block;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-option-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .status-option-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+        
+        .status-content {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            gap: 16px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .status-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        
+        .status-title {
+            font-weight: 700;
+            font-size: 16px;
+            line-height: 1.2;
+            color: #1f2937;
+            transition: color 0.3s ease;
+        }
+        
+        .status-desc {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+        
+        /* Status específicos */
+        .status-option-card.status-pendente input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .status-option-card.status-pago input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        
+        .status-option-card.status-reciclado input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+        
+        .status-option-card.status-acordo input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .status-option-card input[type="radio"]:checked + .status-content .status-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .status-option-card input[type="radio"]:checked + .status-content .status-title,
+        .status-option-card input[type="radio"]:checked + .status-content .status-desc {
+            color: white;
+        }
+        
+        .status-option-card input[type="radio"]:checked + .status-content::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+        }
+        
+        /* Select de apartamentos */
+        .apartment-selector {
+            margin-bottom: 20px;
+        }
+        
+        .apartment-selector label {
+            display: block;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .apartment-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            color: #1f2937;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 48px;
+        }
+        
+        .apartment-select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.2s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">🎨 Melhorias no Módulo Salão</h1>
+        
+        <div class="status-info">
+            <strong>✅ Melhorias Implementadas:</strong><br>
+            • Select de apartamentos corrigido com busca em todos os blocos<br>
+            • Opções de status com design moderno e interativo<br>
+            • Campo de observações sempre visível<br>
+            • Loading state no select de apartamentos<br>
+            • Agrupamento por blocos no select
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="demo-title">📋 Select de Apartamentos Melhorado</h3>
+            <div class="apartment-selector">
+                <label for="demoApartmentSelect">Apartamento Responsável:</label>
+                <select id="demoApartmentSelect" class="apartment-select">
+                    <option value="">Selecione o apartamento</option>
+                    <optgroup label="Bloco A">
+                        <option value="1">Apt 101 - João Silva</option>
+                        <option value="2">Apt 102 - Maria Santos</option>
+                        <option value="3">Apt 103 - Pedro Costa</option>
+                    </optgroup>
+                    <optgroup label="Bloco B">
+                        <option value="4">Apt 201 - Ana Oliveira</option>
+                        <option value="5">Apt 202 - Carlos Souza</option>
+                        <option value="6">Casa 1 - Roberto Lima</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="demo-title">🎨 Opções de Status Melhoradas</h3>
+            <div class="status-options-grid">
+                <label class="status-option-card status-pendente">
+                    <input type="radio" name="demoStatus" value="pendente">
+                    <div class="status-content">
+                        <div class="status-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="status-text">
+                            <span class="status-title">PENDENTE</span>
+                            <span class="status-desc">Pagamento em aberto</span>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="status-option-card status-pago">
+                    <input type="radio" name="demoStatus" value="pago">
+                    <div class="status-content">
+                        <div class="status-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="status-text">
+                            <span class="status-title">PAGO</span>
+                            <span class="status-desc">Pagamento realizado</span>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="status-option-card status-reciclado">
+                    <input type="radio" name="demoStatus" value="reciclado">
+                    <div class="status-content">
+                        <div class="status-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 4v6h6"></path>
+                                <path d="M23 20v-6h-6"></path>
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                            </svg>
+                        </div>
+                        <div class="status-text">
+                            <span class="status-title">PAGO RECICLADO</span>
+                            <span class="status-desc">Pagamento reprocessado</span>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="status-option-card status-acordo">
+                    <input type="radio" name="demoStatus" value="acordo">
+                    <div class="status-content">
+                        <div class="status-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+                            </svg>
+                        </div>
+                        <div class="status-text">
+                            <span class="status-title">ACORDO</span>
+                            <span class="status-desc">Acordo de pagamento</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="demo-title">📝 Campo de Observações</h3>
+            <label class="form-label" for="demoObservations">Acordo / Observações</label>
+            <textarea 
+                id="demoObservations" 
+                class="form-textarea" 
+                rows="4" 
+                placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+            ></textarea>
+        </div>
+    </div>
+
+    <script>
+        // Adicionar interatividade às opções de status
+        document.querySelectorAll('.status-option-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    console.log('Status selecionado:', radio.value);
+                }
+            });
+        });
+        
+        // Simular loading no select
+        const select = document.getElementById('demoApartmentSelect');
+        select.addEventListener('focus', function() {
+            this.classList.add('loading');
+            setTimeout(() => {
+                this.classList.remove('loading');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

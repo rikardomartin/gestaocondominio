@@ -1,0 +1,30 @@
+# Node modules
+node_modules/
+api-chatbot/node_modules/
+functions/node_modules/
+
+# Firebase credentials (SENSITIVE!)
+*-firebase-adminsdk-*.json
+gestaodoscondominios-firebase-adminsdk-*.json
+
+# Firebase cache
+.firebase/
+
+# Environment variables
+.env
+.env.local
+api-chatbot/.env
+
+# Logs
+*.log
+npm-debug.log*
+fix.log
+population.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

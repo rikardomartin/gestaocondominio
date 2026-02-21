@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de Ícones PWA - Gestão Condominial</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 2px solid #ddd; margin: 10px; border-radius: 8px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1d4ed8; }
+        .container { text-align: center; }
+        .preview { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Ícones PWA - Gestão Condominial</h1>
+        <p>Ícones gerados automaticamente com tema azul e casa/prédio</p>
+        
+        <div class="preview">
+            <div>
+                <h3>192x192px</h3>
+                <canvas id="canvas192" width="192" height="192"></canvas>
+                <br>
+                <button onclick="downloadIcon('canvas192', 'icon-192.png')">📥 Download 192x192</button>
+            </div>
+            
+            <div>
+                <h3>512x512px</h3>
+                <canvas id="canvas512" width="512" height="512"></canvas>
+                <br>
+                <button onclick="downloadIcon('canvas512', 'icon-512.png')">📥 Download 512x512</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button onclick="downloadBoth()" style="background: #059669; font-size: 16px; padding: 15px 30px;">
+                📦 Download Ambos os Ícones
+            </button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <h4>📋 Instruções:</h4>
+            <ol>
+                <li>Clique em "Download Ambos os Ícones" ou baixe individualmente</li>
+                <li>Salve os arquivos como <code>icon-192.png</code> e <code>icon-512.png</code></li>
+                <li>Coloque os arquivos na <strong>raiz do projeto</strong> (mesmo nível do index.html)</li>
+                <li>O PWA estará pronto para instalação!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Limpar canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Fundo azul com bordas arredondadas
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Escala baseada no tamanho
+            const scale = size / 192;
+            
+            // Casa/prédio em branco
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(48 * scale, 96 * scale);
+            ctx.lineTo(96 * scale, 48 * scale);
+            ctx.lineTo(144 * scale, 96 * scale);
+            ctx.lineTo(144 * scale, 160 * scale);
+            ctx.lineTo(48 * scale, 160 * scale);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Porta azul
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(72 * scale, 120 * scale, 48 * scale, 48 * scale);
+            
+            // Janelas
+            ctx.fillStyle = '#2563eb';
+            const windowSize = Math.max(6 * scale, 3);
+            const positions = [
+                [60 * scale, 80 * scale],
+                [80 * scale, 80 * scale], 
+                [100 * scale, 80 * scale],
+                [120 * scale, 80 * scale]
+            ];
+            
+            positions.forEach(([x, y]) => {
+                ctx.fillRect(x, y, windowSize, windowSize);
+            });
+            
+            // Adicionar sombra sutil para ícones maiores
+            if (size >= 512) {
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+            }
+        }
+        
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function downloadBoth() {
+            downloadIcon('canvas192', 'icon-192.png');
+            setTimeout(() => {
+                downloadIcon('canvas512', 'icon-512.png');
+            }, 500);
+        }
+        
+        // Gerar ícones ao carregar a página
+        window.onload = function() {
+            createIcon('canvas192', 192);
+            createIcon('canvas512', 512);
+            console.log('✅ Ícones PWA gerados com sucesso!');
+        };
+    </script>
+</body>
+</html>

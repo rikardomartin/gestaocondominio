@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar Janeiro/2026 como PENDENTE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .warning h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .warning p {
+            color: #856404;
+            line-height: 1.5;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .info ul {
+            margin-left: 20px;
+            color: #1565c0;
+        }
+        
+        .info li {
+            margin: 5px 0;
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status.processing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .progress {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-line {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        .log-line.success {
+            color: #68d391;
+        }
+        
+        .log-line.error {
+            color: #fc8181;
+        }
+        
+        .log-line.warning {
+            color: #f6e05e;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+        }
+        
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Marcar Janeiro/2026 como PENDENTE</h1>
+        <p class="subtitle">Script para resetar status de todos os apartamentos</p>
+        
+        <div class="warning">
+            <h3>⚠️ ATENÇÃO</h3>
+            <p><strong>Este script irá:</strong></p>
+            <ul>
+                <li>Buscar TODOS os apartamentos de TODOS os condomínios</li>
+                <li>Marcar Janeiro/2026 como PENDENTE para cada apartamento</li>
+                <li>Sobrescrever qualquer status existente (PAGO, RECICLADO, ACORDO)</li>
+                <li>Esta ação NÃO pode ser desfeita automaticamente</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <h3>📋 O que será feito:</h3>
+            <ul>
+                <li>Período: <strong>Janeiro/2026 (2026-01)</strong></li>
+                <li>Status: <strong>PENDENTE</strong></li>
+                <li>Valor: <strong>R$ 0,00</strong></li>
+                <li>Observação: <strong>Resetado para pendente via script</strong></li>
+            </ul>
+        </div>
+        
+        <div class="warning" style="background: #e3f2fd; border-left-color: #2196f3;">
+            <h3 style="color: #1976d2;">ℹ️ IMPORTANTE</h3>
+            <p style="color: #1565c0;"><strong>Este script deve ser executado a partir do domínio:</strong></p>
+            <p style="color: #1565c0; font-family: monospace; margin-top: 5px;">
+                https://gestaodoscondominios.web.app/marcar-pendente-janeiro-2026.html
+            </p>
+            <p style="color: #1565c0; margin-top: 10px;">
+                Se você estiver acessando de outro domínio (localhost, etc), pode haver erro de autenticação.
+            </p>
+        </div>
+        
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalApartamentos">0</div>
+                <div class="stat-label">Apartamentos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="processados">0</div>
+                <div class="stat-label">Processados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="sucesso">0</div>
+                <div class="stat-label">Sucesso</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="erros">0</div>
+                <div class="stat-label">Erros</div>
+            </div>
+        </div>
+        
+        <div class="status" id="status">Aguardando confirmação...</div>
+        
+        <div class="progress" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText"></div>
+        
+        <div class="log" id="log"></div>
+        
+        <button class="btn danger" id="executeBtn" onclick="confirmarExecucao()" style="display: none;">
+            ⚠️ EXECUTAR SCRIPT
+        </button>
+        
+        <div id="loginForm">
+            <div class="info">
+                <h3>🔐 Autenticação Necessária</h3>
+                <p>Por segurança, você precisa fazer login antes de executar o script.</p>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 500;">Email:</label>
+                <input type="email" id="emailInput" placeholder="admin@condominio.com" 
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 500;">Senha:</label>
+                <input type="password" id="passwordInput" placeholder="Sua senha" 
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+            </div>
+            
+            <button class="btn" onclick="fazerLogin()">
+                🔐 Fazer Login
+            </button>
+        </div>
+        
+        <button class="btn" id="closeBtn" onclick="window.close()" style="display: none;">
+            ✅ Fechar
+        </button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Configuração do Firebase - MESMA DO SISTEMA PRINCIPAL
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        let app, db, auth;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log('✅ Firebase inicializado com sucesso');
+        } catch (error) {
+            console.error('❌ Erro ao inicializar Firebase:', error);
+            alert('Erro ao inicializar Firebase: ' + error.message);
+        }
+
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressText = document.getElementById('progressText');
+        const executeBtn = document.getElementById('executeBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const statsDiv = document.getElementById('stats');
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+
+        let totalApartamentos = 0;
+        let processados = 0;
+        let sucesso = 0;
+        let erros = 0;
+        let usuarioAutenticado = null;
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('pt-BR');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = `[${time}] ${message}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${current} de ${total} apartamentos processados (${percent}%)`;
+        }
+
+        function updateStats() {
+            document.getElementById('totalApartamentos').textContent = totalApartamentos;
+            document.getElementById('processados').textContent = processados;
+            document.getElementById('sucesso').textContent = sucesso;
+            document.getElementById('erros').textContent = erros;
+        }
+
+        window.fazerLogin = async function() {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!email || !password) {
+                alert('Por favor, preencha email e senha');
+                return;
+            }
+
+            if (!auth) {
+                alert('Firebase não foi inicializado corretamente. Recarregue a página.');
+                return;
+            }
+
+            try {
+                status.textContent = '🔐 Autenticando...';
+                status.className = 'status processing';
+                addLog('🔐 Tentando autenticar...');
+                addLog(`📧 Email: ${email}`);
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                usuarioAutenticado = userCredential.user;
+
+                addLog(`✅ Login realizado: ${usuarioAutenticado.email}`, 'success');
+                addLog(`🔑 UID: ${usuarioAutenticado.uid}`, 'success');
+                status.textContent = `✅ Autenticado como: ${usuarioAutenticado.email}`;
+                status.className = 'status success';
+
+                // Esconder formulário de login e mostrar botão de executar
+                loginForm.style.display = 'none';
+                executeBtn.style.display = 'block';
+
+            } catch (error) {
+                console.error('Erro completo:', error);
+                addLog(`❌ Erro no login: ${error.code}`, 'error');
+                addLog(`❌ Mensagem: ${error.message}`, 'error');
+                
+                let mensagemErro = 'Erro no login. ';
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    mensagemErro += 'Email ou senha incorretos.';
+                } else if (error.code === 'auth/user-not-found') {
+                    mensagemErro += 'Usuário não encontrado.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    mensagemErro += 'Muitas tentativas. Aguarde alguns minutos.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    mensagemErro += 'Erro de conexão. Verifique sua internet.';
+                } else {
+                    mensagemErro += error.message;
+                }
+                
+                status.textContent = '❌ ' + mensagemErro;
+                status.className = 'status error';
+                alert(mensagemErro);
+            }
+        };
+
+        window.confirmarExecucao = function() {
+            const confirmacao = confirm(
+                '⚠️ CONFIRMAÇÃO NECESSÁRIA\n\n' +
+                'Você está prestes a marcar TODOS os apartamentos como PENDENTE em Janeiro/2026.\n\n' +
+                'Esta ação irá sobrescrever qualquer status existente.\n\n' +
+                'Deseja continuar?'
+            );
+
+            if (confirmacao) {
+                executarScript();
+            }
+        };
+
+        async function executarScript() {
+            if (!usuarioAutenticado) {
+                alert('Você precisa fazer login primeiro!');
+                return;
+            }
+
+            try {
+                executeBtn.disabled = true;
+                executeBtn.textContent = '⏳ Processando...';
+                status.textContent = '🔄 Processando...';
+                status.className = 'status processing';
+                progressContainer.style.display = 'block';
+                statsDiv.style.display = 'grid';
+
+                addLog('========================================');
+                addLog('🚀 INICIANDO SCRIPT - JANEIRO/2026 PENDENTE');
+                addLog('========================================');
+
+                // 1. Buscar todos os condomínios
+                addLog('📋 Buscando condomínios...');
+                const condominiosSnap = await getDocs(query(
+                    collection(db, 'condominios'),
+                    where('active', '==', true)
+                ));
+                addLog(`✅ ${condominiosSnap.size} condomínios encontrados`, 'success');
+
+                // 2. Buscar todos os apartamentos
+                addLog('📋 Buscando apartamentos...');
+                const apartamentosSnap = await getDocs(query(
+                    collection(db, 'apartamentos'),
+                    where('active', '==', true)
+                ));
+                totalApartamentos = apartamentosSnap.size;
+                addLog(`✅ ${totalApartamentos} apartamentos encontrados`, 'success');
+                updateStats();
+
+                // 3. Processar cada apartamento
+                addLog('🔄 Iniciando processamento...');
+                
+                for (const aptDoc of apartamentosSnap.docs) {
+                    const apartamento = aptDoc.data();
+                    const apartamentoId = aptDoc.id;
+
+                    try {
+                        // Buscar pagamento existente para Janeiro/2026
+                        const paymentsQuery = query(
+                            collection(db, 'payments'),
+                            where('apartamentoId', '==', apartamentoId),
+                            where('ano', '==', '2026'),
+                            where('mes', '==', '01')
+                        );
+                        const paymentsSnap = await getDocs(paymentsQuery);
+
+                        const paymentData = {
+                            apartamentoId: apartamentoId,
+                            condominioId: apartamento.condominioId,
+                            blocoId: apartamento.blocoId || null,
+                            apartamentoNumero: apartamento.numero,
+                            ano: '2026',
+                            mes: '01',
+                            date: '2026-01',
+                            type: 'condominio',
+                            status: 'pendente',
+                            value: 0,
+                            observacao: 'Resetado para pendente via script',
+                            updatedAt: serverTimestamp()
+                        };
+
+                        if (paymentsSnap.empty) {
+                            // Criar novo pagamento
+                            const newPaymentRef = doc(collection(db, 'payments'));
+                            await setDoc(newPaymentRef, {
+                                ...paymentData,
+                                createdAt: serverTimestamp()
+                            });
+                            addLog(`✅ ${apartamento.numero} - Criado como PENDENTE`, 'success');
+                        } else {
+                            // Atualizar pagamento existente
+                            const paymentDoc = paymentsSnap.docs[0];
+                            await updateDoc(doc(db, 'payments', paymentDoc.id), paymentData);
+                            addLog(`✅ ${apartamento.numero} - Atualizado para PENDENTE`, 'success');
+                        }
+
+                        sucesso++;
+                    } catch (error) {
+                        addLog(`❌ ${apartamento.numero} - Erro: ${error.message}`, 'error');
+                        erros++;
+                    }
+
+                    processados++;
+                    updateProgress(processados, totalApartamentos);
+                    updateStats();
+
+                    // Pequeno delay para não sobrecarregar o Firestore
+                    if (processados % 10 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+
+                // 4. Finalizar
+                addLog('========================================');
+                addLog('✅ SCRIPT CONCLUÍDO COM SUCESSO!', 'success');
+                addLog(`📊 Total: ${totalApartamentos} apartamentos`, 'success');
+                addLog(`✅ Sucesso: ${sucesso}`, 'success');
+                addLog(`❌ Erros: ${erros}`, 'error');
+                addLog('========================================');
+
+                status.textContent = `✅ Concluído! ${sucesso} apartamentos marcados como PENDENTE`;
+                status.className = 'status success';
+                executeBtn.style.display = 'none';
+                closeBtn.style.display = 'block';
+
+            } catch (error) {
+                addLog(`❌ ERRO FATAL: ${error.message}`, 'error');
+                status.textContent = `❌ Erro: ${error.message}`;
+                status.className = 'status error';
+                executeBtn.disabled = false;
+                executeBtn.textContent = '🔄 Tentar Novamente';
+            }
+        }
+
+        // Inicializar
+        addLog('🔧 Inicializando sistema...');
+        addLog(`📍 Domínio atual: ${window.location.hostname}`);
+        addLog(`🔗 URL completa: ${window.location.href}`);
+        
+        if (window.location.hostname !== 'gestaodoscondominios.web.app' && 
+            window.location.hostname !== 'localhost' && 
+            window.location.hostname !== '127.0.0.1') {
+            addLog('⚠️ AVISO: Você não está no domínio oficial!', 'warning');
+            addLog('⚠️ Pode haver problemas de autenticação', 'warning');
+        }
+        
+        addLog('✅ Script carregado e pronto');
+        addLog('🔐 Faça login para continuar');
+        status.textContent = '🔐 Aguardando login...';
+        
+        // Adicionar listener para Enter nos campos de login
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                passwordInput.focus();
+            }
+        });
+        
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fazerLogin();
+            }
+        });
+    </script>
+</body>
+</html>

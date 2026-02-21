@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#202c33">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Chatbot Condomínio</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Chatbot">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    
+    <!-- SEO -->
+    <meta name="description" content="Assistente inteligente para gestão condominial">
+    <meta name="keywords" content="condomínio, chatbot, assistente, pagamentos">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a1014;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: #0b141a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        /* Header estilo WhatsApp */
+        .chat-header {
+            background: #202c33;
+            color: #e9edef;
+            padding: 10px 16px;
+            padding-top: max(10px, env(safe-area-inset-top));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            min-height: 60px;
+            z-index: 10;
+        }
+
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-info h1 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-info p {
+            font-size: 13px;
+            color: #8696a0;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #25d366;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Background estilo WhatsApp */
+        .chat-messages {
+            flex: 1;
+            padding: 12px 8px;
+            overflow-y: auto;
+            background: #0b141a;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(255,255,255,0.01) 10px,
+                    rgba(255,255,255,0.01) 20px
+                );
+        }
+
+        /* Scrollbar estilo WhatsApp */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #374045;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 8px;
+            display: flex;
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 6px 10px 8px 10px;
+            border-radius: 8px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            position: relative;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+
+        .message.bot .message-content {
+            background: #202c33;
+            color: #e9edef;
+            border-radius: 0 8px 8px 8px;
+        }
+
+        .message.user .message-content {
+            background: #005c4b;
+            color: #e9edef;
+            border-radius: 8px 0 8px 8px;
+        }
+
+        .message-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .message.bot .message-content::after {
+            left: -8px;
+            border-left: 8px solid transparent;
+            border-bottom: 8px solid #202c33;
+        }
+
+        .message.user .message-content::after {
+            right: -8px;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #005c4b;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: #202c33;
+            border-radius: 8px 8px 8px 0;
+            width: fit-content;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            margin-left: 8px;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #8696a0;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Input estilo WhatsApp */
+        .chat-input {
+            padding: 8px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            background: #202c33;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 16px;
+            background: #2a3942;
+            border: none;
+            border-radius: 24px;
+            color: #e9edef;
+            font-size: 15px;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .chat-input input::placeholder {
+            color: #8696a0;
+        }
+
+        .chat-input input:focus {
+            background: #374045;
+        }
+
+        .chat-input button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: #25d366;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-input button:hover {
+            background: #20bd5f;
+            transform: scale(1.05);
+        }
+
+        .chat-input button:active {
+            transform: scale(0.95);
+        }
+
+        .chat-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        /* Botões dinâmicos */
+        .dynamic-actions {
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            animation: slideIn 0.3s ease;
+        }
+
+        .action-btn {
+            background: #2a3942;
+            color: #e9edef;
+            border: 1px solid #374045;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #374045;
+            border-color: #005c4b;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            background: #005c4b;
+        }
+
+        /* PWA Install Banner */
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #202c33;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 2000;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .install-banner.show {
+            transform: translateY(0);
+        }
+
+        .install-banner-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .install-banner-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .install-banner-content h3 {
+            font-size: 15px;
+            color: #e9edef;
+            margin-bottom: 2px;
+        }
+
+        .install-banner-content p {
+            font-size: 13px;
+            color: #8696a0;
+        }
+
+        .install-banner-btn {
+            padding: 10px 20px;
+            background: #25d366;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .install-banner-close {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            color: #8696a0;
+            font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Responsive Desktop */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #0a1014 0%, #1a2530 100%);
+            }
+
+            .chat-container {
+                max-width: 450px;
+                height: 90vh;
+                max-height: 800px;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+                border: 1px solid #2a3942;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-avatar">🏢</div>
+            <div class="header-info">
+                <h1>Assistente do Condomínio</h1>
+                <p>online • responde rápido</p>
+            </div>
+            <div class="status-indicator"></div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-content">👋 Olá! Sou o assistente do condomínio.
+
+Toque em "Começar" para consultar o status.</div>
+            </div>
+            <!-- Botões dinâmicos aparecerão aqui no final -->
+            <div class="dynamic-actions" id="dynamicActions"></div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="chat-input" id="chatInputContainer">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Digite uma mensagem..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button onclick="sendMessage()" id="sendButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div class="install-banner" id="installBanner">
+        <div class="install-banner-icon">🏢</div>
+        <div class="install-banner-content">
+            <h3>Instalar App</h3>
+            <p>Adicione à tela inicial</p>
+        </div>
+        <button class="install-banner-btn" id="installBtn">Instalar</button>
+        <button class="install-banner-close" id="closeInstallBanner">×</button>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, setDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ===== CONFIGURAÇÃO DUAL FIREBASE =====
+        
+        // 1. Firebase do CHATBOT (para salvar mensagens)
+        const chatbotConfig = {
+            apiKey: "AIzaSyBHqhov3ObeWwQITIgrO-PGmMKtbVHu5_o",
+            authDomain: "chatbotcond.firebaseapp.com",
+            projectId: "chatbotcond",
+            storageBucket: "chatbotcond.firebasestorage.app",
+            messagingSenderId: "664595320662",
+            appId: "1:664595320662:web:e9744542052358116f50f7",
+            measurementId: "G-PYPSW1BCLX"
+        };
+
+        // 2. Firebase do SISTEMA PRINCIPAL (para buscar dados)
+        const sistemaConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        // Inicializar ambos os Firebases
+        const chatbotApp = initializeApp(chatbotConfig, 'chatbot');
+        const sistemaApp = initializeApp(sistemaConfig, 'sistema');
+        
+        const chatbotDb = getFirestore(chatbotApp);
+        const sistemaDb = getFirestore(sistemaApp);
+
+        // ===== CONFIGURAÇÃO DO CONDOMÍNIO =====
+        let CONDOMINIO_ID = localStorage.getItem('condominioId') || null;
+        let CONDOMINIO_NOME = localStorage.getItem('condominioNome') || 'Condomínio';
+
+        // Se não tiver condomínio salvo, buscar o primeiro disponível
+        if (!CONDOMINIO_ID) {
+            buscarCondominios();
+        }
+
+        async function buscarCondominios() {
+            try {
+                const q = query(
+                    collection(sistemaDb, 'condominios'),
+                    where('active', '==', true),
+                    limit(1)
+                );
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    const cond = snapshot.docs[0];
+                    CONDOMINIO_ID = cond.id;
+                    CONDOMINIO_NOME = cond.data().nome;
+                    localStorage.setItem('condominioId', CONDOMINIO_ID);
+                    localStorage.setItem('condominioNome', CONDOMINIO_NOME);
+                    console.log('✅ Condomínio selecionado:', CONDOMINIO_NOME);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar condomínios:', error);
+            }
+        }
+
+        // ===== ESTADO DO FLOW =====
+        let chatFlowState = {
+            step: 'IDLE', // IDLE, YEAR, MONTH, CONDO, BLOCK, APT
+            data: {}
+        };
+
+        // ===== FUNÇÕES DO CHATBOT =====
+
+        window.sendMessage = async function(customMessage) {
+            const input = document.getElementById('messageInput');
+            const message = customMessage || input.value.trim();
+            
+            if (!message) return;
+            
+            // Limpa botões anteriores
+            clearDynamicButtons();
+
+            // Adiciona mensagem do usuário
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Se foi mensagem manual, foca no input
+            if (!customMessage) {
+                input.focus();
+            }
+
+            showTyping();
+            
+            // Salvar no Firestore (opcional, pode ser otimizado)
+            await saveMessage(message, 'user');
+            
+            // Processar a mensagem
+            const response = await processMessage(message);
+            
+            hideTyping();
+            
+            // Se response for string, adiciona como mensagem
+            if (typeof response === 'string') {
+                addMessage(response, 'bot');
+                await saveMessage(response, 'bot');
+            } else if (response && response.text) {
+                // Se for objeto com text e options
+                addMessage(response.text, 'bot');
+                await saveMessage(response.text, 'bot');
+                
+                if (response.options) {
+                    renderDynamicButtons(response.options);
+                }
+            }
+        };
+
+        window.handleKeyPress = function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        };
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatMessages');
+            
+            // Remove botões antigos se existirem antes de adicionar nova mensagem
+            const oldButtons = document.getElementById('dynamicActions');
+            if (oldButtons) {
+                oldButtons.innerHTML = ''; 
+                // Move para o final
+                messagesDiv.appendChild(oldButtons);
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            
+            // Inserir antes dos botões
+            if (oldButtons) {
+                messagesDiv.insertBefore(messageDiv, oldButtons);
+            } else {
+                messagesDiv.appendChild(messageDiv);
+            }
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typingIndicator').classList.add('active');
+            document.getElementById('sendButton').disabled = true;
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').classList.remove('active');
+            document.getElementById('sendButton').disabled = false;
+        }
+
+        async function saveMessage(text, sender) {
+            try {
+                await addDoc(collection(chatbotDb, 'messages'), {
+                    text,
+                    sender,
+                    timestamp: serverTimestamp(),
+                    condominioId: CONDOMINIO_ID
+                });
+            } catch (error) {
+                console.error('Erro ao salvar mensagem:', error);
+            }
+        }
+
+        // ===== BOTÕES DINÂMICOS =====
+
+        function renderDynamicButtons(options) {
+            const container = document.getElementById('dynamicActions');
+            if (!container) return;
+
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.textContent = opt.label;
+                btn.onclick = () => window.sendMessage(opt.value);
+                container.appendChild(btn);
+            });
+
+            // Scroll para mostrar os botões
+            const messagesDiv = document.getElementById('chatMessages');
+            setTimeout(() => {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 50);
+        }
+
+        function clearDynamicButtons() {
+            const container = document.getElementById('dynamicActions');
+            if (container) container.innerHTML = '';
+        }
+
+        // ===== LÓGICA DO FLOW =====
+
+        // ===== LÓGICA DO FLOW =====
+
+        async function processMessage(message) {
+            const msg = message.trim();
+            const lowerMsg = msg.toLowerCase();
+
+            // Comando global de cancelamento
+            if (['cancelar', 'sair', 'inicio', 'início'].includes(lowerMsg)) {
+                chatFlowState.step = 'YEAR'; // Volta pro inicio (Ano)
+                chatFlowState.data = {};
+                const years = getYearOptions();
+                return {
+                    text: 'Fluxo reiniciado. Por favor, escolha o ano:',
+                    options: years
+                };
+            }
+
+            // Se estiver IDLE, força inicio
+            if (chatFlowState.step === 'IDLE') {
+                chatFlowState.step = 'YEAR';
+                const years = getYearOptions();
+                return {
+                    text: 'Vamos consultar o status. Primeiro, escolha o ano:',
+                    options: years
+                };
+            }
+
+            // Processar passos do Flow
+            return await handleFlowStep(msg);
+        }
+
+        async function handleFlowStep(input) {
+            const step = chatFlowState.step;
+            
+            try {
+                switch (step) {
+                    case 'YEAR':
+                        const years = getYearOptions();
+                        const validYears = years.map(y => y.value);
+                        
+                        if (!validYears.includes(input)) {
+                            return {
+                                text: 'Por favor, selecione um ano válido.',
+                                options: years
+                            };
+                        }
+                        chatFlowState.data.year = input;
+                        chatFlowState.step = 'MONTH';
+                        
+                        const meses = [
+                            { label: 'Janeiro', value: '01' }, { label: 'Fevereiro', value: '02' },
+                            { label: 'Março', value: '03' }, { label: 'Abril', value: '04' },
+                            { label: 'Maio', value: '05' }, { label: 'Junho', value: '06' },
+                            { label: 'Julho', value: '07' }, { label: 'Agosto', value: '08' },
+                            { label: 'Setembro', value: '09' }, { label: 'Outubro', value: '10' },
+                            { label: 'Novembro', value: '11' }, { label: 'Dezembro', value: '12' }
+                        ];
+                        
+                        return {
+                            text: `Certo, ${input}. Agora escolha o mês:`,
+                            options: meses
+                        };
+
+                    case 'MONTH':
+                        chatFlowState.data.month = input; 
+                        
+                        const q = query(
+                            collection(sistemaDb, 'condominios'),
+                            where('active', '==', true)
+                        );
+                        const snap = await getDocs(q);
+                        
+                        if (snap.size > 1) {
+                            chatFlowState.step = 'CONDO';
+                            const opts = [];
+                            snap.forEach(d => opts.push({ label: d.data().nome, value: d.id }));
+                            return {
+                                text: 'Escolha o condomínio:',
+                                options: opts
+                            };
+                        } else if (snap.size === 1) {
+                            const d = snap.docs[0];
+                            CONDOMINIO_ID = d.id;
+                            CONDOMINIO_NOME = d.data().nome;
+                            localStorage.setItem('condominioId', CONDOMINIO_ID);
+                            localStorage.setItem('condominioNome', CONDOMINIO_NOME);
+                        } else {
+                            return 'Erro: Nenhum condomínio encontrado.';
+                        }
+                        
+                        chatFlowState.step = 'BLOCK_OR_REPORT';
+                        const blocosOpts = await getBlocosOptions(CONDOMINIO_ID);
+                        
+                        const optsWithReport = [
+                            { label: '📊 Relatório Mensal', value: 'RELATORIO' },
+                            ...blocosOpts
+                        ];
+
+                        return {
+                            text: `Condomínio: ${CONDOMINIO_NOME}\nEscolha o Bloco ou veja o Relatório:`,
+                            options: optsWithReport 
+                        };
+
+                    case 'CONDO':
+                        CONDOMINIO_ID = input; 
+                        localStorage.setItem('condominioId', CONDOMINIO_ID);
+                        
+                        chatFlowState.step = 'BLOCK_OR_REPORT';
+                         const blocosOpts2 = await getBlocosOptions(CONDOMINIO_ID);
+                         
+                         const optsWithReport2 = [
+                            { label: '📊 Relatório Mensal', value: 'RELATORIO' },
+                            ...blocosOpts2
+                        ];
+
+                        return {
+                            text: 'Escolha o Bloco ou veja o Relatório:',
+                            options: optsWithReport2
+                        };
+
+                    case 'BLOCK_OR_REPORT':
+                        if (input === 'RELATORIO') {
+                            const report = await generateReport(chatFlowState.data.year, chatFlowState.data.month);
+                            chatFlowState.step = 'IDLE';
+                            return {
+                                text: report,
+                                options: [{ label: 'Nova Consulta', value: 'Começar' }]
+                            };
+                        }
+                        
+                        chatFlowState.data.blockId = input; 
+                        chatFlowState.step = 'APT';
+                        const aptsOpts = await getAptsOptions(input);
+                        
+                        let txt = 'Escolha o Apartamento:';
+                        if (aptsOpts.length > 20) {
+                            txt = 'Muitos apartamentos. Digite o número ou escolha abaixo:';
+                        }
+
+                        return {
+                            text: txt,
+                            options: aptsOpts
+                        };
+
+                    case 'BLOCK': // Fallback for safety if step mismatch
+                    case 'APT':
+                         if (step === 'BLOCK') { // Should not happen with new logic but keeping case
+                            chatFlowState.data.blockId = input; 
+                            chatFlowState.step = 'APT';
+                            // ... duplicate logic, safe to ignore, flow uses BLOCK_OR_REPORT now
+                         }
+
+                         chatFlowState.data.aptNum = input;
+                         chatFlowState.step = 'IDLE'; 
+                         
+                         const resultObj = await fetchStatusData(
+                             chatFlowState.data.year,
+                             chatFlowState.data.month, 
+                             chatFlowState.data.aptNum
+                         );
+                         
+                         if (resultObj.found) {
+                            chatFlowState.data.aptId = resultObj.aptId;
+                            chatFlowState.data.currentStatus = resultObj.status;
+                         }
+
+                         return {
+                             text: resultObj.text,
+                             options: [
+                                 { label: 'Nova Consulta', value: 'Começar' },
+                                 { label: '✏️ Alterar Status', value: 'ALTERAR_STATUS' }
+                             ]
+                         };
+                    
+                    case 'IDLE': 
+                        if (input === 'ALTERAR_STATUS' && chatFlowState.data.aptId) {
+                             chatFlowState.step = 'CONFIRM_STATUS';
+                             return {
+                                 text: `Alterar status do Apt ${chatFlowState.data.aptNum} para:`,
+                                 options: [
+                                     { label: '✅ Pago', value: 'pago' },
+                                     { label: '⏳ Pendente', value: 'pendente' },
+                                     { label: '🤝 Acordo', value: 'acordo' },
+                                     { label: '⚖️ Jurídico', value: 'juridico' },
+                                     { label: 'Cancelar', value: 'cancelar' }
+                                 ]
+                             };
+                        }
+                        return { text: 'Digite "Começar" para nova consulta.', options: [{ label: 'Começar', value: 'Começar' }] };
+
+                    case 'CONFIRM_STATUS':
+                        if (input === 'cancelar') {
+                             chatFlowState.step = 'IDLE';
+                             return {
+                                 text: 'Alteração cancelada.',
+                                 options: [{ label: 'Nova Consulta', value: 'Começar' }]
+                             };
+                        }
+                        
+                        const newStatus = input;
+                        await updateStatus(
+                            chatFlowState.data.aptId, 
+                            chatFlowState.data.year,
+                            chatFlowState.data.month, 
+                            newStatus
+                        );
+                        
+                        chatFlowState.step = 'IDLE';
+                        return {
+                            text: `✅ Status do Apt ${chatFlowState.data.aptNum} atualizado para: ${newStatus.toUpperCase()}`,
+                            options: [{ label: 'Nova Consulta', value: 'Começar' }]
+                        };
+                }
+            } catch(e) {
+                console.error(e);
+                return 'Ocorreu um erro no fluxo. Digite "Cancelar" pare reiniciar.';
+            }
+            
+            return 'Não entendi. Tente usar os botões.';
+        }
+        
+        // ===== HELPER FUNCTIONS =====
+
+        function getYearOptions() {
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
+            return [
+                { label: String(currentYear), value: String(currentYear) },
+                { label: String(nextYear), value: String(nextYear) }
+            ];
+        }
+        
+        async function getBlocosOptions(condId) {
+            const q = query(
+                collection(sistemaDb, 'blocos'),
+                where('condominioId', '==', condId),
+                where('active', '==', true)
+            );
+            const snap = await getDocs(q);
+            const opts = [];
+            snap.forEach(d => {
+                opts.push({ label: d.data().nome, value: d.id, num: d.data().numero || 0 });
+            });
+            opts.sort((a,b) => a.num - b.num);
+            return opts.map(o => ({ label: o.label, value: o.value }));
+        }
+
+        async function getAptsOptions(blockId) {
+             const q = query(
+                collection(sistemaDb, 'apartamentos'),
+                where('blocoId', '==', blockId),
+                where('active', '==', true)
+            );
+            const snap = await getDocs(q);
+            const opts = [];
+            snap.forEach(d => {
+                opts.push({ label: d.data().numero, value: d.data().numero });
+            });
+            // Ordenar numericamente
+            opts.sort((a,b) => parseInt(a.label) - parseInt(b.label));
+            return opts;
+        }
+        
+        async function fetchStatus(year, month, aptNum) {
+            // Reutilizar lógica existente mas adaptada
+            const date = `${year}-${month}`; // "2026-02"
+            
+            // 1. Buscar ID do apt pelo numero (dentro do condominio atual)
+            // Precisamos garantir que é do condominio certo.
+            // A busca anterior por bloco já filtrou, mas aqui so temos o numero e o condominioID global.
+            // Idealmente usariamos o ID do apt selecionado no passo anterior, mas usei numero no value.
+            // Vamos buscar pelo numero e condominio
+            
+            const qApt = query(
+                collection(sistemaDb, 'apartamentos'),
+                where('condominioId', '==', CONDOMINIO_ID),
+                where('numero', '==', aptNum),
+                where('active', '==', true),
+                limit(1)
+            );
+            const snapApt = await getDocs(qApt);
+            if (snapApt.empty) return `Apartamento ${aptNum} não encontrado.`;
+            
+            const aptData = snapApt.docs[0].data();
+            const aptId = snapApt.docs[0].id;
+            
+            // 2. Buscar pagamento
+             const qPay = query(
+                collection(sistemaDb, 'payments'),
+                where('apartamentoId', '==', aptId),
+                where('date', '==', date),
+                limit(1)
+            );
+            const snapPay = await getDocs(qPay);
+            
+            let status = 'pendente';
+            let valor = 0;
+            if (!snapPay.empty) {
+                const p = snapPay.docs[0].data();
+                status = p.status;
+                valor = p.value || 0;
+            }
+            
+            const emojis = { pago: '✅', pendente: '⏳', reciclado: '♻️', acordo: '🤝' };
+            const emoji = emojis[status] || '❓';
+            
+            return `📅 Referência: ${month}/${year}
+🏠 Apt: ${aptNum}
+👤 ${aptData.proprietario || 'Proprietário'}
+
+${emoji} Status: ${status.toUpperCase()}
+${valor > 0 ? `💰 Valor: R$ ${valor.toFixed(2)}` : ''}`;
+        }
+
+        // Carregar mensagens antigas ao iniciar
+        // Carregar mensagens antigas ao iniciar
+        window.addEventListener('load', async () => {
+             // START AUTOMÁTICO
+             chatFlowState.step = 'YEAR';
+             const years = getYearOptions();
+             
+             // Carregar histórico
+            try {
+                const q = query(
+                    collection(chatbotDb, 'messages'),
+                    limit(20)
+                );
+                const snapshot = await getDocs(q);
+                
+                const messages = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.timestamp) {
+                        messages.push(data);
+                    }
+                });
+                
+                // Ordenar no cliente
+                messages.sort((a, b) => {
+                    if (!a.timestamp || !b.timestamp) return 0;
+                    return a.timestamp.seconds - b.timestamp.seconds;
+                });
+                
+                messages.forEach(msg => {
+                    if (!msg.text.includes('Olá! Vamos consultar o status')) {
+                         addMessage(msg.text, msg.sender);
+                    }
+                });
+
+                // Mensagem inicial sempre
+                setTimeout(() => {
+                    // Limpar botões antigos do historico visualmente? não, addMessage cuida disso se novo.
+                    addMessage('👋 Olá! Vamos consultar o status. Por favor, escolha o ano:', 'bot');
+                    renderDynamicButtons(years);
+                }, 500);
+
+            } catch (error) {
+                console.log('Erro histórico:', error);
+                // Fallback
+                 addMessage('👋 Olá! Vamos consultar o status. Por favor, escolha o ano:', 'bot');
+                 renderDynamicButtons(years);
+            }
+
+            // PWA Install
+            initPWA();
+        });
+
+        // ===== PWA INSTALL =====
+        let deferredPrompt;
+
+        function initPWA() {
+            // Detectar se já está instalado
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('✅ App já instalado');
+                return;
+            }
+
+            // Capturar evento de instalação
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+
+                deferredPrompt = e;
+                
+                // Mostrar banner após 3 segundos
+                setTimeout(() => {
+                    document.getElementById('installBanner').classList.add('show');
+                }, 3000);
+            });
+
+            // Botão de instalar
+            document.getElementById('installBtn').addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    alert('Instalação não disponível neste navegador');
+                    return;
+                }
+
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ App instalado');
+                    document.getElementById('installBanner').classList.remove('show');
+                }
+                
+                deferredPrompt = null;
+            });
+
+            // Fechar banner
+            document.getElementById('closeInstallBanner').addEventListener('click', () => {
+                document.getElementById('installBanner').classList.remove('show');
+            });
+
+            // Registrar Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw-chatbot.js')
+                    .then(reg => console.log('✅ Service Worker registrado'))
+                    .catch(err => console.log('❌ Erro no Service Worker:', err));
+            }
+        }
+    </script>
+</body>
+</html>

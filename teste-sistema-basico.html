@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Sistema Básico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .log-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Sistema Básico</h1>
+        <p>Verificação de erros de sintaxe e carregamento</p>
+        
+        <div>
+            <button class="test-button" onclick="testFirebaseImports()">
+                🔥 Testar Imports Firebase
+            </button>
+            <button class="test-button" onclick="testAppJS()">
+                📱 Testar app.js
+            </button>
+            <button class="test-button" onclick="testElements()">
+                🎯 Testar Elementos DOM
+            </button>
+            <button class="test-button" onclick="clearLog()">
+                🧹 Limpar Log
+            </button>
+        </div>
+        
+        <div id="logArea" class="log-area">
+            <div class="info">🚀 Sistema de teste inicializado</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+            log('🧹 Log limpo', 'info');
+        }
+
+        function testFirebaseImports() {
+            log('🔥 Testando imports do Firebase...', 'info');
+            
+            try {
+                // Testar se os scripts Firebase estão carregando
+                const scripts = document.querySelectorAll('script[src*="firebase"]');
+                log(`   Scripts Firebase encontrados: ${scripts.length}`, 'info');
+                
+                // Verificar se Firebase está disponível
+                if (typeof firebase !== 'undefined') {
+                    log('✅ Firebase SDK disponível', 'success');
+                } else {
+                    log('❌ Firebase SDK não encontrado', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Erro ao testar Firebase: ${error.message}`, 'error');
+            }
+        }
+
+        function testAppJS() {
+            log('📱 Testando carregamento do app.js...', 'info');
+            
+            try {
+                // Criar script para testar app.js
+                const script = document.createElement('script');
+                script.src = 'app.js';
+                script.type = 'module';
+                
+                script.onload = () => {
+                    log('✅ app.js carregado com sucesso', 'success');
+                };
+                
+                script.onerror = (error) => {
+                    log(`❌ Erro ao carregar app.js: ${error.message}`, 'error');
+                };
+                
+                // Não adicionar ao DOM para evitar conflitos, apenas testar
+                log('   Testando sintaxe do app.js...', 'info');
+                
+                // Fazer fetch para verificar se o arquivo existe
+                fetch('app.js')
+                    .then(response => {
+                        if (response.ok) {
+                            log('✅ app.js encontrado e acessível', 'success');
+                            return response.text();
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    })
+                    .then(code => {
+                        log(`   Tamanho do arquivo: ${Math.round(code.length / 1024)}KB`, 'info');
+                        
+                        // Verificar por erros de sintaxe óbvios
+                        const duplicateShowToast = (code.match(/function showToast/g) || []).length;
+                        if (duplicateShowToast > 1) {
+                            log(`❌ Função showToast duplicada (${duplicateShowToast} vezes)`, 'error');
+                        } else {
+                            log('✅ Função showToast única', 'success');
+                        }
+                        
+                        // Verificar outras funções críticas
+                        const criticalFunctions = [
+                            'showPainelLoading',
+                            'ensurePainelApartamentosLoaded',
+                            'renderPaymentsTable',
+                            'applyFilters'
+                        ];
+                        
+                        criticalFunctions.forEach(func => {
+                            if (code.includes(`function ${func}`) || code.includes(`${func} =`)) {
+                                log(`✅ Função ${func} encontrada`, 'success');
+                            } else {
+                                log(`❌ Função ${func} não encontrada`, 'error');
+                            }
+                        });
+                        
+                    })
+                    .catch(error => {
+                        log(`❌ Erro ao acessar app.js: ${error.message}`, 'error');
+                    });
+                
+            } catch (error) {
+                log(`❌ Erro ao testar app.js: ${error.message}`, 'error');
+            }
+        }
+
+        function testElements() {
+            log('🎯 Testando elementos DOM...', 'info');
+            
+            const criticalElements = [
+                'painelLoading',
+                'toast',
+                'filterCondominio',
+                'filterBloco',
+                'filterMes',
+                'clearFilters',
+                'paymentsTableBody',
+                'tableInfo'
+            ];
+            
+            criticalElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    log(`✅ Elemento #${elementId} encontrado`, 'success');
+                } else {
+                    log(`❌ Elemento #${elementId} não encontrado`, 'error');
+                }
+            });
+        }
+
+        // Testar automaticamente ao carregar
+        setTimeout(() => {
+            log('🔍 Executando testes automáticos...', 'info');
+            testFirebaseImports();
+            testAppJS();
+        }, 1000);
+    </script>
+</body>
+</html>

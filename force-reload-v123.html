@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forçar Atualização v123</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 32px;
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .version {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Atualização do Sistema</h1>
+        <div class="version">v123</div>
+        <p>Limpando cache e atualizando...</p>
+        <div class="status" id="status">Iniciando...</div>
+        <div class="log" id="log"></div>
+        <a href="/" class="btn" id="redirectBtn" style="display: none;">Ir para o Sistema</a>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const redirectBtn = document.getElementById('redirectBtn');
+
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}<br>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function forceUpdate() {
+            try {
+                addLog('🚀 Iniciando atualização forçada...');
+                status.textContent = 'Limpando cache...';
+
+                // 1. Limpar localStorage
+                addLog('📦 Limpando localStorage...');
+                localStorage.clear();
+                addLog('✅ localStorage limpo');
+
+                // 2. Limpar sessionStorage
+                addLog('📦 Limpando sessionStorage...');
+                sessionStorage.clear();
+                addLog('✅ sessionStorage limpo');
+
+                // 3. Desregistrar Service Workers
+                if ('serviceWorker' in navigator) {
+                    addLog('🔧 Desregistrando Service Workers...');
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        addLog(`✅ Service Worker desregistrado: ${registration.scope}`);
+                    }
+                }
+
+                // 4. Limpar todos os caches
+                if ('caches' in window) {
+                    addLog('🗑️ Limpando todos os caches...');
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        addLog(`✅ Cache deletado: ${cacheName}`);
+                    }
+                }
+
+                // 5. Forçar reload
+                addLog('🔄 Preparando para recarregar...');
+                status.textContent = '✅ Atualização concluída!';
+                
+                addLog('✨ Sistema atualizado para v123');
+                addLog('🔒 Seção de credenciais removida');
+                addLog('🎉 Pronto para usar!');
+
+                redirectBtn.style.display = 'inline-block';
+
+                // Redirecionar automaticamente após 3 segundos
+                setTimeout(() => {
+                    addLog('🚀 Redirecionando...');
+                    window.location.href = '/';
+                }, 3000);
+
+            } catch (error) {
+                addLog(`❌ Erro: ${error.message}`);
+                status.textContent = '❌ Erro na atualização';
+                console.error('Erro ao forçar atualização:', error);
+            }
+        }
+
+        // Executar automaticamente
+        forceUpdate();
+    </script>
+</body>
+</html>

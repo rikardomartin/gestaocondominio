@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Modal Inline CSS</title>
+    <style>
+        /* CSS INLINE - não depende de arquivos externos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        
+        .test-btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .apartment-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .apartment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #2563eb;
+        }
+        
+        .apartment-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .status-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .success-info {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+        
+        .error-info {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        
+        /* MODAL CSS INLINE */
+        .hidden {
+            display: none !important;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .modal-overlay.modal-visible {
+            display: flex !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 9999 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 24px 24px 0 24px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+        
+        .modal-body {
+            padding: 0 24px 24px 24px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 24px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            color: #374151;
+            background: #f3f4f6;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .status-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .status-option-card {
+            position: relative;
+            display: block;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .status-option-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .status-option-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            transition: all 0.2s;
+        }
+        
+        .status-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+        
+        .status-desc {
+            font-size: 12px;
+            opacity: 0.7;
+            line-height: 1.2;
+        }
+        
+        /* Status específicos */
+        .status-option-card.status-pendente input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+            color: white;
+        }
+        
+        .status-option-card.status-pendente input[type="radio"]:checked + .status-content .status-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .status-option-card.status-pago input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+            color: white;
+        }
+        
+        .status-option-card.status-pago input[type="radio"]:checked + .status-content .status-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .status-option-card.status-reciclado input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+            color: white;
+        }
+        
+        .status-option-card.status-reciclado input[type="radio"]:checked + .status-content .status-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .status-option-card.status-acordo input[type="radio"]:checked + .status-content {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+            color: white;
+        }
+        
+        .status-option-card.status-acordo input[type="radio"]:checked + .status-content .status-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-prefix {
+            position: absolute;
+            left: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .input-group .form-input {
+            padding-left: 40px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .status-options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-container {
+                width: 95%;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste Modal com CSS Inline</h1>
+        
+        <div class="status-info">
+            <h3>🔧 Teste Independente</h3>
+            <p>Este teste usa CSS inline e não depende de arquivos externos. Se funcionar aqui, o problema é no carregamento do CSS externo.</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <button class="test-btn" onclick="testModal()">🚀 Testar Modal</button>
+            <button class="test-btn" onclick="forceModal()">💪 Forçar Modal</button>
+            <button class="test-btn" onclick="closeModal()">❌ Fechar Modal</button>
+        </div>
+        
+        <div class="apartment-card" onclick="openApartmentModal()">
+            <div class="apartment-number">Apartamento 101 - TESTE</div>
+            <p>Clique para testar o modal</p>
+        </div>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <!-- Modal de Apartamento com CSS INLINE -->
+    <div id="apartmentModal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div>
+                    <h3 id="apartmentModalTitle">Apartamento TESTE</h3>
+                    <p id="apartmentBreadcrumb">Teste > Modal > Inline CSS</p>
+                </div>
+                <button id="closeApartmentModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Status do Pagamento</label>
+                    <div class="status-options-grid">
+                        <label class="status-option-card status-pendente">
+                            <input type="radio" name="aptStatus" value="pendente">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12,6 12,12 16,14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PENDENTE</span>
+                                    <span class="status-desc">Pagamento em aberto</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-pago">
+                            <input type="radio" name="aptStatus" value="pago">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO</span>
+                                    <span class="status-desc">Pagamento realizado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-reciclado">
+                            <input type="radio" name="aptStatus" value="reciclado">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 4v6h6"></path>
+                                        <path d="M23 20v-6h-6"></path>
+                                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">PAGO RECICLADO</span>
+                                    <span class="status-desc">Pagamento reprocessado</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="status-option-card status-acordo">
+                            <input type="radio" name="aptStatus" value="acordo">
+                            <div class="status-content">
+                                <div class="status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 12l2 2 4-4"></path>
+                                        <path d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1h9l4-4-4-4H3"></path>
+                                    </svg>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-title">ACORDO</span>
+                                    <span class="status-desc">Acordo de pagamento</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="apartmentObservations">Acordo / Observações</label>
+                    <textarea 
+                        id="apartmentObservations" 
+                        class="form-textarea" 
+                        rows="4" 
+                        placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+                    ></textarea>
+                </div>
+                
+                <div class="form-group" id="paymentValueGroup" style="display: none;">
+                    <label class="form-label" for="paymentValue">Valor do Pagamento</label>
+                    <div class="input-group">
+                        <span class="input-prefix">R$</span>
+                        <input 
+                            type="number" 
+                            id="paymentValue" 
+                            class="form-input" 
+                            step="0.01" 
+                            min="0" 
+                            placeholder="0,00"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group" id="paymentDateGroup" style="display: none;">
+                    <label class="form-label" for="paymentDate">Data do Pagamento</label>
+                    <input 
+                        type="date" 
+                        id="paymentDate" 
+                        class="form-input"
+                    >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelApartmentModal" class="btn-secondary">Cancelar</button>
+                <button id="saveApartmentStatus" class="btn-primary">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('testResults');
+            const className = type === 'success' ? 'success-info' : type === 'error' ? 'error-info' : 'status-info';
+            results.innerHTML = `<div class="${className}"><p>${message}</p></div>`;
+        }
+        
+        function testModal() {
+            console.log('🧪 Testando modal com CSS inline...');
+            
+            const modal = document.getElementById('apartmentModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado no DOM', 'error');
+                return;
+            }
+            
+            console.log('Modal encontrado:', modal);
+            console.log('Classes iniciais:', modal.className);
+            
+            // Usar nova abordagem
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-visible');
+            
+            console.log('Classes após mudança:', modal.className);
+            
+            setTimeout(() => {
+                const computedDisplay = window.getComputedStyle(modal).display;
+                const computedPosition = window.getComputedStyle(modal).position;
+                const computedZIndex = window.getComputedStyle(modal).zIndex;
+                
+                console.log('Estilos computados:');
+                console.log('- Display:', computedDisplay);
+                console.log('- Position:', computedPosition);
+                console.log('- Z-index:', computedZIndex);
+                
+                if (computedDisplay === 'flex') {
+                    showResult('✅ SUCESSO! Modal está visível com CSS inline!', 'success');
+                } else {
+                    showResult(`❌ Modal ainda não visível. Display: ${computedDisplay}`, 'error');
+                }
+            }, 100);
+        }
+        
+        function forceModal() {
+            console.log('💪 Forçando modal com todos os métodos...');
+            
+            const modal = document.getElementById('apartmentModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado', 'error');
+                return;
+            }
+            
+            // Método 1: Classes
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-visible');
+            
+            // Método 2: Estilos inline
+            modal.style.display = 'flex';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.zIndex = '9999';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            
+            // Método 3: setProperty com !important
+            modal.style.setProperty('display', 'flex', 'important');
+            modal.style.setProperty('position', 'fixed', 'important');
+            modal.style.setProperty('z-index', '9999', 'important');
+            
+            showResult('💪 Modal forçado com TODOS os métodos possíveis!', 'success');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('apartmentModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('modal-visible');
+                modal.style.display = 'none';
+                showResult('🔒 Modal fechado', 'info');
+            }
+        }
+        
+        function openApartmentModal() {
+            console.log('🖱️ Clique no apartamento - abrindo modal...');
+            testModal();
+        }
+        
+        // Event listeners
+        document.getElementById('closeApartmentModal').addEventListener('click', closeModal);
+        document.getElementById('cancelApartmentModal').addEventListener('click', closeModal);
+        
+        document.getElementById('apartmentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'apartmentModal') {
+                closeModal();
+            }
+        });
+        
+        // Status change listeners
+        const statusRadios = document.querySelectorAll('input[name="aptStatus"]');
+        statusRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    console.log('Status selecionado:', e.target.value);
+                    
+                    const valueGroup = document.getElementById('paymentValueGroup');
+                    const dateGroup = document.getElementById('paymentDateGroup');
+                    
+                    if (e.target.value === 'pago' || e.target.value === 'reciclado') {
+                        valueGroup.style.display = 'block';
+                        dateGroup.style.display = 'block';
+                        
+                        // Definir valores padrão
+                        const dateField = document.getElementById('paymentDate');
+                        if (dateField && !dateField.value) {
+                            dateField.value = new Date().toISOString().split('T')[0];
+                        }
+                        
+                        const valueField = document.getElementById('paymentValue');
+                        if (valueField && !valueField.value) {
+                            valueField.value = '285.00';
+                        }
+                    } else {
+                        valueGroup.style.display = 'none';
+                        dateGroup.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Auto-teste ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showResult('🔧 Página carregada. Este teste usa CSS inline. Clique em "Testar Modal" para verificar.', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

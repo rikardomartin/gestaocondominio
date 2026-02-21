@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Debug Elementos DOM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        .test-btn:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+        }
+        .error {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Debug Elementos DOM</h1>
+        
+        <p>Este teste verifica se todos os elementos necessários para o modal estão presentes no DOM.</p>
+        
+        <button class="test-btn" onclick="debugElements()">🧪 Verificar Elementos</button>
+        <button class="test-btn" onclick="testModalDirectly()">📱 Testar Modal Diretamente</button>
+        <button class="test-btn" onclick="simulateClick()">🖱️ Simular Clique</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function debugElements() {
+            const results = document.getElementById('results');
+            let output = '🔍 VERIFICAÇÃO DE ELEMENTOS DOM\n\n';
+            
+            // Lista de elementos necessários
+            const requiredElements = [
+                'apartmentModal',
+                'apartmentModalTitle', 
+                'apartmentBreadcrumb',
+                'closeApartmentModal',
+                'cancelApartmentModal',
+                'saveApartmentStatus',
+                'apartmentObservations',
+                'paymentValueGroup',
+                'paymentDateGroup',
+                'paymentValue',
+                'paymentDate'
+            ];
+            
+            let allFound = true;
+            
+            requiredElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                const found = element !== null;
+                
+                if (!found) allFound = false;
+                
+                output += `${found ? '✅' : '❌'} ${elementId}: ${found ? 'ENCONTRADO' : 'NÃO ENCONTRADO'}\n`;
+                
+                if (found && element.tagName) {
+                    output += `    Tag: ${element.tagName}, Classes: ${element.className}\n`;
+                }
+            });
+            
+            output += '\n📊 RESUMO:\n';
+            output += `Status geral: ${allFound ? '✅ TODOS ENCONTRADOS' : '❌ ELEMENTOS FALTANDO'}\n`;
+            
+            // Verificar se existem elementos com classes relacionadas
+            const statusCards = document.querySelectorAll('.status-option-card');
+            const statusGrid = document.querySelector('.status-options-grid');
+            
+            output += `\n🎯 ELEMENTOS ESPECÍFICOS DO MODAL:\n`;
+            output += `Status cards: ${statusCards.length} encontrados\n`;
+            output += `Status grid: ${statusGrid ? 'ENCONTRADO' : 'NÃO ENCONTRADO'}\n`;
+            
+            // Verificar se o modal está no HTML atual
+            const modalHTML = document.documentElement.outerHTML;
+            const hasModalInHTML = modalHTML.includes('id="apartmentModal"');
+            const hasStatusGrid = modalHTML.includes('status-options-grid');
+            
+            output += `\n📄 VERIFICAÇÃO NO HTML:\n`;
+            output += `Modal no HTML: ${hasModalInHTML ? 'SIM' : 'NÃO'}\n`;
+            output += `Grid de status no HTML: ${hasStatusGrid ? 'SIM' : 'NÃO'}\n`;
+            
+            results.innerHTML = `<div class="result ${allFound ? 'success' : 'error'}">${output}</div>`;
+        }
+        
+        function testModalDirectly() {
+            const results = document.getElementById('results');
+            let output = '📱 TESTE DIRETO DO MODAL\n\n';
+            
+            try {
+                const modal = document.getElementById('apartmentModal');
+                
+                if (!modal) {
+                    output += '❌ Modal não encontrado no DOM\n';
+                    output += 'Isso explica por que não abre quando clica no apartamento.\n';
+                    results.innerHTML = `<div class="result error">${output}</div>`;
+                    return;
+                }
+                
+                output += '✅ Modal encontrado\n';
+                output += `Classes atuais: ${modal.className}\n`;
+                output += `Display atual: ${modal.style.display || 'não definido'}\n`;
+                
+                // Tentar abrir o modal
+                output += '\n🎯 Tentando abrir modal...\n';
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                
+                output += '✅ Comandos executados\n';
+                
+                // Verificar se funcionou
+                setTimeout(() => {
+                    const isVisible = !modal.classList.contains('hidden');
+                    const displayStyle = modal.style.display;
+                    
+                    output += `\n📊 RESULTADO:\n`;
+                    output += `Classe "hidden" removida: ${isVisible}\n`;
+                    output += `Display definido como: ${displayStyle}\n`;
+                    output += `Modal deve estar ${isVisible && displayStyle === 'flex' ? 'VISÍVEL' : 'INVISÍVEL'}\n`;
+                    
+                    results.innerHTML = `<div class="result ${isVisible ? 'success' : 'error'}">${output}</div>`;
+                    
+                    // Fechar após 3 segundos
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        modal.style.display = 'none';
+                        output += '\n🔒 Modal fechado automaticamente\n';
+                        results.innerHTML = `<div class="result success">${output}</div>`;
+                    }, 3000);
+                }, 100);
+                
+            } catch (error) {
+                output += `❌ ERRO: ${error.message}\n`;
+                results.innerHTML = `<div class="result error">${output}</div>`;
+            }
+        }
+        
+        function simulateClick() {
+            const results = document.getElementById('results');
+            let output = '🖱️ SIMULAÇÃO DE CLIQUE\n\n';
+            
+            // Simular dados de apartamento
+            const apartamentoTeste = {
+                id: 'test-123',
+                numero: '101',
+                tipo: 'apartamento',
+                condominioId: 'cond-1',
+                blocoId: 'bloco-1'
+            };
+            
+            output += `Dados do apartamento teste:\n`;
+            output += `- Número: ${apartamentoTeste.numero}\n`;
+            output += `- Tipo: ${apartamentoTeste.tipo}\n`;
+            output += `- ID: ${apartamentoTeste.id}\n\n`;
+            
+            // Verificar se a função openApartmentModal existe
+            if (typeof openApartmentModal === 'function') {
+                output += '✅ Função openApartmentModal encontrada\n';
+                
+                try {
+                    output += '🎯 Chamando openApartmentModal...\n';
+                    openApartmentModal(apartamentoTeste);
+                    output += '✅ Função executada sem erro\n';
+                } catch (error) {
+                    output += `❌ Erro ao executar função: ${error.message}\n`;
+                }
+            } else {
+                output += '❌ Função openApartmentModal NÃO encontrada\n';
+                output += 'Isso explica por que o modal não abre!\n';
+            }
+            
+            results.innerHTML = `<div class="result">${output}</div>`;
+        }
+        
+        // Auto-executar verificação ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(debugElements, 500);
+        });
+    </script>
+</body>
+</html>

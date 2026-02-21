@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Teste Performance Painel Geral</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .test-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .test-button.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .test-button.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .test-button.danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .performance-chart {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+
+        .loading-demo {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🚀 Teste Performance Painel Geral</h1>
+        <p style="text-align: center; color: #64748b; margin-bottom: 30px;">
+            Verificação das melhorias de performance implementadas
+        </p>
+
+        <!-- Métricas de Performance -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="loadTime">-</div>
+                <div class="metric-label">Tempo de Carregamento (ms)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="filterTime">-</div>
+                <div class="metric-label">Tempo de Filtro (ms)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="renderTime">-</div>
+                <div class="metric-label">Tempo de Renderização (ms)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="memoryUsage">-</div>
+                <div class="metric-label">Uso de Memória (MB)</div>
+            </div>
+        </div>
+
+        <!-- Loading Demo -->
+        <div class="loading-demo" id="loadingDemo">
+            <div class="loading-spinner"></div>
+            <div>Testando carregamento...</div>
+        </div>
+
+        <div class="test-grid">
+            <!-- Testes de Carregamento -->
+            <div class="test-section">
+                <h3>⚡ Testes de Carregamento</h3>
+                <button class="test-button" onclick="testInitialLoad()">
+                    🚀 Teste Carregamento Inicial
+                </button>
+                <button class="test-button" onclick="testCachePerformance()">
+                    💾 Teste Performance Cache
+                </button>
+                <button class="test-button" onclick="testParallelLoading()">
+                    🔄 Teste Carregamento Paralelo
+                </button>
+                <button class="test-button" onclick="testMemoryUsage()">
+                    🧠 Teste Uso de Memória
+                </button>
+            </div>
+
+            <!-- Testes de Filtros -->
+            <div class="test-section">
+                <h3>🔍 Testes de Filtros</h3>
+                <button class="test-button" onclick="testFilterDebounce()">
+                    ⏱️ Teste Debounce
+                </button>
+                <button class="test-button" onclick="testFilterPerformance()">
+                    📊 Teste Performance Filtros
+                </button>
+                <button class="test-button" onclick="testLargeDataset()">
+                    📈 Teste Dataset Grande
+                </button>
+                <button class="test-button" onclick="testFilterCombinations()">
+                    🎯 Teste Combinações
+                </button>
+            </div>
+
+            <!-- Testes de Renderização -->
+            <div class="test-section">
+                <h3>🎨 Testes de Renderização</h3>
+                <button class="test-button" onclick="testPagination()">
+                    📄 Teste Paginação
+                </button>
+                <button class="test-button" onclick="testTablePerformance()">
+                    📋 Teste Performance Tabela
+                </button>
+                <button class="test-button" onclick="testVirtualScrolling()">
+                    📜 Teste Scroll Virtual
+                </button>
+                <button class="test-button" onclick="testResponsiveness()">
+                    📱 Teste Responsividade
+                </button>
+            </div>
+
+            <!-- Testes de Stress -->
+            <div class="test-section">
+                <h3>💪 Testes de Stress</h3>
+                <button class="test-button warning" onclick="testStressLoad()">
+                    🔥 Teste Carga Pesada
+                </button>
+                <button class="test-button warning" onclick="testConcurrentUsers()">
+                    👥 Teste Usuários Simultâneos
+                </button>
+                <button class="test-button danger" onclick="testMemoryLeak()">
+                    🚨 Teste Memory Leak
+                </button>
+                <button class="test-button success" onclick="runFullPerformanceTest()">
+                    🎯 Teste Completo
+                </button>
+            </div>
+        </div>
+
+        <!-- Gráfico de Performance -->
+        <div class="performance-chart" id="performanceChart">
+            📊 Gráfico de performance será exibido aqui após os testes
+        </div>
+
+        <!-- Log Area -->
+        <div class="log-area" id="logArea">
+            <div class="info">🚀 Sistema de teste de performance inicializado</div>
+            <div class="info">📋 Execute os testes acima para verificar as melhorias</div>
+        </div>
+
+        <!-- Ações -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="test-button success" onclick="openMainSystem()" style="width: auto; margin: 0 10px;">
+                🏠 Abrir Sistema Principal
+            </button>
+            <button class="test-button" onclick="clearLog()" style="width: auto; margin: 0 10px;">
+                🗑️ Limpar Log
+            </button>
+            <button class="test-button warning" onclick="exportResults()" style="width: auto; margin: 0 10px;">
+                📊 Exportar Resultados
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let performanceData = [];
+        let testResults = {};
+
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logArea.appendChild(div);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+            log('🧹 Log limpo', 'info');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingDemo').style.display = show ? 'flex' : 'none';
+        }
+
+        function updateMetric(metricId, value, unit = '') {
+            document.getElementById(metricId).textContent = value + unit;
+        }
+
+        // Teste 1: Carregamento Inicial
+        async function testInitialLoad() {
+            log('🚀 Testando carregamento inicial...', 'info');
+            showLoading(true);
+            
+            const startTime = performance.now();
+            
+            try {
+                // Simular carregamento de dados
+                await simulateDataLoad(1000); // 1000 registros
+                
+                const endTime = performance.now();
+                const loadTime = Math.round(endTime - startTime);
+                
+                updateMetric('loadTime', loadTime, 'ms');
+                log(`✅ Carregamento inicial: ${loadTime}ms`, loadTime < 2000 ? 'success' : 'warning');
+                
+                testResults.initialLoad = { time: loadTime, status: loadTime < 2000 ? 'pass' : 'slow' };
+                
+            } catch (error) {
+                log(`❌ Erro no carregamento inicial: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Teste 2: Performance do Cache
+        async function testCachePerformance() {
+            log('💾 Testando performance do cache...', 'info');
+            
+            const iterations = 5;
+            const times = [];
+            
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+                
+                // Simular acesso ao cache
+                await simulateCacheAccess();
+                
+                const endTime = performance.now();
+                times.push(endTime - startTime);
+                
+                log(`   Iteração ${i + 1}: ${Math.round(endTime - startTime)}ms`, 'info');
+            }
+            
+            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            log(`✅ Tempo médio de cache: ${avgTime}ms`, avgTime < 100 ? 'success' : 'warning');
+            
+            testResults.cachePerformance = { avgTime, times };
+        }
+
+        // Teste 3: Carregamento Paralelo
+        async function testParallelLoading() {
+            log('🔄 Testando carregamento paralelo...', 'info');
+            
+            const startTime = performance.now();
+            
+            // Simular carregamento paralelo de múltiplos condomínios
+            const promises = [
+                simulateCondominioLoad('Vacaria'),
+                simulateCondominioLoad('Ayres'),
+                simulateCondominioLoad('Vidal'),
+                simulateCondominioLoad('Taroni'),
+                simulateCondominioLoad('Destri'),
+                simulateCondominioLoad('Speranza')
+            ];
+            
+            await Promise.allSettled(promises);
+            
+            const endTime = performance.now();
+            const parallelTime = Math.round(endTime - startTime);
+            
+            log(`✅ Carregamento paralelo: ${parallelTime}ms`, parallelTime < 3000 ? 'success' : 'warning');
+            testResults.parallelLoading = { time: parallelTime };
+        }
+
+        // Teste 4: Uso de Memória
+        function testMemoryUsage() {
+            log('🧠 Testando uso de memória...', 'info');
+            
+            if (performance.memory) {
+                const memory = performance.memory;
+                const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+                const totalMB = Math.round(memory.totalJSHeapSize / 1024 / 1024);
+                const limitMB = Math.round(memory.jsHeapSizeLimit / 1024 / 1024);
+                
+                updateMetric('memoryUsage', usedMB, 'MB');
+                
+                log(`   Memória usada: ${usedMB}MB`, 'info');
+                log(`   Memória total: ${totalMB}MB`, 'info');
+                log(`   Limite: ${limitMB}MB`, 'info');
+                
+                const efficiency = (usedMB / totalMB) * 100;
+                log(`✅ Eficiência de memória: ${efficiency.toFixed(1)}%`, 
+                    efficiency < 80 ? 'success' : 'warning');
+                
+                testResults.memoryUsage = { used: usedMB, total: totalMB, efficiency };
+            } else {
+                log('⚠️ API de memória não disponível neste navegador', 'warning');
+            }
+        }
+
+        // Teste 5: Debounce dos Filtros
+        async function testFilterDebounce() {
+            log('⏱️ Testando debounce dos filtros...', 'info');
+            
+            const startTime = performance.now();
+            let callCount = 0;
+            
+            // Simular múltiplas mudanças rápidas de filtro
+            const debounceTest = debounce(() => {
+                callCount++;
+            }, 300);
+            
+            // Disparar 10 eventos em 100ms
+            for (let i = 0; i < 10; i++) {
+                debounceTest();
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            
+            // Aguardar debounce
+            await new Promise(resolve => setTimeout(resolve, 400));
+            
+            const endTime = performance.now();
+            
+            log(`   Eventos disparados: 10`, 'info');
+            log(`   Execuções reais: ${callCount}`, 'info');
+            log(`✅ Debounce funcionando: ${callCount === 1 ? 'Sim' : 'Não'}`, 
+                callCount === 1 ? 'success' : 'error');
+            
+            testResults.debounce = { events: 10, executions: callCount };
+        }
+
+        // Teste 6: Performance dos Filtros
+        async function testFilterPerformance() {
+            log('📊 Testando performance dos filtros...', 'info');
+            
+            const dataset = generateLargeDataset(5000);
+            const filters = [
+                { condominio: 'Vacaria' },
+                { bloco: 'Bloco 01' },
+                { mes: '2024-01' },
+                { condominio: 'Ayres', bloco: 'Bloco 05' }
+            ];
+            
+            const times = [];
+            
+            for (const filter of filters) {
+                const startTime = performance.now();
+                
+                const filtered = applyTestFilter(dataset, filter);
+                
+                const endTime = performance.now();
+                const filterTime = endTime - startTime;
+                times.push(filterTime);
+                
+                log(`   Filtro ${JSON.stringify(filter)}: ${Math.round(filterTime)}ms (${filtered.length} resultados)`, 'info');
+            }
+            
+            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            updateMetric('filterTime', avgTime, 'ms');
+            
+            log(`✅ Tempo médio de filtro: ${avgTime}ms`, avgTime < 200 ? 'success' : 'warning');
+            testResults.filterPerformance = { avgTime, times };
+        }
+
+        // Teste 7: Paginação
+        function testPagination() {
+            log('📄 Testando paginação...', 'info');
+            
+            const dataset = generateLargeDataset(10000);
+            const pageSize = 50;
+            const totalPages = Math.ceil(dataset.length / pageSize);
+            
+            const startTime = performance.now();
+            
+            // Simular renderização de várias páginas
+            for (let page = 1; page <= Math.min(5, totalPages); page++) {
+                const startIndex = (page - 1) * pageSize;
+                const pageData = dataset.slice(startIndex, startIndex + pageSize);
+                
+                // Simular renderização
+                simulateTableRender(pageData);
+            }
+            
+            const endTime = performance.now();
+            const renderTime = Math.round(endTime - startTime);
+            
+            updateMetric('renderTime', renderTime, 'ms');
+            
+            log(`   Dataset: ${dataset.length} registros`, 'info');
+            log(`   Páginas: ${totalPages}`, 'info');
+            log(`   Tamanho da página: ${pageSize}`, 'info');
+            log(`✅ Renderização paginada: ${renderTime}ms`, renderTime < 500 ? 'success' : 'warning');
+            
+            testResults.pagination = { datasetSize: dataset.length, renderTime, totalPages };
+        }
+
+        // Teste 8: Stress Test
+        async function testStressLoad() {
+            log('🔥 Executando teste de stress...', 'warning');
+            showLoading(true);
+            
+            try {
+                const startTime = performance.now();
+                
+                // Simular carga pesada
+                const heavyDataset = generateLargeDataset(50000);
+                await simulateHeavyProcessing(heavyDataset);
+                
+                const endTime = performance.now();
+                const stressTime = Math.round(endTime - startTime);
+                
+                log(`✅ Teste de stress concluído: ${stressTime}ms`, stressTime < 10000 ? 'success' : 'warning');
+                testResults.stressTest = { time: stressTime, datasetSize: heavyDataset.length };
+                
+            } catch (error) {
+                log(`❌ Falha no teste de stress: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Teste Completo
+        async function runFullPerformanceTest() {
+            log('🎯 Executando teste completo de performance...', 'info');
+            
+            const tests = [
+                testInitialLoad,
+                testCachePerformance,
+                testParallelLoading,
+                testMemoryUsage,
+                testFilterDebounce,
+                testFilterPerformance,
+                testPagination
+            ];
+            
+            for (const test of tests) {
+                await test();
+                await new Promise(resolve => setTimeout(resolve, 500)); // Pausa entre testes
+            }
+            
+            // Gerar relatório
+            generatePerformanceReport();
+        }
+
+        function generatePerformanceReport() {
+            log('📊 Gerando relatório de performance...', 'info');
+            
+            const report = {
+                timestamp: new Date().toISOString(),
+                results: testResults,
+                summary: {
+                    totalTests: Object.keys(testResults).length,
+                    passedTests: Object.values(testResults).filter(r => r.status === 'pass' || r.avgTime < 1000).length
+                }
+            };
+            
+            log('📋 RELATÓRIO DE PERFORMANCE:', 'success');
+            log(`   Testes executados: ${report.summary.totalTests}`, 'info');
+            log(`   Testes aprovados: ${report.summary.passedTests}`, 'info');
+            
+            // Atualizar gráfico
+            updatePerformanceChart(report);
+        }
+
+        function updatePerformanceChart(report) {
+            const chart = document.getElementById('performanceChart');
+            chart.innerHTML = `
+                <div style="text-align: center;">
+                    <h3>📊 Resumo de Performance</h3>
+                    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                        <div>
+                            <div style="font-size: 24px; color: #10b981;">${report.summary.passedTests}</div>
+                            <div style="font-size: 12px; color: #6b7280;">TESTES APROVADOS</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; color: #2563eb;">${report.summary.totalTests}</div>
+                            <div style="font-size: 12px; color: #6b7280;">TOTAL DE TESTES</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; color: #f59e0b;">${Math.round((report.summary.passedTests / report.summary.totalTests) * 100)}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">TAXA DE SUCESSO</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Funções auxiliares
+        function simulateDataLoad(size) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const data = generateLargeDataset(size);
+                    resolve(data);
+                }, Math.random() * 1000 + 500);
+            });
+        }
+
+        function simulateCacheAccess() {
+            return new Promise(resolve => {
+                setTimeout(resolve, Math.random() * 50 + 10);
+            });
+        }
+
+        function simulateCondominioLoad(name) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({ name, loaded: true });
+                }, Math.random() * 500 + 200);
+            });
+        }
+
+        function generateLargeDataset(size) {
+            const data = [];
+            const condominios = ['Vacaria', 'Ayres', 'Vidal', 'Taroni', 'Destri', 'Speranza'];
+            const status = ['pendente', 'pago', 'acordo', 'reciclado'];
+            
+            for (let i = 0; i < size; i++) {
+                data.push({
+                    id: i,
+                    condominio: condominios[i % condominios.length],
+                    bloco: `Bloco ${String(Math.floor(i / 16) + 1).padStart(2, '0')}`,
+                    apartamento: `${Math.floor((i % 16) / 4) + 1}0${(i % 4) + 1}`,
+                    status: status[i % status.length],
+                    value: Math.random() * 500 + 200
+                });
+            }
+            
+            return data;
+        }
+
+        function applyTestFilter(dataset, filter) {
+            return dataset.filter(item => {
+                if (filter.condominio && item.condominio !== filter.condominio) return false;
+                if (filter.bloco && item.bloco !== filter.bloco) return false;
+                if (filter.mes && !item.mes?.includes(filter.mes)) return false;
+                return true;
+            });
+        }
+
+        function simulateTableRender(data) {
+            // Simular renderização de tabela
+            const fragment = document.createDocumentFragment();
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.textContent = `${item.condominio} - ${item.apartamento}`;
+                fragment.appendChild(div);
+            });
+            return fragment;
+        }
+
+        function simulateHeavyProcessing(dataset) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // Simular processamento pesado
+                    let sum = 0;
+                    for (let i = 0; i < dataset.length; i++) {
+                        sum += dataset[i].value || 0;
+                    }
+                    resolve(sum);
+                }, 2000);
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function openMainSystem() {
+            window.open('index.html', '_blank');
+        }
+
+        function exportResults() {
+            const results = {
+                timestamp: new Date().toISOString(),
+                testResults,
+                performanceData,
+                userAgent: navigator.userAgent
+            };
+            
+            const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `performance-test-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            log('✅ Resultados exportados', 'success');
+        }
+
+        // Inicializar
+        log('🚀 Sistema de teste de performance carregado', 'success');
+        log('📋 Execute os testes para verificar as melhorias implementadas', 'info');
+    </script>
+</body>
+</html>

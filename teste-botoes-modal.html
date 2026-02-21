@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Teste Botões Modal - Verificação Específica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .test-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        
+        .apartment-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .apartment-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .log {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+        
+        /* Modal CSS - SIMPLIFICADO PARA TESTE */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+        }
+
+        .modal-overlay.modal-visible {
+            display: flex !important;
+        }
+
+        .modal-container {
+            background: white !important;
+            border-radius: 16px !important;
+            max-width: 500px !important;
+            width: 90% !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            pointer-events: auto !important;
+            z-index: 100000 !important;
+            position: relative !important;
+        }
+
+        .modal-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 24px !important;
+            border-bottom: 1px solid #e5e7eb !important;
+        }
+
+        .modal-body {
+            padding: 24px !important;
+        }
+
+        .modal-footer {
+            display: flex !important;
+            justify-content: flex-end !important;
+            gap: 12px !important;
+            padding: 24px !important;
+            border-top: 1px solid #e5e7eb !important;
+            background: #f9fafb !important;
+        }
+
+        .close-btn {
+            background: none !important;
+            border: none !important;
+            color: #6b7280 !important;
+            cursor: pointer !important;
+            padding: 8px !important;
+            font-size: 24px !important;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb !important;
+            color: #374151 !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .btn-primary {
+            background: #2563eb !important;
+            color: white !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .status-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .status-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .status-card.selected {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            min-height: 80px;
+            resize: vertical;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Teste Específico dos Botões do Modal</h1>
+            <p>Verificação focada na funcionalidade dos botões Cancelar, X e Salvar</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Testes Disponíveis</h3>
+            <button class="test-btn" onclick="openTestModal()">Abrir Modal de Teste</button>
+            <button class="test-btn" onclick="testButtonsDirectly()">Testar Botões Diretamente</button>
+            <button class="test-btn" onclick="clearLog()">Limpar Log</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🎮 Teste Interativo</h3>
+            <div class="apartment-card" onclick="openTestModal()">
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
+                    🏠 Apartamento 101 - TESTE
+                </div>
+                <p>Clique aqui para abrir o modal e testar os botões</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Log de Testes</h3>
+            <div id="testLog" class="log">Aguardando testes...\n\n🎯 Clique em "Abrir Modal de Teste" para começar.</div>
+        </div>
+
+        <!-- Modal de Teste -->
+        <div id="testModal" class="modal-overlay">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div>
+                        <h3>🏠 Apartamento 101 - TESTE</h3>
+                        <p style="color: #6b7280; font-size: 14px; margin: 4px 0 0 0;">Teste de Funcionalidade dos Botões</p>
+                    </div>
+                    <button id="closeModalBtn" class="close-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 12px;">Status do Pagamento</label>
+                        <div class="status-options">
+                            <div class="status-card" onclick="selectStatus('pendente')">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; color: #dc2626;">⏰</div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px;">PENDENTE</div>
+                                        <div style="font-size: 12px; color: #6b7280;">Pagamento em aberto</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card" onclick="selectStatus('pago')">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #16a34a;">✓</div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px;">PAGO</div>
+                                        <div style="font-size: 12px; color: #6b7280;">Pagamento realizado</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card" onclick="selectStatus('reciclado')">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #cffafe; display: flex; align-items: center; justify-content: center; color: #0891b2;">↻</div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px;">PAGO RECICLADO</div>
+                                        <div style="font-size: 12px; color: #6b7280;">Pagamento reprocessado</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card" onclick="selectStatus('acordo')">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #fef3c7; display: flex; align-items: center; justify-content: center; color: #d97706;">⚖</div>
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 14px;">ACORDO</div>
+                                        <div style="font-size: 12px; color: #6b7280;">Acordo de pagamento</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Observações</label>
+                        <textarea id="observationsField" class="form-textarea" placeholder="Digite suas observações aqui..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                    <button id="saveModalBtn" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedStatus = 'pendente';
+        
+        // Log system
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '🔍';
+            logElement.textContent += `[${timestamp}] ${icon} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').textContent = 'Log limpo.\n\n';
+        }
+
+        // Abrir modal
+        function openTestModal() {
+            log('🎯 Abrindo modal de teste...', 'info');
+            
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.classList.add('modal-visible');
+                log('✅ Modal aberto com sucesso', 'success');
+                log('🖱️ Agora teste os botões: X, Cancelar e Salvar', 'info');
+                
+                // Configurar event listeners
+                setupEventListeners();
+            } else {
+                log('❌ Modal não encontrado', 'error');
+            }
+        }
+
+        // Fechar modal
+        function closeTestModal() {
+            log('🔒 Fechando modal...', 'info');
+            
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.classList.remove('modal-visible');
+                log('✅ Modal fechado com sucesso', 'success');
+            }
+        }
+
+        // Selecionar status
+        function selectStatus(status) {
+            selectedStatus = status;
+            log(`📋 Status selecionado: ${status}`, 'info');
+            
+            // Atualizar visual
+            const cards = document.querySelectorAll('.status-card');
+            cards.forEach(card => card.classList.remove('selected'));
+            
+            const selectedCard = Array.from(cards).find(card => 
+                card.onclick.toString().includes(status)
+            );
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+        }
+
+        // Salvar dados
+        function saveData() {
+            log('💾 Salvando dados...', 'info');
+            
+            const observations = document.getElementById('observationsField').value;
+            
+            log(`📋 Dados para salvar:`, 'info');
+            log(`   - Status: ${selectedStatus}`, 'info');
+            log(`   - Observações: "${observations}"`, 'info');
+            
+            // Simular salvamento
+            setTimeout(() => {
+                log('✅ Dados salvos com sucesso!', 'success');
+                closeTestModal();
+            }, 1000);
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            log('🔧 Configurando event listeners...', 'info');
+            
+            // Botão X (fechar)
+            const closeBtn = document.getElementById('closeModalBtn');
+            if (closeBtn) {
+                closeBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    log('🖱️ Botão X clicado!', 'success');
+                    closeTestModal();
+                };
+                log('✅ Event listener do botão X configurado', 'success');
+            }
+            
+            // Botão Cancelar
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            if (cancelBtn) {
+                cancelBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    log('🖱️ Botão Cancelar clicado!', 'success');
+                    closeTestModal();
+                };
+                log('✅ Event listener do botão Cancelar configurado', 'success');
+            }
+            
+            // Botão Salvar
+            const saveBtn = document.getElementById('saveModalBtn');
+            if (saveBtn) {
+                saveBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    log('🖱️ Botão Salvar clicado!', 'success');
+                    saveData();
+                };
+                log('✅ Event listener do botão Salvar configurado', 'success');
+            }
+            
+            // Clique fora do modal
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.onclick = function(e) {
+                    if (e.target === modal) {
+                        log('🖱️ Clique fora do modal detectado!', 'info');
+                        closeTestModal();
+                    }
+                };
+                log('✅ Event listener do clique fora configurado', 'success');
+            }
+        }
+
+        // Testar botões diretamente
+        function testButtonsDirectly() {
+            log('🧪 Testando botões diretamente...', 'info');
+            
+            const closeBtn = document.getElementById('closeModalBtn');
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            const saveBtn = document.getElementById('saveModalBtn');
+            
+            if (closeBtn) {
+                const computedStyle = window.getComputedStyle(closeBtn);
+                log(`🔍 Botão X:`, 'info');
+                log(`   - Pointer Events: ${computedStyle.pointerEvents}`, 'info');
+                log(`   - Z-index: ${computedStyle.zIndex}`, 'info');
+                log(`   - Cursor: ${computedStyle.cursor}`, 'info');
+                log(`   - Clicável: ${computedStyle.pointerEvents !== 'none' ? '✅ SIM' : '❌ NÃO'}`, computedStyle.pointerEvents !== 'none' ? 'success' : 'error');
+            }
+            
+            if (cancelBtn) {
+                const computedStyle = window.getComputedStyle(cancelBtn);
+                log(`🔍 Botão Cancelar:`, 'info');
+                log(`   - Pointer Events: ${computedStyle.pointerEvents}`, 'info');
+                log(`   - Z-index: ${computedStyle.zIndex}`, 'info');
+                log(`   - Cursor: ${computedStyle.cursor}`, 'info');
+                log(`   - Clicável: ${computedStyle.pointerEvents !== 'none' ? '✅ SIM' : '❌ NÃO'}`, computedStyle.pointerEvents !== 'none' ? 'success' : 'error');
+            }
+            
+            if (saveBtn) {
+                const computedStyle = window.getComputedStyle(saveBtn);
+                log(`🔍 Botão Salvar:`, 'info');
+                log(`   - Pointer Events: ${computedStyle.pointerEvents}`, 'info');
+                log(`   - Z-index: ${computedStyle.zIndex}`, 'info');
+                log(`   - Cursor: ${computedStyle.cursor}`, 'info');
+                log(`   - Clicável: ${computedStyle.pointerEvents !== 'none' ? '✅ SIM' : '❌ NÃO'}`, computedStyle.pointerEvents !== 'none' ? 'success' : 'error');
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🎯 Sistema de teste carregado!', 'success');
+            log('📋 Clique em "Abrir Modal de Teste" para começar.', 'info');
+        });
+    </script>
+</body>
+</html>

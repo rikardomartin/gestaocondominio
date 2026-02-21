@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sincronização 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste Sincronização 2025</h1>
+        <p>Verifica se os pagamentos de 2025 existem no Firebase e seus status.</p>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPayments">0</div>
+                <div class="stat-label">Total 2025</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="paidCount">0</div>
+                <div class="stat-label">Pagos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="recycledCount">0</div>
+                <div class="stat-label">Reciclados</div>
+            </div>
+        </div>
+
+        <button onclick="checkJanuary2025()">Verificar Janeiro 2025</button>
+        <button onclick="checkFebruary2025()">Verificar Fevereiro 2025</button>
+        <button onclick="checkAll2025()">Verificar Todo 2025</button>
+        <button onclick="clearLogs()">Limpar Logs</button>
+
+        <div id="status"></div>
+        <div class="log" id="logs"></div>
+    </div>
+
+    <script type="module">
+        import { 
+            getCondominios,
+            getBlocosByCondominio,
+            getPaymentsByBlocoAndPeriod
+        } from './firebase-database.js';
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.textContent += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+
+        function updateStats(total, paid, pending, recycled) {
+            document.getElementById('totalPayments').textContent = total;
+            document.getElementById('paidCount').textContent = paid;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('recycledCount').textContent = recycled;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').textContent = '';
+            document.getElementById('status').textContent = '';
+        }
+
+        async function checkMonth(month, monthName) {
+            showStatus(`🔄 Verificando ${monthName} 2025...`, 'info');
+            log(`🚀 Iniciando verificação de ${monthName} 2025`);
+            
+            try {
+                const condominios = await getCondominios();
+                log(`📦 ${condominios.length} condomínios encontrados`);
+
+                let totalPayments = 0;
+                let paidCount = 0;
+                let pendingCount = 0;
+                let recycledCount = 0;
+                let blocosVerificados = 0;
+
+                // Limitar a 3 condomínios para teste rápido
+                for (const condominio of condominios.slice(0, 3)) {
+                    log(`🏢 Verificando: ${condominio.nome}`);
+                    
+                    const blocos = await getBlocosByCondominio(condominio.id);
+                    log(`📋 ${blocos.length} blocos em ${condominio.nome}`);
+                    
+                    // Limitar a 5 blocos por condomínio
+                    for (const bloco of blocos.slice(0, 5)) {
+                        try {
+                            const date = `2025-${month}`;
+                            const payments = await getPaymentsByBlocoAndPeriod(bloco.id, date);
+                            
+                            blocosVerificados++;
+                            totalPayments += payments.length;
+                            paidCount += payments.filter(p => p.status === 'pago').length;
+                            pendingCount += payments.filter(p => p.status === 'pendente').length;
+                            recycledCount += payments.filter(p => p.status === 'reciclado').length;
+                            
+                            if (payments.length > 0) {
+                                const paid = payments.filter(p => p.status === 'pago').length;
+                                const pending = payments.filter(p => p.status === 'pendente').length;
+                                const recycled = payments.filter(p => p.status === 'reciclado').length;
+                                
+                                log(`💰 ${bloco.nome}: ${payments.length} total (${paid} pagos, ${pending} pendentes, ${recycled} reciclados)`);
+                                
+                                // Mostrar exemplos
+                                payments.slice(0, 3).forEach(payment => {
+                                    log(`   📄 Apt ${payment.apartamentoId}: ${payment.status}`);
+                                });
+                            } else {
+                                log(`⚪ ${bloco.nome}: 0 pagamentos`);
+                            }
+                        } catch (error) {
+                            log(`❌ Erro em ${bloco.nome}: ${error.message}`);
+                        }
+                    }
+                }
+
+                updateStats(totalPayments, paidCount, pendingCount, recycledCount);
+
+                if (totalPayments > 0) {
+                    const paidRate = (paidCount / totalPayments * 100).toFixed(1);
+                    showStatus(
+                        `✅ ${monthName} 2025: ${totalPayments} pagamentos, ${paidRate}% pagos`, 
+                        'success'
+                    );
+                    log(`📊 Resumo ${monthName}:`);
+                    log(`   Total: ${totalPayments}`);
+                    log(`   Pagos: ${paidCount} (${paidRate}%)`);
+                    log(`   Pendentes: ${pendingCount}`);
+                    log(`   Reciclados: ${recycledCount}`);
+                    log(`   Blocos verificados: ${blocosVerificados}`);
+                } else {
+                    showStatus(`⚠️ ${monthName} 2025: Nenhum pagamento encontrado`, 'warning');
+                    log(`⚠️ Nenhum pagamento encontrado para ${monthName} 2025`);
+                }
+
+                return { totalPayments, paidCount, pendingCount, recycledCount };
+
+            } catch (error) {
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                log(`❌ Erro: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Funções globais
+        window.checkJanuary2025 = () => checkMonth('01', 'Janeiro');
+        window.checkFebruary2025 = () => checkMonth('02', 'Fevereiro');
+        window.checkAll2025 = async () => {
+            showStatus('🔄 Verificando todos os meses de 2025...', 'info');
+            log('🚀 Iniciando verificação completa de 2025');
+            
+            const months = [
+                ['01', 'Janeiro'], ['02', 'Fevereiro'], ['03', 'Março']
+            ];
+            
+            let totalGeral = 0;
+            let pagosGeral = 0;
+            let pendentesGeral = 0;
+            let recicladosGeral = 0;
+            
+            for (const [month, name] of months) {
+                log(`\n🔄 === ${name.toUpperCase()} ===`);
+                const result = await checkMonth(month, name);
+                if (result) {
+                    totalGeral += result.totalPayments;
+                    pagosGeral += result.paidCount;
+                    pendentesGeral += result.pendingCount;
+                    recicladosGeral += result.recycledCount;
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            updateStats(totalGeral, pagosGeral, pendentesGeral, recicladosGeral);
+            
+            if (totalGeral > 0) {
+                const paidRate = (pagosGeral / totalGeral * 100).toFixed(1);
+                showStatus(
+                    `🎉 2025 Completo: ${totalGeral} pagamentos, ${paidRate}% pagos`, 
+                    'success'
+                );
+                log(`\n🏆 RESUMO GERAL 2025:`);
+                log(`   Total: ${totalGeral}`);
+                log(`   Pagos: ${pagosGeral} (${paidRate}%)`);
+                log(`   Pendentes: ${pendentesGeral}`);
+                log(`   Reciclados: ${recicladosGeral}`);
+            } else {
+                showStatus('⚠️ 2025: Nenhum pagamento encontrado', 'warning');
+            }
+        };
+        window.clearLogs = clearLogs;
+
+        log('🔧 Sistema de verificação inicializado');
+        log('💡 Use os botões para verificar os pagamentos de 2025');
+    </script>
+</body>
+</html>

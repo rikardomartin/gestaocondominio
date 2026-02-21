@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sincronização Reativa v71</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        h1 { color: #1f2937; margin-bottom: 10px; }
+        .version { color: #6b7280; font-size: 14px; }
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .status-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .status-box.success {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+        .status-box.error {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .test-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .test-steps li {
+            counter-increment: step-counter;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .test-steps li::before {
+            content: counter(step-counter);
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Teste de Sincronização Reativa - v71</h1>
+            <p class="version">UI atualiza automaticamente após salvar</p>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Verificação de Código</h2>
+            <button class="btn" onclick="verificarCodigo()">Verificar Correções</button>
+            <div id="verificacaoResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Teste Manual - Cenário 1: Casa</h2>
+            <ol class="test-steps">
+                <li>Login e selecione: <span class="code">Ano: 2025, Mês: 01</span></li>
+                <li>Selecione: <span class="code">Condomínio Ayres</span></li>
+                <li>Observe os contadores: Ex: "2 Em dia, 4 Pendentes"</li>
+                <li>Clique em uma <span class="code">Casa Pendente</span></li>
+                <li>Marque como <span class="code">Pago</span> e salve</li>
+                <li><strong>SUCESSO:</strong> Contadores atualizam para "3 Em dia, 3 Pendentes" ✅</li>
+                <li><strong>SEM REFRESH!</strong> Tudo atualiza automaticamente</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Teste Manual - Cenário 2: Apartamento</h2>
+            <ol class="test-steps">
+                <li>Selecione: <span class="code">Bloco 01</span></li>
+                <li>Observe: Ex: "14 Em dia, 2 Pendentes"</li>
+                <li>Marque um apartamento pendente como <span class="code">Pago</span></li>
+                <li><strong>SUCESSO:</strong> Contadores: "15 Em dia, 1 Pendente" ✅</li>
+                <li>Volte para blocos → Percentual atualizado ✅</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function verificarCodigo() {
+            const resultDiv = document.getElementById('verificacaoResult');
+            resultDiv.innerHTML = '<div class="status-box" style="background: #dbeafe; border-color: #3b82f6; color: #1e40af;">🔍 Verificando...</div>';
+
+            try {
+                const response = await fetch('/app.js');
+                const code = await response.text();
+
+                const checks = [
+                    {
+                        name: 'Versão v71',
+                        test: code.includes('v71') && code.includes('Sincronizacao reativa'),
+                        message: 'Versão atualizada para v71'
+                    },
+                    {
+                        name: 'Sincronização reativa implementada',
+                        test: code.includes('[SYNC] Iniciando sincronização reativa'),
+                        message: 'Sistema de sincronização reativa presente'
+                    },
+                    {
+                        name: 'Atualização de casas',
+                        test: code.includes('[SYNC] Atualizando lista de casas'),
+                        message: 'Lista de casas é atualizada'
+                    },
+                    {
+                        name: 'Re-renderização de blocos',
+                        test: code.includes('[SYNC] Renderizando blocos (contadores)'),
+                        message: 'Contadores são recalculados'
+                    },
+                    {
+                        name: 'Atualização de condomínios',
+                        test: code.includes('[SYNC] Renderizando condomínios'),
+                        message: 'Percentuais são atualizados'
+                    },
+                    {
+                        name: 'Atualização do painel',
+                        test: code.includes('[SYNC] Atualizando painel geral'),
+                        message: 'Painel geral é sincronizado'
+                    }
+                ];
+
+                let html = '';
+                let allPassed = true;
+
+                checks.forEach(check => {
+                    const status = check.test ? 'success' : 'error';
+                    const icon = check.test ? '✅' : '❌';
+                    allPassed = allPassed && check.test;
+
+                    html += `
+                        <div class="status-box ${status}">
+                            ${icon} <strong>${check.name}:</strong> ${check.message}
+                        </div>
+                    `;
+                });
+
+                if (allPassed) {
+                    html += `
+                        <div class="status-box success">
+                            <strong>🎉 SINCRONIZAÇÃO REATIVA IMPLEMENTADA!</strong><br>
+                            O sistema está pronto para atualizar a UI automaticamente.
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="status-box error">
+                            <strong>⚠️ ALGUMAS CORREÇÕES ESTÃO FALTANDO!</strong>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status-box error">
+                        ❌ Erro: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(verificarCodigo, 500);
+        });
+    </script>
+</body>
+</html>

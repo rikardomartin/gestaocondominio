@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualizar Sistema</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .version {
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 20px 0;
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .progress {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-line {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box p {
+            color: #1565c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .manual-instructions {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .manual-instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .manual-instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+        
+        .manual-instructions li {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        
+        .manual-instructions strong {
+            color: #664d03;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🔄</div>
+            <h1>Atualização do Sistema</h1>
+            <p class="subtitle">Gestão de Condomínios</p>
+        </div>
+        
+        <div class="version">v129</div>
+        
+        <div class="info-box">
+            <h3>📱 O que está sendo atualizado?</h3>
+            <p>Estamos atualizando o sistema para a versão mais recente com correções e melhorias. Este processo leva apenas alguns segundos.</p>
+        </div>
+        
+        <div class="status" id="status">Preparando atualização...</div>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="log" id="log"></div>
+        
+        <div class="manual-instructions" id="manualInstructions">
+            <h3>📱 Instruções Manuais (se necessário)</h3>
+            <ol>
+                <li><strong>Chrome/Edge:</strong> Toque no menu (⋮) → Configurações → Privacidade → Limpar dados de navegação → Marque "Imagens e arquivos em cache" → Limpar dados</li>
+                <li><strong>Safari (iPhone/iPad):</strong> Vá em Ajustes → Safari → Limpar Histórico e Dados do Site</li>
+                <li><strong>Firefox:</strong> Menu (⋮) → Configurações → Excluir dados de navegação → Marque "Cache" → Excluir dados</li>
+            </ol>
+        </div>
+        
+        <a href="/" class="btn" id="redirectBtn" style="display: none;">✅ Acessar Sistema Atualizado</a>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const redirectBtn = document.getElementById('redirectBtn');
+        const progressBar = document.getElementById('progressBar');
+        const manualInstructions = document.getElementById('manualInstructions');
+        
+        let progress = 0;
+
+        function updateProgress(value) {
+            progress = value;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('pt-BR');
+            const emoji = type === 'success' ? '✅' : type === 'error' ? '❌' : '🔄';
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.textContent = `[${time}] ${emoji} ${message}`;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function clearCache() {
+            try {
+                addLog('Iniciando atualização do sistema...');
+                status.textContent = '🔄 Atualizando sistema...';
+                updateProgress(10);
+
+                // 1. Limpar localStorage
+                await new Promise(resolve => setTimeout(resolve, 500));
+                addLog('Limpando dados locais...');
+                localStorage.clear();
+                addLog('Dados locais limpos', 'success');
+                updateProgress(30);
+
+                // 2. Limpar sessionStorage
+                await new Promise(resolve => setTimeout(resolve, 300));
+                addLog('Limpando sessão...');
+                sessionStorage.clear();
+                addLog('Sessão limpa', 'success');
+                updateProgress(50);
+
+                // 3. Desregistrar Service Workers
+                if ('serviceWorker' in navigator) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog('Atualizando componentes do sistema...');
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        addLog('Componente atualizado', 'success');
+                    }
+                }
+                updateProgress(70);
+
+                // 4. Limpar todos os caches
+                if ('caches' in window) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog('Limpando cache do navegador...');
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                    }
+                    addLog('Cache limpo', 'success');
+                }
+                updateProgress(90);
+
+                // 5. Sucesso
+                await new Promise(resolve => setTimeout(resolve, 500));
+                addLog('✨ Atualização concluída com sucesso!', 'success');
+                status.textContent = '✅ Sistema atualizado! Redirecionando...';
+                status.className = 'status success';
+                updateProgress(100);
+                
+                redirectBtn.style.display = 'block';
+
+                // Redirecionar automaticamente após 2 segundos
+                setTimeout(() => {
+                    addLog('Abrindo sistema atualizado...', 'info');
+                    window.location.href = '/';
+                }, 2000);
+
+            } catch (error) {
+                addLog(`Erro: ${error.message}`, 'error');
+                status.textContent = '⚠️ Não foi possível atualizar automaticamente';
+                status.className = 'status error';
+                manualInstructions.style.display = 'block';
+                redirectBtn.style.display = 'block';
+                redirectBtn.textContent = '🔄 Tentar Novamente';
+                redirectBtn.onclick = () => location.reload();
+                console.error('Erro ao limpar cache:', error);
+            }
+        }
+
+        // Executar automaticamente
+        clearCache();
+    </script>
+</body>
+</html>

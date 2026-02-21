@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replicar Estrutura do Ayres</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        .info {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0c5460;
+        }
+        .login-section {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .login-section input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .user-info {
+            background: #d4edda;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #218838; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #log {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info-log { color: #17a2b8; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Replicar Estrutura do Ayres</h1>
+        
+        <div class="login-section" id="loginSection">
+            <h3>🔐 Login</h3>
+            <input type="email" id="emailInput" placeholder="Email" value="admin@condominio.com">
+            <input type="password" id="passwordInput" placeholder="Senha">
+            <button style="background: #007bff;" onclick="fazerLogin()">Entrar</button>
+        </div>
+
+        <div class="user-info" id="userInfo">
+            <strong>✅ Logado:</strong> <span id="userEmail"></span>
+        </div>
+
+        <div id="mainContent" class="hidden">
+            <div class="info">
+                <strong>✅ ESTRUTURA DO AYRES (modelo correto):</strong><br><br>
+                • <strong>Bloco 01:</strong> 16 apartamentos + 2 casas = 18 unidades<br>
+                • <strong>Bloco 30:</strong> 16 apartamentos + 3 casas = 19 unidades<br>
+                • Casas aparecem na seção "Casas do Condomínio"<br><br>
+                
+                <strong>🔧 O QUE SERÁ FEITO:</strong><br><br>
+                <strong>Vidal:</strong> Mover 4 casas do Bloco 20 → Bloco 19, depois deletar Bloco 20<br>
+                <strong>Taroni:</strong> Mover 3 casas do Bloco 16 → Bloco 15, depois deletar Bloco 16<br>
+                <strong>Speranza:</strong> Mover 4 casas do Bloco 26 → Bloco 25, depois deletar Bloco 26
+            </div>
+
+            <button onclick="replicarEstrutura()">🔧 Replicar Estrutura do Ayres</button>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, signInWithEmailAndPassword, onAuthStateChanged
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getFirestore, collection, doc, getDocs, updateDoc, deleteDoc, query, where
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('userEmail').textContent = user.email;
+            }
+        });
+
+        window.fazerLogin = async function() {
+            try {
+                await signInWithEmailAndPassword(auth, 
+                    document.getElementById('emailInput').value,
+                    document.getElementById('passwordInput').value
+                );
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        };
+
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info-log';
+            logDiv.innerHTML += `<span class="${className}">${msg}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.replicarEstrutura = async function() {
+            if (!confirm('⚠️ Isso vai mover as casas para dentro dos blocos de apartamentos (como Ayres). Confirma?')) return;
+
+            document.getElementById('log').innerHTML = '';
+            log('🔧 Iniciando replicação da estrutura do Ayres...', 'info');
+            log('', 'info');
+
+            try {
+                const config = {
+                    'Vidal': { blocoOrigem: 20, blocoDestino: 19, qtdCasas: 4 },
+                    'Taroni': { blocoOrigem: 16, blocoDestino: 15, qtdCasas: 3 },
+                    'Speranza': { blocoOrigem: 26, blocoDestino: 25, qtdCasas: 4 }
+                };
+
+                const condQuery = query(collection(db, 'condominios'), where('active', '==', true));
+                const condSnap = await getDocs(condQuery);
+
+                for (const condDoc of condSnap.docs) {
+                    const condData = condDoc.data();
+                    const nomeSimples = condData.nome.replace('Condomínio ', '');
+                    
+                    if (!config[nomeSimples]) continue;
+
+                    log(`📍 Processando ${condData.nome}...`, 'info');
+
+                    const cfg = config[nomeSimples];
+
+                    // 1. Buscar bloco de ORIGEM (onde estão as casas agora)
+                    const blocoOrigemQuery = query(
+                        collection(db, 'blocos'),
+                        where('condominioId', '==', condDoc.id),
+                        where('numero', '==', cfg.blocoOrigem)
+                    );
+                    const blocoOrigemSnap = await getDocs(blocoOrigemQuery);
+
+                    if (blocoOrigemSnap.empty) {
+                        log(`  ⚠️ Bloco ${cfg.blocoOrigem} não encontrado (já foi deletado?)`, 'info');
+                        continue;
+                    }
+
+                    const blocoOrigemId = blocoOrigemSnap.docs[0].id;
+                    log(`  ✅ Bloco origem encontrado: Bloco ${cfg.blocoOrigem}`, 'success');
+
+                    // 2. Buscar bloco de DESTINO (último bloco de apartamentos)
+                    const blocoDestinoQuery = query(
+                        collection(db, 'blocos'),
+                        where('condominioId', '==', condDoc.id),
+                        where('numero', '==', cfg.blocoDestino)
+                    );
+                    const blocoDestinoSnap = await getDocs(blocoDestinoQuery);
+
+                    if (blocoDestinoSnap.empty) {
+                        log(`  ❌ Bloco ${cfg.blocoDestino} não encontrado!`, 'error');
+                        continue;
+                    }
+
+                    const blocoDestino = blocoDestinoSnap.docs[0];
+                    const blocoDestinoId = blocoDestino.id;
+                    const blocoDestinoNome = blocoDestino.data().nome;
+
+                    log(`  ✅ Bloco destino encontrado: ${blocoDestinoNome}`, 'success');
+
+                    // 3. Buscar casas do bloco de origem
+                    const casasQuery = query(
+                        collection(db, 'apartamentos'),
+                        where('blocoId', '==', blocoOrigemId),
+                        where('tipo', '==', 'casa')
+                    );
+                    const casasSnap = await getDocs(casasQuery);
+
+                    log(`  📊 ${casasSnap.size} casa(s) encontrada(s) no Bloco ${cfg.blocoOrigem}`, 'info');
+
+                    // 4. Mover cada casa para o bloco de destino
+                    for (const casaDoc of casasSnap.docs) {
+                        const casaData = casaDoc.data();
+                        
+                        await updateDoc(casaDoc.ref, {
+                            blocoId: blocoDestinoId,
+                            blocoNome: blocoDestinoNome
+                        });
+
+                        log(`  ✅ ${casaData.numero} movida para ${blocoDestinoNome}`, 'success');
+                    }
+
+                    // 5. Atualizar totalApartamentos do bloco destino (16 apts + casas)
+                    const novoTotal = 16 + cfg.qtdCasas;
+                    await updateDoc(blocoDestino.ref, {
+                        totalApartamentos: novoTotal
+                    });
+
+                    log(`  📊 Total do ${blocoDestinoNome} atualizado: ${novoTotal} unidades`, 'success');
+
+                    // 6. Deletar bloco de origem (agora vazio)
+                    await deleteDoc(blocoOrigemSnap.docs[0].ref);
+                    log(`  🗑️ Bloco ${cfg.blocoOrigem} deletado`, 'success');
+
+                    // 7. Atualizar contador de casas no condomínio
+                    await updateDoc(condDoc.ref, {
+                        totalCasas: cfg.qtdCasas
+                    });
+
+                    log(`  📊 Contador de casas atualizado: ${cfg.qtdCasas}`, 'success');
+                    log('', 'info');
+                }
+
+                log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                log('🎉 CONCLUÍDO! Estrutura replicada do Ayres', 'success');
+                log('', 'info');
+                log('✅ Casas agora estão dentro dos blocos de apartamentos', 'success');
+                log('✅ Blocos separados de casas foram deletados', 'success');
+                log('', 'info');
+                log('🔄 Recarregue o sistema principal', 'info');
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                console.error(error);
+            }
+        };
+    </script>
+</body>
+</html>

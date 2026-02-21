@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar 2025 como PAGO - Vidal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            display: none;
+        }
+
+        .log-line {
+            padding: 4px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-info { color: #17a2b8; }
+
+        .progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .summary h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .summary p {
+            color: #155724;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Marcar 2025 como PAGO - Vidal</h1>
+        <p class="subtitle">Script específico para Condomínio Vidal</p>
+
+        <div class="info">
+            <strong>ℹ️ Condomínio Vidal:</strong><br>
+            • 304 apartamentos<br>
+            • 19 blocos<br>
+            • 12 meses de 2025<br>
+            • Total: 3.648 pagamentos
+        </div>
+
+        <div id="loginSection">
+            <div class="form-group">
+                <label for="emailInput">Email:</label>
+                <input type="email" id="emailInput" placeholder="admin@condominio.com">
+            </div>
+
+            <div class="form-group">
+                <label for="passwordInput">Senha:</label>
+                <input type="password" id="passwordInput" placeholder="Digite sua senha">
+            </div>
+
+            <button onclick="fazerLogin()">Fazer Login e Iniciar</button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+        </div>
+
+        <div id="log"></div>
+        <div class="summary" id="summary"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.style.display = 'block';
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            const fill = document.getElementById('progressFill');
+            fill.style.width = percent + '%';
+            fill.textContent = `${current}/${total} (${percent}%)`;
+        }
+
+        window.fazerLogin = async function() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                alert('Preencha email e senha!');
+                return;
+            }
+
+            try {
+                log('🔐 Fazendo login...', 'info');
+                await signInWithEmailAndPassword(auth, email, password);
+                log('✅ Login realizado com sucesso!', 'success');
+                
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('progress').style.display = 'block';
+                
+                // Iniciar processo automaticamente
+                await iniciarProcesso();
+                
+            } catch (error) {
+                log(`❌ Erro no login: ${error.message}`, 'error');
+                alert('Erro no login: ' + error.message);
+            }
+        };
+
+        async function iniciarProcesso() {
+            try {
+                log('🚀 Iniciando processo para Condomínio Vidal...', 'info');
+                
+                // Buscar Condomínio Vidal
+                log('📦 Buscando Condomínio Vidal...', 'info');
+                const condominiosSnap = await getDocs(collection(db, 'condominios'));
+                const vidal = condominiosSnap.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .find(c => c.nome.includes('Vidal'));
+
+                if (!vidal) {
+                    log('❌ Condomínio Vidal não encontrado!', 'error');
+                    return;
+                }
+
+                log(`✅ Condomínio encontrado: ${vidal.nome}`, 'success');
+
+                // Carregar blocos
+                const blocosSnap = await getDocs(
+                    query(collection(db, 'blocos'), where('condominioId', '==', vidal.id))
+                );
+                const blocos = blocosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                log(`📋 ${blocos.length} blocos encontrados`, 'info');
+
+                let totalProcessados = 0;
+                let totalErros = 0;
+                let totalApartamentos = 0;
+
+                // Processar cada bloco
+                for (const bloco of blocos) {
+                    const aptsSnap = await getDocs(
+                        query(collection(db, 'apartamentos'), where('blocoId', '==', bloco.id))
+                    );
+                    const apartamentos = aptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    totalApartamentos += apartamentos.length;
+                    const totalPagamentos = totalApartamentos * 12;
+
+                    // Criar pagamentos para cada mês de 2025
+                    for (const apt of apartamentos) {
+                        for (let mes = 1; mes <= 12; mes++) {
+                            const mesStr = String(mes).padStart(2, '0');
+                            const date = `2025-${mesStr}`;
+
+                            try {
+                                // Verificar se já existe
+                                const paymentsSnap = await getDocs(
+                                    query(
+                                        collection(db, 'payments'),
+                                        where('apartamentoId', '==', apt.id),
+                                        where('date', '==', date)
+                                    )
+                                );
+
+                                const paymentData = {
+                                    apartamentoId: apt.id,
+                                    condominioId: vidal.id,
+                                    blocoId: bloco.id,
+                                    apartamentoNumero: apt.numero,
+                                    ano: '2025',
+                                    mes: mesStr,
+                                    date: date,
+                                    type: 'condominio',
+                                    status: 'pago',
+                                    value: 80.00,
+                                    observacao: 'Pagamento em massa - 2025',
+                                    updatedAt: serverTimestamp()
+                                };
+
+                                if (paymentsSnap.empty) {
+                                    const newDocRef = doc(collection(db, 'payments'));
+                                    await setDoc(newDocRef, {
+                                        ...paymentData,
+                                        createdAt: serverTimestamp()
+                                    });
+                                } else {
+                                    await updateDoc(doc(db, 'payments', paymentsSnap.docs[0].id), paymentData);
+                                }
+
+                                totalProcessados++;
+                                updateProgress(totalProcessados, totalPagamentos);
+
+                            } catch (error) {
+                                totalErros++;
+                                log(`❌ Erro apt ${apt.numero} - ${mesStr}/2025: ${error.message}`, 'error');
+                            }
+                        }
+                    }
+                }
+
+                log('\n🎉 PROCESSO CONCLUÍDO!', 'success');
+                
+                const summaryDiv = document.getElementById('summary');
+                summaryDiv.innerHTML = `
+                    <h3>✅ Condomínio Vidal - Concluído!</h3>
+                    <p><strong>Apartamentos:</strong> ${totalApartamentos}</p>
+                    <p><strong>Pagamentos processados:</strong> ${totalProcessados}</p>
+                    <p><strong>Erros:</strong> ${totalErros}</p>
+                    <p><strong>Ano:</strong> 2025</p>
+                    <p><strong>Meses:</strong> Janeiro a Dezembro</p>
+                `;
+                summaryDiv.style.display = 'block';
+
+            } catch (error) {
+                log(`❌ ERRO CRÍTICO: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

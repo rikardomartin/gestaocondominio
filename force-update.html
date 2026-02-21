@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forçar Atualização - v112</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Forçar Atualização v112</h1>
+        <p>Clique no botão para limpar tudo e forçar atualização</p>
+        
+        <button onclick="forceUpdate()">🚀 Forçar Atualização</button>
+        <button onclick="goToApp()">📱 Ir para o App</button>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('log');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const span = document.createElement('div');
+            span.className = type;
+            span.textContent = `[${time}] ${msg}`;
+            logEl.appendChild(span);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function forceUpdate() {
+            log('🔄 Iniciando limpeza completa...', 'info');
+
+            try {
+                // 1. Desregistrar todos os Service Workers
+                log('🗑️ Removendo Service Workers...', 'info');
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    log(`✅ SW removido: ${registration.scope}`, 'success');
+                }
+
+                // 2. Limpar todos os caches
+                log('🗑️ Limpando caches...', 'info');
+                const cacheNames = await caches.keys();
+                for (let cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    log(`✅ Cache removido: ${cacheName}`, 'success');
+                }
+
+                // 3. Limpar localStorage
+                log('🗑️ Limpando localStorage...', 'info');
+                localStorage.clear();
+                log('✅ localStorage limpo', 'success');
+
+                // 4. Limpar sessionStorage
+                log('🗑️ Limpando sessionStorage...', 'info');
+                sessionStorage.clear();
+                log('✅ sessionStorage limpo', 'success');
+
+                // 5. Limpar IndexedDB
+                log('🗑️ Limpando IndexedDB...', 'info');
+                const databases = await indexedDB.databases();
+                for (let db of databases) {
+                    indexedDB.deleteDatabase(db.name);
+                    log(`✅ DB removido: ${db.name}`, 'success');
+                }
+
+                log('', 'info');
+                log('✅ LIMPEZA COMPLETA!', 'success');
+                log('🔄 Recarregando em 2 segundos...', 'info');
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+
+        window.addEventListener('load', () => {
+            log('🚀 Página carregada', 'info');
+            log('📱 Clique em "Forçar Atualização" para limpar tudo', 'info');
+        });
+    </script>
+</body>
+</html>

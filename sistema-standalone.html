@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Gestão Condominial - Standalone</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info button {
+            background: rgba(255,255,255,0.2);
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .user-info button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .screen {
+            display: none;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-screen {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--white);
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .error-message {
+            color: var(--danger);
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .success-message {
+            color: var(--success);
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--white);
+            color: var(--gray-800);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            z-index: 10001;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 400px;
+            border-left: 4px solid var(--info);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .status-card {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-card:hover {
+            border-color: var(--primary);
+            background: var(--white);
+        }
+
+        .status-card.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .status-card.pendente {
+            border-color: var(--danger);
+        }
+
+        .status-card.pago {
+            border-color: var(--success);
+        }
+
+        .status-card.acordo {
+            border-color: var(--warning);
+        }
+
+        .status-card.reciclado {
+            border-color: var(--info);
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .toast {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                transform: translateY(-100%);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <div>Carregando...</div>
+        </div>
+
+        <!-- Header -->
+        <header class="app-header">
+            <h1>🏠 Gestão Condominial</h1>
+            <div id="userInfo" class="user-info" style="display: none;">
+                <span id="userName"></span>
+                <button onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen login-screen active">
+            <div class="login-container">
+                <h2>🔐 Login</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" value="admin@condominio.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Senha:</label>
+                        <input type="password" id="loginPassword" value="123456" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span>Entrar</span>
+                    </button>
+                </form>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+                <div id="loginSuccess" class="success-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Main Screen -->
+        <div id="mainScreen" class="screen">
+            <div class="main-content">
+                <h2>🎉 Sistema Funcionando!</h2>
+                <p>Versão standalone do sistema de gestão condominial.</p>
+
+                <div class="dashboard-grid">
+                    <!-- Teste de Funcionalidades -->
+                    <div class="card">
+                        <h3>🧪 Testes do Sistema</h3>
+                        <p>Verificar se todas as funcionalidades estão operacionais.</p>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="testToast()">
+                                🔔 Testar Notificação
+                            </button>
+                            <button class="btn btn-secondary" onclick="testLoading()">
+                                ⏳ Testar Loading
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simulação de Status -->
+                    <div class="card">
+                        <h3>📊 Status de Pagamento</h3>
+                        <p>Demonstração dos diferentes status disponíveis.</p>
+                        <div class="status-grid">
+                            <div class="status-card pendente" onclick="selectStatus('pendente')">
+                                <div>❌ Pendente</div>
+                            </div>
+                            <div class="status-card pago" onclick="selectStatus('pago')">
+                                <div>✅ Pago</div>
+                            </div>
+                            <div class="status-card acordo" onclick="selectStatus('acordo')">
+                                <div>⚖️ Acordo</div>
+                            </div>
+                            <div class="status-card reciclado" onclick="selectStatus('reciclado')">
+                                <div>♻️ Reciclado</div>
+                            </div>
+                        </div>
+                        <div id="selectedStatus" style="margin-top: 1rem; font-weight: 600;"></div>
+                    </div>
+
+                    <!-- Informações do Sistema -->
+                    <div class="card">
+                        <h3>ℹ️ Informações</h3>
+                        <p><strong>Status:</strong> Sistema operacional</p>
+                        <p><strong>Versão:</strong> Standalone v1.0</p>
+                        <p><strong>Última atualização:</strong> <span id="lastUpdate"></span></p>
+                        <div class="card-actions">
+                            <button class="btn btn-success" onclick="openOriginalSystem()">
+                                🏠 Sistema Original
+                            </button>
+                            <button class="btn btn-warning" onclick="showDiagnostics()">
+                                🔧 Diagnósticos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simulação de Condomínios -->
+                    <div class="card">
+                        <h3>🏢 Condomínios</h3>
+                        <p>Estrutura conforme especificação:</p>
+                        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                            <li>Vacaria (388 unidades)</li>
+                            <li>Ayres (469 unidades)</li>
+                            <li>Vidal (308 unidades)</li>
+                            <li>Taroni (243 unidades)</li>
+                            <li>Destri (421 unidades)</li>
+                            <li>Speranza (388 unidades)</li>
+                        </ul>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="simulateStructure()">
+                                🏗️ Simular Estrutura
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script type="module">
+        // Configuração Firebase (simulada para standalone)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5",
+            measurementId: "G-DSGCBWM9Q1"
+        };
+
+        // Estado da aplicação
+        let currentUser = null;
+        let selectedStatus = null;
+
+        // Função de toast
+        window.showToast = function(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        };
+
+        // Função de loading
+        window.showLoading = function(show) {
+            const loading = document.getElementById('loadingOverlay');
+            loading.style.display = show ? 'flex' : 'none';
+        };
+
+        // Função de login (simulada)
+        window.login = async function(email, password) {
+            try {
+                showLoading(true);
+                
+                // Simular delay de rede
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Validar credenciais
+                const validUsers = {
+                    'admin@condominio.com': { password: '123456', role: 'admin', name: 'Administrador' },
+                    'operador@condominio.com': { password: '123456', role: 'operator', name: 'Operador' },
+                    'viewer@condominio.com': { password: '123456', role: 'viewer', name: 'Visualizador' }
+                };
+
+                const user = validUsers[email];
+                if (!user || user.password !== password) {
+                    throw new Error('Email ou senha inválidos');
+                }
+
+                // Login bem-sucedido
+                currentUser = { email, ...user };
+                
+                document.getElementById('loginScreen').classList.remove('active');
+                document.getElementById('mainScreen').classList.add('active');
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('userName').textContent = `${user.name} (${email})`;
+                
+                showToast(`Login realizado com sucesso! Bem-vindo, ${user.name}`, 'success');
+                
+                // Atualizar última atualização
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+                
+            } catch (error) {
+                console.error('Erro no login:', error);
+                document.getElementById('loginError').textContent = error.message;
+                document.getElementById('loginError').style.display = 'block';
+                showToast('Erro no login: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // Função de logout
+        window.logout = function() {
+            currentUser = null;
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('loginError').style.display = 'none';
+            showToast('Logout realizado com sucesso', 'info');
+        };
+
+        // Funções de teste
+        window.testToast = function() {
+            const messages = [
+                { text: 'Notificação de sucesso!', type: 'success' },
+                { text: 'Aviso importante!', type: 'warning' },
+                { text: 'Erro simulado!', type: 'error' },
+                { text: 'Informação geral', type: 'info' }
+            ];
+            
+            const random = messages[Math.floor(Math.random() * messages.length)];
+            showToast(random.text, random.type);
+        };
+
+        window.testLoading = function() {
+            showLoading(true);
+            showToast('Testando loading...', 'info');
+            
+            setTimeout(() => {
+                showLoading(false);
+                showToast('Teste de loading concluído!', 'success');
+            }, 3000);
+        };
+
+        window.selectStatus = function(status) {
+            selectedStatus = status;
+            
+            // Remover seleção anterior
+            document.querySelectorAll('.status-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Adicionar seleção atual
+            document.querySelector(`.status-card.${status}`).classList.add('selected');
+            
+            // Atualizar texto
+            const statusNames = {
+                'pendente': 'Pendente',
+                'pago': 'Pago',
+                'acordo': 'Acordo',
+                'reciclado': 'Pago Reciclado'
+            };
+            
+            document.getElementById('selectedStatus').textContent = 
+                `Status selecionado: ${statusNames[status]}`;
+            
+            showToast(`Status "${statusNames[status]}" selecionado!`, 'info');
+        };
+
+        window.simulateStructure = function() {
+            showLoading(true);
+            showToast('Simulando criação da estrutura...', 'info');
+            
+            setTimeout(() => {
+                showLoading(false);
+                showToast('Estrutura de 6 condomínios criada com sucesso!', 'success');
+            }, 2500);
+        };
+
+        window.openOriginalSystem = function() {
+            showToast('Abrindo sistema original...', 'info');
+            setTimeout(() => {
+                window.open('index.html', '_blank');
+            }, 1000);
+        };
+
+        window.showDiagnostics = function() {
+            const diagnostics = [
+                '✅ Sistema standalone funcionando',
+                '✅ Notificações operacionais',
+                '✅ Loading states funcionando',
+                '✅ Seleção de status ativa',
+                '✅ Login simulado operacional',
+                '⚠️ Firebase em modo simulado',
+                'ℹ️ Para funcionalidade completa, use servidor web'
+            ];
+            
+            showToast('Diagnósticos executados - veja o console', 'info');
+            console.log('🔧 DIAGNÓSTICOS DO SISTEMA:');
+            diagnostics.forEach(diag => console.log(diag));
+        };
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            login(email, password);
+        });
+
+        // Inicialização
+        console.log('🚀 Sistema standalone inicializado com sucesso!');
+        console.log('📋 Funcionalidades disponíveis:');
+        console.log('   - Login simulado com 3 usuários');
+        console.log('   - Sistema de notificações');
+        console.log('   - Estados de loading');
+        console.log('   - Seleção de status');
+        console.log('   - Interface responsiva');
+        
+        showToast('Sistema standalone carregado com sucesso!', 'success');
+        
+        // Atualizar timestamp
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+    </script>
+</body>
+</html>

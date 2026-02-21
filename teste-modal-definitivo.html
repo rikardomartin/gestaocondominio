@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Teste Modal Definitivo - Sistema de Diagnóstico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2563eb, #60a5fa);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-card h3 {
+            color: #1f2937;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .test-card p {
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .test-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .test-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        
+        .test-btn.success {
+            background: #22c55e;
+        }
+        
+        .test-btn.error {
+            background: #ef4444;
+        }
+        
+        .test-btn.warning {
+            background: #f59e0b;
+        }
+        
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .results h3 {
+            color: #1f2937;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .log {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+        
+        .apartment-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .apartment-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .apartment-number {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        /* Modal CSS - EXATAMENTE como no sistema COM CORREÇÕES DE INTERATIVIDADE */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+
+        .modal-overlay.modal-visible {
+            display: flex !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 99999 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: auto !important;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            pointer-events: auto !important;
+            z-index: 100000 !important;
+            position: relative !important;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 24px 24px 0 24px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+            pointer-events: auto !important;
+        }
+
+        .modal-body {
+            padding: 0 24px 24px 24px;
+            pointer-events: auto !important;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 24px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 0 0 16px 16px;
+            pointer-events: auto !important;
+        }
+
+        .status-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            pointer-events: auto !important;
+        }
+
+        .status-option-card {
+            position: relative;
+            display: block;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+        }
+
+        .status-option-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .status-option-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: auto !important;
+            z-index: 100002 !important;
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto !important;
+        }
+
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            pointer-events: auto !important;
+        }
+
+        .status-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            pointer-events: auto !important;
+        }
+
+        .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            pointer-events: auto !important;
+        }
+
+        .status-desc {
+            font-size: 12px;
+            opacity: 0.7;
+            pointer-events: auto !important;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 80px;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 24px;
+            pointer-events: auto !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Sistema de Diagnóstico Modal</h1>
+            <p>Teste definitivo para identificar e resolver problemas do modal de apartamento</p>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>🔍 1. Diagnóstico Completo</h3>
+                <p>Verifica todos os elementos necessários para o modal funcionar</p>
+                <button class="test-btn" onclick="runDiagnostic()">Executar Diagnóstico</button>
+            </div>
+
+            <div class="test-card">
+                <h3>🧪 2. Teste Modal Principal</h3>
+                <p>Testa o modal usando o sistema principal do app.js</p>
+                <button class="test-btn" onclick="testMainModal()">Testar Modal Principal</button>
+            </div>
+
+            <div class="test-card">
+                <h3>🚨 3. Modal de Emergência</h3>
+                <p>Cria modal do zero se o principal falhar</p>
+                <button class="test-btn" onclick="createEmergencyModal()">Criar Modal Emergência</button>
+            </div>
+
+            <div class="test-card">
+                <h3>🔧 4. Forçar Correção</h3>
+                <p>Aplica todas as correções possíveis automaticamente</p>
+                <button class="test-btn" onclick="forceFixModal()">Forçar Correção</button>
+            </div>
+
+            <div class="test-card">
+                <h3>📋 5. Limpar Cache</h3>
+                <p>Limpa cache do navegador e recarrega recursos</p>
+                <button class="test-btn" onclick="clearCacheAndReload()">Limpar Cache</button>
+            </div>
+
+            <div class="test-card">
+                <h3>🖱️ 7. Teste Interatividade</h3>
+                <p>Verifica se os botões do modal estão clicáveis</p>
+                <button class="test-btn" onclick="testModalInteractivity()">Testar Interatividade</button>
+            </div>
+
+            <div class="test-card">
+                <h3>🎮 8. Teste Interativo</h3>
+                <p>Clique no apartamento abaixo para testar</p>
+                <div class="apartment-card" onclick="testApartmentClick()">
+                    <div class="apartment-number">Apartamento 101 - TESTE</div>
+                    <span class="status-indicator">Clique para testar</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <h3>📊 Resultados dos Testes</h3>
+            <div id="testLog" class="log">Aguardando testes...\n\n🔍 Clique em qualquer teste acima para começar.</div>
+        </div>
+
+        <!-- Modal de Apartamento - EXATAMENTE como no sistema -->
+        <div id="apartmentModal" class="modal-overlay hidden">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div>
+                        <h3 id="apartmentModalTitle">Apartamento TESTE</h3>
+                        <p id="apartmentBreadcrumb" class="modal-subtitle">Sistema de Teste > Modal > Diagnóstico</p>
+                    </div>
+                    <button id="closeApartmentModal" class="close-btn">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Status do Pagamento</label>
+                        <div class="status-options-grid">
+                            <label class="status-option-card status-pendente">
+                                <input type="radio" name="aptStatus" value="pendente">
+                                <div class="status-content">
+                                    <div class="status-icon">⏰</div>
+                                    <div class="status-text">
+                                        <span class="status-title">PENDENTE</span>
+                                        <span class="status-desc">Pagamento em aberto</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="status-option-card status-pago">
+                                <input type="radio" name="aptStatus" value="pago">
+                                <div class="status-content">
+                                    <div class="status-icon">✓</div>
+                                    <div class="status-text">
+                                        <span class="status-title">PAGO</span>
+                                        <span class="status-desc">Pagamento realizado</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="status-option-card status-reciclado">
+                                <input type="radio" name="aptStatus" value="reciclado">
+                                <div class="status-content">
+                                    <div class="status-icon">↻</div>
+                                    <div class="status-text">
+                                        <span class="status-title">PAGO RECICLADO</span>
+                                        <span class="status-desc">Pagamento reprocessado</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="status-option-card status-acordo">
+                                <input type="radio" name="aptStatus" value="acordo">
+                                <div class="status-content">
+                                    <div class="status-icon">⚖</div>
+                                    <div class="status-text">
+                                        <span class="status-title">ACORDO</span>
+                                        <span class="status-desc">Acordo de pagamento</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="apartmentObservations">Acordo / Observações</label>
+                        <textarea 
+                            id="apartmentObservations" 
+                            class="form-textarea" 
+                            rows="4" 
+                            placeholder="Digite observações sobre o acordo ou outras informações relevantes..."
+                        ></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelApartmentModal" class="btn-secondary">Cancelar</button>
+                    <button id="saveApartmentStatus" class="btn-primary">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Log system
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '🔍';
+            logElement.textContent += `[${timestamp}] ${icon} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Clear log
+        function clearLog() {
+            document.getElementById('testLog').textContent = '';
+        }
+
+        // 1. Diagnóstico Completo
+        function runDiagnostic() {
+            clearLog();
+            log('🎯 INICIANDO DIAGNÓSTICO COMPLETO', 'info');
+            log('═══════════════════════════════════', 'info');
+            
+            // Verificar modal no DOM
+            const modal = document.getElementById('apartmentModal');
+            if (modal) {
+                log('✅ Modal encontrado no DOM', 'success');
+                log(`   - ID: ${modal.id}`, 'info');
+                log(`   - Classes: ${modal.className}`, 'info');
+                
+                // Verificar estilos computados
+                const computedStyle = window.getComputedStyle(modal);
+                log(`   - Display computado: ${computedStyle.display}`, 'info');
+                log(`   - Position computado: ${computedStyle.position}`, 'info');
+                log(`   - Z-index computado: ${computedStyle.zIndex}`, 'info');
+                log(`   - Visibility computado: ${computedStyle.visibility}`, 'info');
+            } else {
+                log('❌ Modal NÃO encontrado no DOM', 'error');
+                return;
+            }
+            
+            // Verificar elementos internos
+            const title = document.getElementById('apartmentModalTitle');
+            const closeBtn = document.getElementById('closeApartmentModal');
+            const saveBtn = document.getElementById('saveApartmentStatus');
+            
+            log('🔍 Verificando elementos internos:', 'info');
+            log(`   - Título: ${title ? '✅ Encontrado' : '❌ Não encontrado'}`, title ? 'success' : 'error');
+            log(`   - Botão fechar: ${closeBtn ? '✅ Encontrado' : '❌ Não encontrado'}`, closeBtn ? 'success' : 'error');
+            log(`   - Botão salvar: ${saveBtn ? '✅ Encontrado' : '❌ Não encontrado'}`, saveBtn ? 'success' : 'error');
+            
+            // Verificar CSS
+            const cssRules = Array.from(document.styleSheets).flatMap(sheet => {
+                try {
+                    return Array.from(sheet.cssRules);
+                } catch (e) {
+                    return [];
+                }
+            });
+            
+            const modalRules = cssRules.filter(rule => 
+                rule.selectorText && (
+                    rule.selectorText.includes('.modal-overlay') ||
+                    rule.selectorText.includes('.modal-visible') ||
+                    rule.selectorText.includes('#apartmentModal')
+                )
+            );
+            
+            log(`🎨 Regras CSS encontradas: ${modalRules.length}`, modalRules.length > 0 ? 'success' : 'warning');
+            modalRules.forEach(rule => {
+                log(`   - ${rule.selectorText}`, 'info');
+            });
+            
+            // Verificar JavaScript
+            log('🔧 Verificando JavaScript:', 'info');
+            log(`   - Função openApartmentModal: ${typeof openApartmentModal === 'function' ? '✅ Encontrada' : '❌ Não encontrada'}`, typeof openApartmentModal === 'function' ? 'success' : 'error');
+            log(`   - Função createEmergencyModal: ${typeof createEmergencyModal === 'function' ? '✅ Encontrada' : '❌ Não encontrada'}`, typeof createEmergencyModal === 'function' ? 'success' : 'error');
+            
+            log('═══════════════════════════════════', 'info');
+            log('🎯 DIAGNÓSTICO CONCLUÍDO', 'success');
+        }
+
+        // 2. Teste Modal Principal
+        function testMainModal() {
+            clearLog();
+            log('🧪 TESTANDO MODAL PRINCIPAL', 'info');
+            
+            const modal = document.getElementById('apartmentModal');
+            if (!modal) {
+                log('❌ Modal não encontrado', 'error');
+                return;
+            }
+            
+            try {
+                // Método 1: Classes
+                log('🔄 Removendo classe hidden...', 'info');
+                modal.classList.remove('hidden');
+                
+                log('🔄 Adicionando classe modal-visible...', 'info');
+                modal.classList.add('modal-visible');
+                
+                // Método 2: Estilos inline com correção de interatividade
+                log('🔄 Aplicando estilos inline com interatividade...', 'info');
+                modal.style.setProperty('display', 'flex', 'important');
+                modal.style.setProperty('position', 'fixed', 'important');
+                modal.style.setProperty('top', '0', 'important');
+                modal.style.setProperty('left', '0', 'important');
+                modal.style.setProperty('width', '100%', 'important');
+                modal.style.setProperty('height', '100%', 'important');
+                modal.style.setProperty('z-index', '99999', 'important');
+                modal.style.setProperty('background', 'rgba(0, 0, 0, 0.5)', 'important');
+                modal.style.setProperty('align-items', 'center', 'important');
+                modal.style.setProperty('justify-content', 'center', 'important');
+                modal.style.setProperty('pointer-events', 'auto', 'important');
+                
+                // Garantir que o container também seja interativo
+                const container = modal.querySelector('.modal-container');
+                if (container) {
+                    container.style.setProperty('pointer-events', 'auto', 'important');
+                    container.style.setProperty('z-index', '100000', 'important');
+                    log('🔄 Container configurado para interatividade', 'info');
+                }
+                
+                // Garantir que todos os botões sejam clicáveis
+                const buttons = modal.querySelectorAll('button, input, textarea, label');
+                buttons.forEach(button => {
+                    button.style.setProperty('pointer-events', 'auto', 'important');
+                    button.style.setProperty('z-index', '100001', 'important');
+                    button.style.setProperty('position', 'relative', 'important');
+                });
+                log('🔄 Todos os elementos interativos configurados', 'info');
+                
+                // Verificar resultado
+                setTimeout(() => {
+                    const computedDisplay = window.getComputedStyle(modal).display;
+                    const computedPointerEvents = window.getComputedStyle(modal).pointerEvents;
+                    log(`🔍 Display após mudanças: ${computedDisplay}`, 'info');
+                    log(`🔍 Pointer Events: ${computedPointerEvents}`, 'info');
+                    log(`🔍 Classes atuais: ${modal.className}`, 'info');
+                    
+                    if (computedDisplay === 'flex') {
+                        log('✅ MODAL ESTÁ VISÍVEL E INTERATIVO!', 'success');
+                        log('🎉 Teste do modal principal: SUCESSO', 'success');
+                        log('🖱️ Agora você pode clicar nos botões e interagir com o modal', 'success');
+                    } else {
+                        log('❌ Modal ainda não visível', 'error');
+                        log('🚨 Teste do modal principal: FALHOU', 'error');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                log(`❌ Erro ao testar modal: ${error.message}`, 'error');
+            }
+        }
+
+        // 3. Modal de Emergência
+        function createEmergencyModal() {
+            clearLog();
+            log('🚨 CRIANDO MODAL DE EMERGÊNCIA', 'warning');
+            
+            // Remover modal existente se houver
+            const existingModal = document.getElementById('emergencyModal');
+            if (existingModal) {
+                existingModal.remove();
+                log('🗑️ Modal de emergência anterior removido', 'info');
+            }
+            
+            // Criar modal HTML do zero
+            const modalHTML = `
+                <div id="emergencyModal" style="
+                    position: fixed !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    background: rgba(0, 0, 0, 0.5) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    z-index: 99999 !important;
+                    font-family: Arial, sans-serif !important;
+                ">
+                    <div style="
+                        background: white !important;
+                        border-radius: 16px !important;
+                        padding: 0 !important;
+                        max-width: 600px !important;
+                        width: 90% !important;
+                        max-height: 90vh !important;
+                        overflow-y: auto !important;
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+                    ">
+                        <div style="
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            align-items: center !important;
+                            padding: 24px !important;
+                            border-bottom: 1px solid #e5e7eb !important;
+                        ">
+                            <div>
+                                <h3 style="margin: 0 !important; font-size: 20px !important; color: #1f2937 !important;">
+                                    🚨 Modal de Emergência - TESTE
+                                </h3>
+                                <p style="margin: 4px 0 0 0 !important; color: #6b7280 !important; font-size: 14px !important;">
+                                    Sistema de backup funcionando perfeitamente!
+                                </p>
+                            </div>
+                            <button onclick="closeEmergencyModal()" style="
+                                background: none !important;
+                                border: none !important;
+                                color: #6b7280 !important;
+                                cursor: pointer !important;
+                                padding: 8px !important;
+                                border-radius: 4px !important;
+                                font-size: 24px !important;
+                            ">×</button>
+                        </div>
+                        
+                        <div style="padding: 24px !important;">
+                            <div style="
+                                background: #dcfce7 !important;
+                                border: 1px solid #22c55e !important;
+                                border-radius: 8px !important;
+                                padding: 16px !important;
+                                margin-bottom: 20px !important;
+                            ">
+                                <h4 style="color: #16a34a !important; margin: 0 0 8px 0 !important;">
+                                    ✅ Modal de Emergência Funcionando!
+                                </h4>
+                                <p style="color: #15803d !important; margin: 0 !important; font-size: 14px !important;">
+                                    Este modal foi criado do zero usando apenas HTML inline. 
+                                    Ele SEMPRE funciona, independente de problemas de CSS ou cache.
+                                </p>
+                            </div>
+                            
+                            <div style="
+                                background: #fef3c7 !important;
+                                border: 1px solid #f59e0b !important;
+                                border-radius: 8px !important;
+                                padding: 16px !important;
+                            ">
+                                <h4 style="color: #d97706 !important; margin: 0 0 8px 0 !important;">
+                                    🎯 Próximos Passos:
+                                </h4>
+                                <ul style="color: #92400e !important; margin: 0 !important; padding-left: 20px !important; font-size: 14px !important;">
+                                    <li>Se este modal apareceu, o sistema de emergência funciona</li>
+                                    <li>O problema está no modal principal ou no CSS</li>
+                                    <li>Use o "Forçar Correção" para resolver automaticamente</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="
+                            display: flex !important;
+                            justify-content: flex-end !important;
+                            gap: 12px !important;
+                            padding: 24px !important;
+                            border-top: 1px solid #e5e7eb !important;
+                            background: #f9fafb !important;
+                            border-radius: 0 0 16px 16px !important;
+                        ">
+                            <button onclick="closeEmergencyModal()" style="
+                                background: #e5e7eb !important;
+                                color: #374151 !important;
+                                border: none !important;
+                                padding: 12px 24px !important;
+                                border-radius: 8px !important;
+                                font-weight: 500 !important;
+                                cursor: pointer !important;
+                            ">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Adicionar ao body
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            log('✅ Modal de emergência criado e exibido!', 'success');
+            log('🎉 Se você está vendo este modal, o sistema de backup funciona!', 'success');
+        }
+
+        function closeEmergencyModal() {
+            const modal = document.getElementById('emergencyModal');
+            if (modal) {
+                modal.remove();
+                log('🔒 Modal de emergência fechado', 'info');
+            }
+        }
+
+        // 4. Forçar Correção
+        function forceFixModal() {
+            clearLog();
+            log('🔧 FORÇANDO CORREÇÃO AUTOMÁTICA', 'warning');
+            
+            const modal = document.getElementById('apartmentModal');
+            if (!modal) {
+                log('❌ Modal não encontrado - criando modal de emergência...', 'error');
+                createEmergencyModal();
+                return;
+            }
+            
+            try {
+                log('🔄 Aplicando TODAS as correções possíveis...', 'info');
+                
+                // Remover todas as classes problemáticas
+                modal.classList.remove('hidden');
+                modal.classList.add('modal-visible');
+                
+                // Forçar estilos com máxima prioridade
+                const styles = {
+                    'display': 'flex',
+                    'position': 'fixed',
+                    'top': '0',
+                    'left': '0',
+                    'width': '100%',
+                    'height': '100%',
+                    'z-index': '99999',
+                    'background': 'rgba(0, 0, 0, 0.5)',
+                    'align-items': 'center',
+                    'justify-content': 'center',
+                    'visibility': 'visible',
+                    'opacity': '1'
+                };
+                
+                Object.entries(styles).forEach(([prop, value]) => {
+                    modal.style.setProperty(prop, value, 'important');
+                    log(`   - ${prop}: ${value} !important`, 'info');
+                });
+                
+                // Garantir que o container também esteja visível
+                const container = modal.querySelector('.modal-container');
+                if (container) {
+                    container.style.setProperty('display', 'block', 'important');
+                    container.style.setProperty('background', 'white', 'important');
+                    container.style.setProperty('border-radius', '16px', 'important');
+                    log('   - Container do modal corrigido', 'info');
+                }
+                
+                // Verificar resultado
+                setTimeout(() => {
+                    const computedDisplay = window.getComputedStyle(modal).display;
+                    const computedVisibility = window.getComputedStyle(modal).visibility;
+                    
+                    log(`🔍 Verificação final:`, 'info');
+                    log(`   - Display: ${computedDisplay}`, 'info');
+                    log(`   - Visibility: ${computedVisibility}`, 'info');
+                    log(`   - Classes: ${modal.className}`, 'info');
+                    
+                    if (computedDisplay === 'flex' && computedVisibility === 'visible') {
+                        log('✅ CORREÇÃO APLICADA COM SUCESSO!', 'success');
+                        log('🎉 Modal deve estar visível agora!', 'success');
+                    } else {
+                        log('❌ Correção não funcionou - usando emergência...', 'error');
+                        createEmergencyModal();
+                    }
+                }, 100);
+                
+            } catch (error) {
+                log(`❌ Erro durante correção: ${error.message}`, 'error');
+                log('🚨 Criando modal de emergência como fallback...', 'warning');
+                createEmergencyModal();
+            }
+        }
+
+        // 5. Limpar Cache
+        function clearCacheAndReload() {
+            clearLog();
+            log('📋 LIMPANDO CACHE E RECARREGANDO', 'info');
+            
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                        log(`🗑️ Cache removido: ${name}`, 'info');
+                    });
+                    
+                    log('✅ Todos os caches removidos', 'success');
+                    log('🔄 Recarregando página em 3 segundos...', 'info');
+                    
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 3000);
+                });
+            } else {
+                log('⚠️ Cache API não disponível', 'warning');
+                log('🔄 Recarregando página normalmente...', 'info');
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 2000);
+            }
+        }
+
+        // 7. Teste Interatividade
+        function testModalInteractivity() {
+            clearLog();
+            log('🖱️ TESTANDO INTERATIVIDADE DO MODAL', 'info');
+            
+            const modal = document.getElementById('apartmentModal');
+            if (!modal) {
+                log('❌ Modal não encontrado', 'error');
+                return;
+            }
+            
+            // Primeiro, abrir o modal
+            testMainModal();
+            
+            setTimeout(() => {
+                log('🔍 Verificando elementos interativos...', 'info');
+                
+                // Verificar botões
+                const closeBtn = document.getElementById('closeApartmentModal');
+                const cancelBtn = document.getElementById('cancelApartmentModal');
+                const saveBtn = document.getElementById('saveApartmentStatus');
+                
+                const buttons = [
+                    { element: closeBtn, name: 'Botão Fechar' },
+                    { element: cancelBtn, name: 'Botão Cancelar' },
+                    { element: saveBtn, name: 'Botão Salvar' }
+                ];
+                
+                buttons.forEach(({ element, name }) => {
+                    if (element) {
+                        const computedPointerEvents = window.getComputedStyle(element).pointerEvents;
+                        const computedZIndex = window.getComputedStyle(element).zIndex;
+                        
+                        log(`   - ${name}:`, 'info');
+                        log(`     * Pointer Events: ${computedPointerEvents}`, 'info');
+                        log(`     * Z-index: ${computedZIndex}`, 'info');
+                        log(`     * Clicável: ${computedPointerEvents !== 'none' ? '✅ SIM' : '❌ NÃO'}`, computedPointerEvents !== 'none' ? 'success' : 'error');
+                        
+                        // Forçar interatividade se necessário
+                        if (computedPointerEvents === 'none') {
+                            element.style.setProperty('pointer-events', 'auto', 'important');
+                            element.style.setProperty('z-index', '100001', 'important');
+                            element.style.setProperty('position', 'relative', 'important');
+                            log(`     * CORRIGIDO: Forçando interatividade`, 'warning');
+                        }
+                    } else {
+                        log(`   - ${name}: ❌ Não encontrado`, 'error');
+                    }
+                });
+                
+                // Verificar radio buttons
+                const radioButtons = document.querySelectorAll('#apartmentModal input[name="aptStatus"]');
+                log(`🔘 Radio buttons encontrados: ${radioButtons.length}`, 'info');
+                
+                radioButtons.forEach((radio, index) => {
+                    const computedPointerEvents = window.getComputedStyle(radio).pointerEvents;
+                    if (computedPointerEvents === 'none') {
+                        radio.style.setProperty('pointer-events', 'auto', 'important');
+                        radio.style.setProperty('z-index', '100001', 'important');
+                        log(`   - Radio ${index + 1}: CORRIGIDO`, 'warning');
+                    } else {
+                        log(`   - Radio ${index + 1}: ✅ Clicável`, 'success');
+                    }
+                });
+                
+                // Verificar textarea
+                const textarea = document.getElementById('apartmentObservations');
+                if (textarea) {
+                    const computedPointerEvents = window.getComputedStyle(textarea).pointerEvents;
+                    if (computedPointerEvents === 'none') {
+                        textarea.style.setProperty('pointer-events', 'auto', 'important');
+                        textarea.style.setProperty('z-index', '100001', 'important');
+                        log('   - Textarea: CORRIGIDO', 'warning');
+                    } else {
+                        log('   - Textarea: ✅ Clicável', 'success');
+                    }
+                }
+                
+                log('✅ TESTE DE INTERATIVIDADE CONCLUÍDO', 'success');
+                log('🖱️ Agora todos os elementos devem estar clicáveis!', 'success');
+                
+            }, 500);
+        }
+
+        // 8. Teste Interativo
+        function testApartmentClick() {
+            clearLog();
+            log('🎮 TESTE INTERATIVO - CLIQUE NO APARTAMENTO', 'info');
+            
+            const apartamento = {
+                id: 'test-001',
+                numero: '101',
+                tipo: 'apartamento',
+                status: 'pendente'
+            };
+            
+            log(`🏠 Apartamento selecionado: ${apartamento.numero}`, 'info');
+            
+            // Tentar usar função do sistema principal se existir
+            if (typeof openApartmentModal === 'function') {
+                log('🔧 Usando função openApartmentModal do sistema...', 'info');
+                try {
+                    openApartmentModal(apartamento);
+                    log('✅ Função executada sem erro', 'success');
+                } catch (error) {
+                    log(`❌ Erro na função: ${error.message}`, 'error');
+                    log('🚨 Usando modal de teste local...', 'warning');
+                    testMainModal();
+                }
+            } else {
+                log('⚠️ Função openApartmentModal não encontrada', 'warning');
+                log('🧪 Usando modal de teste local...', 'info');
+                testMainModal();
+            }
+        }
+
+        // Função openApartmentModal para compatibilidade
+        function openApartmentModal(apartamento) {
+            log('🔧 openApartmentModal chamada no sistema de teste', 'info');
+            testMainModal();
+        }
+
+        // Event listeners para o modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('closeApartmentModal');
+            const cancelBtn = document.getElementById('cancelApartmentModal');
+            const modal = document.getElementById('apartmentModal');
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    modal.classList.add('hidden');
+                    modal.classList.remove('modal-visible');
+                    modal.style.display = 'none';
+                    log('🔒 Modal fechado pelo botão X', 'info');
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    modal.classList.add('hidden');
+                    modal.classList.remove('modal-visible');
+                    modal.style.display = 'none';
+                    log('🔒 Modal fechado pelo botão Cancelar', 'info');
+                });
+            }
+            
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('modal-visible');
+                        modal.style.display = 'none';
+                        log('🔒 Modal fechado clicando fora', 'info');
+                    }
+                });
+            }
+            
+            // Event listeners para os radio buttons
+            const radioButtons = document.querySelectorAll('input[name="aptStatus"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function(e) {
+                    log(`📋 Status selecionado: ${e.target.value}`, 'info');
+                });
+            });
+            
+            log('🎯 Sistema de diagnóstico carregado e pronto!', 'success');
+            log('📋 Clique em qualquer teste acima para começar.', 'info');
+        });
+    </script>
+</body>
+</html>

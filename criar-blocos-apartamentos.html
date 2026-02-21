@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Blocos e Apartamentos - Sistema</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; text-align: center; margin-bottom: 30px; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        .warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 15px; border-radius: 6px; margin: 15px 0; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        .console-log {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .progress {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background: #2563eb;
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .condominio-info {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Criar Blocos e Apartamentos</h1>
+        
+        <div class="info">
+            <strong>🎯 Objetivo:</strong> Criar a estrutura completa de blocos e apartamentos para todos os condomínios baseado no arquivo condominio.md.
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Importante:</strong><br>
+            • Este processo criará MUITOS registros no Firestore<br>
+            • Pode demorar alguns minutos para completar<br>
+            • Não feche a página durante o processo<br>
+            • Execute apenas UMA vez
+        </div>
+
+        <button onclick="loginAndStart()">🚀 Fazer Login e Começar</button>
+        <button onclick="createBlocosApartamentos()" id="createBtn" disabled>🏗️ Criar Blocos e Apartamentos</button>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="console-log" id="consoleLog">
+            [Sistema inicializado...]
+        </div>
+
+        <div class="info">
+            <strong>📋 Estrutura que será criada:</strong><br>
+            • <strong>Vacaria:</strong> 24 blocos × 16 apts + 4 casas = 388 unidades<br>
+            • <strong>Ayres:</strong> 29 blocos × 16 apts + 6 casas = 469 unidades<br>
+            • <strong>Vidal:</strong> 19 blocos × 16 apts = 308 unidades<br>
+            • <strong>Taroni:</strong> 15 blocos × 16 apts = 243 unidades<br>
+            • <strong>Destri:</strong> 26 blocos × 16 apts + 5 casas = 421 unidades<br>
+            • <strong>Speranza:</strong> 25 blocos × 16 apts = 388 unidades<br><br>
+            <strong>Total:</strong> ~2.217 unidades
+        </div>
+    </div>
+
+    <script type="module">
+        import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            setDoc, 
+            query, 
+            where,
+            writeBatch,
+            serverTimestamp
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { auth, db } from './firebase-config.js';
+
+        const consoleLog = document.getElementById('consoleLog');
+        let isLoggedIn = false;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#e2e8f0';
+            consoleLog.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        function updateProgress(current, total, message) {
+            const percent = Math.round((current / total) * 100);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${percent}%`;
+            progressBar.textContent = `${percent}% - ${message}`;
+        }
+
+        window.loginAndStart = async function() {
+            const status = document.getElementById('status');
+            
+            try {
+                log('Fazendo login...', 'info');
+                await signInWithEmailAndPassword(auth, 'admin@condominio.com', '123456');
+                log('✅ Login bem-sucedido', 'success');
+                
+                isLoggedIn = true;
+                document.getElementById('createBtn').disabled = false;
+                
+                status.innerHTML = '<div class="success">✅ Login realizado! Agora você pode criar os blocos e apartamentos.</div>';
+                
+            } catch (error) {
+                log(`❌ Erro no login: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro no login: ${error.message}</div>`;
+            }
+        };
+
+        window.createBlocosApartamentos = async function() {
+            if (!isLoggedIn) {
+                alert('Faça login primeiro!');
+                return;
+            }
+
+            const status = document.getElementById('status');
+            const btn = document.getElementById('createBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Criando estrutura...';
+            
+            try {
+                log('Iniciando criação de blocos e apartamentos...', 'info');
+                status.innerHTML = '<div class="info">🏗️ Criando estrutura completa...</div>';
+                
+                // Buscar condomínios existentes
+                log('Buscando condomínios...', 'info');
+                const condominiosQuery = query(collection(db, 'condominios'), where('active', '==', true));
+                const condominiosSnap = await getDocs(condominiosQuery);
+                
+                if (condominiosSnap.empty) {
+                    throw new Error('Nenhum condomínio encontrado! Execute "Criar Estrutura" primeiro.');
+                }
+
+                const condominios = [];
+                condominiosSnap.forEach(doc => {
+                    condominios.push({ id: doc.id, ...doc.data() });
+                });
+
+                log(`Encontrados ${condominios.length} condomínios`, 'success');
+
+                // Estrutura baseada no condominio.md
+                const estruturas = {
+                    'Condomínio Vacaria': { blocos: 24, aptsPerBloco: 16, casas: 4 },
+                    'Condomínio Ayres': { blocos: 29, aptsPerBloco: 16, casas: 6 },
+                    'Condomínio Vidal': { blocos: 19, aptsPerBloco: 16, casas: 0 },
+                    'Condomínio Taroni': { blocos: 15, aptsPerBloco: 16, casas: 0 },
+                    'Condomínio Destri': { blocos: 26, aptsPerBloco: 16, casas: 5 },
+                    'Condomínio Speranza': { blocos: 25, aptsPerBloco: 16, casas: 0 }
+                };
+
+                let totalOperations = 0;
+                let currentOperation = 0;
+
+                // Calcular total de operações
+                for (const cond of condominios) {
+                    const estrutura = estruturas[cond.nome];
+                    if (estrutura) {
+                        totalOperations += estrutura.blocos; // blocos
+                        totalOperations += (estrutura.blocos * estrutura.aptsPerBloco); // apartamentos
+                        totalOperations += estrutura.casas; // casas
+                    }
+                }
+
+                log(`Total de operações: ${totalOperations}`, 'info');
+
+                // Criar estrutura para cada condomínio
+                for (const cond of condominios) {
+                    const estrutura = estruturas[cond.nome];
+                    if (!estrutura) {
+                        log(`⚠️ Estrutura não definida para ${cond.nome}`, 'warning');
+                        continue;
+                    }
+
+                    log(`Criando estrutura para ${cond.nome}...`, 'info');
+
+                    // Criar blocos
+                    for (let blocoNum = 1; blocoNum <= estrutura.blocos; blocoNum++) {
+                        const blocoRef = doc(collection(db, 'blocos'));
+                        await setDoc(blocoRef, {
+                            nome: `Bloco ${blocoNum.toString().padStart(2, '0')}`,
+                            numero: blocoNum,
+                            condominioId: cond.id,
+                            condominioNome: cond.nome,
+                            totalApartamentos: estrutura.aptsPerBloco,
+                            createdAt: serverTimestamp(),
+                            createdBy: 'bulk-creation',
+                            active: true
+                        });
+
+                        currentOperation++;
+                        updateProgress(currentOperation, totalOperations, `Criando blocos - ${cond.nome}`);
+
+                        // Criar apartamentos para este bloco
+                        for (let andar = 1; andar <= 4; andar++) {
+                            for (let apt = 1; apt <= 4; apt++) {
+                                const numeroApt = `${andar}0${apt}`;
+                                
+                                const aptRef = doc(collection(db, 'apartamentos'));
+                                await setDoc(aptRef, {
+                                    numero: numeroApt,
+                                    andar: andar,
+                                    posicao: apt,
+                                    tipo: 'apartamento',
+                                    blocoId: blocoRef.id,
+                                    blocoNome: `Bloco ${blocoNum.toString().padStart(2, '0')}`,
+                                    condominioId: cond.id,
+                                    condominioNome: cond.nome,
+                                    proprietario: `Proprietário Apt ${numeroApt}`,
+                                    createdAt: serverTimestamp(),
+                                    createdBy: 'bulk-creation',
+                                    active: true
+                                });
+
+                                currentOperation++;
+                                if (currentOperation % 10 === 0) {
+                                    updateProgress(currentOperation, totalOperations, `Criando apartamentos - ${cond.nome}`);
+                                }
+                            }
+                        }
+                    }
+
+                    // Criar casas (se houver)
+                    for (let casaNum = 1; casaNum <= estrutura.casas; casaNum++) {
+                        const casaRef = doc(collection(db, 'apartamentos'));
+                        await setDoc(casaRef, {
+                            numero: casaNum.toString(),
+                            andar: 0,
+                            posicao: casaNum,
+                            tipo: 'casa',
+                            blocoId: null,
+                            blocoNome: 'Casa Individual',
+                            condominioId: cond.id,
+                            condominioNome: cond.nome,
+                            proprietario: `Proprietário Casa ${casaNum}`,
+                            createdAt: serverTimestamp(),
+                            createdBy: 'bulk-creation',
+                            active: true
+                        });
+
+                        currentOperation++;
+                        updateProgress(currentOperation, totalOperations, `Criando casas - ${cond.nome}`);
+                    }
+
+                    log(`✅ ${cond.nome} concluído: ${estrutura.blocos} blocos, ${estrutura.blocos * estrutura.aptsPerBloco} apts, ${estrutura.casas} casas`, 'success');
+                }
+
+                updateProgress(100, 100, 'Concluído!');
+                
+                log('🎉 ESTRUTURA COMPLETA CRIADA!', 'success');
+                
+                status.innerHTML = `
+                    <div class="success">
+                        <strong>🎉 Estrutura Criada com Sucesso!</strong><br><br>
+                        <strong>Total criado:</strong> ${currentOperation} registros<br>
+                        <strong>Blocos e apartamentos:</strong> Todos os condomínios<br>
+                        <strong>Casas individuais:</strong> Incluídas<br><br>
+                        <strong>✅ Agora você pode:</strong><br>
+                        1. Voltar para a aplicação principal<br>
+                        2. Clicar nos condomínios para ver os blocos<br>
+                        3. Navegar pela estrutura completa<br><br>
+                        <a href="https://gestaodoscondominios.web.app" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none; background: #dbeafe; padding: 10px 15px; border-radius: 6px; display: inline-block; margin-top: 10px;">
+                            🚀 Abrir Aplicação Principal
+                        </a>
+                    </div>
+                `;
+
+                btn.textContent = '✅ Estrutura Criada';
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                status.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                
+                btn.disabled = false;
+                btn.textContent = '🔄 Tentar Novamente';
+            }
+        };
+
+        // Inicializar
+        log('🏗️ Sistema de criação de blocos e apartamentos carregado', 'info');
+        log('📋 Clique em "Fazer Login e Começar" para iniciar', 'info');
+    </script>
+</body>
+</html>

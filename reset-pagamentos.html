@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset - Deletar Todos os Pagamentos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #dc3545;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .warning-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .danger {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .danger-title {
+            font-weight: 600;
+            color: #721c24;
+            margin-bottom: 5px;
+        }
+
+        .danger-text {
+            color: #721c24;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-delete:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .progress {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-text {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            display: none;
+        }
+
+        .log.active {
+            display: block;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-error {
+            color: #dc3545;
+        }
+
+        .log-info {
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Reset - Deletar Todos os Pagamentos</h1>
+        <p class="subtitle">Esta ação vai deletar TODOS os pagamentos do sistema</p>
+
+        <div class="danger">
+            <div class="danger-title">⚠️ ATENÇÃO - AÇÃO IRREVERSÍVEL!</div>
+            <div class="danger-text">
+                Esta ação vai <strong>DELETAR PERMANENTEMENTE</strong> todos os pagamentos de todos os condomínios, blocos e apartamentos. Você não poderá desfazer esta ação!
+            </div>
+        </div>
+
+        <div class="warning">
+            <div class="warning-title">📋 O que será deletado:</div>
+            <ul style="margin-left: 20px; margin-top: 10px; color: #856404;">
+                <li>Todos os pagamentos de condomínio</li>
+                <li>Todos os pagamentos de salão</li>
+                <li>Todos os registros de 2024, 2025, 2026...</li>
+                <li>Status de todos os apartamentos voltará para PENDENTE</li>
+            </ul>
+        </div>
+
+        <div class="button-container">
+            <button class="btn-cancel" onclick="window.location.href='/'">Cancelar</button>
+            <button class="btn-delete" id="deleteBtn" onclick="confirmarReset()">
+                Deletar Tudo
+            </button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-text" id="progressText">Deletando pagamentos...</div>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            deleteDoc,
+            doc
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnTyF00Pnie-se5vGNqLl7DqzhJEsr8Ck",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20770393188",
+            appId: "1:20770393188:web:c1b7e5c8b5e0a8e8e8e8e8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('active');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        window.confirmarReset = function() {
+            const confirmacao1 = confirm(
+                '⚠️ CONFIRMAÇÃO 1 DE 3\n\n' +
+                'Você está prestes a DELETAR TODOS OS PAGAMENTOS do sistema.\n\n' +
+                'Isso inclui:\n' +
+                '• Todos os pagamentos de condomínio\n' +
+                '• Todos os pagamentos de salão\n' +
+                '• Todos os anos (2024, 2025, 2026...)\n\n' +
+                'Deseja continuar?'
+            );
+
+            if (!confirmacao1) return;
+
+            const confirmacao2 = confirm(
+                '⚠️ CONFIRMAÇÃO 2 DE 3\n\n' +
+                'Esta ação é IRREVERSÍVEL!\n\n' +
+                'Você NÃO poderá recuperar os dados deletados.\n\n' +
+                'Tem certeza absoluta?'
+            );
+
+            if (!confirmacao2) return;
+
+            const confirmacao3 = prompt(
+                '⚠️ CONFIRMAÇÃO 3 DE 3\n\n' +
+                'Digite "DELETAR TUDO" (sem aspas) para confirmar:'
+            );
+
+            if (confirmacao3 !== 'DELETAR TUDO') {
+                alert('Operação cancelada. Texto não confere.');
+                return;
+            }
+
+            executarReset();
+        };
+
+        async function executarReset() {
+            const deleteBtn = document.getElementById('deleteBtn');
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progressText');
+
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Deletando...';
+            progress.classList.add('active');
+
+            try {
+                addLog('🚀 Iniciando reset do sistema...', 'info');
+
+                // Buscar todos os pagamentos
+                progressText.textContent = 'Buscando pagamentos...';
+                const paymentsSnapshot = await getDocs(collection(db, 'payments'));
+                const totalPayments = paymentsSnapshot.size;
+
+                addLog(`📊 Encontrados ${totalPayments} pagamentos para deletar`, 'info');
+
+                if (totalPayments === 0) {
+                    addLog('✅ Nenhum pagamento encontrado. Sistema já está limpo!', 'success');
+                    alert('✅ Sistema já está limpo!\n\nNenhum pagamento encontrado.');
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = 'Deletar Tudo';
+                    return;
+                }
+
+                let deleted = 0;
+                let errors = 0;
+
+                // Deletar cada pagamento
+                for (const paymentDoc of paymentsSnapshot.docs) {
+                    try {
+                        await deleteDoc(doc(db, 'payments', paymentDoc.id));
+                        deleted++;
+
+                        if (deleted % 10 === 0) {
+                            progressText.textContent = `Deletando... ${deleted}/${totalPayments}`;
+                            addLog(`🗑️ Progresso: ${deleted}/${totalPayments} deletados`, 'info');
+                        }
+                    } catch (error) {
+                        errors++;
+                        addLog(`❌ Erro ao deletar pagamento ${paymentDoc.id}`, 'error');
+                    }
+                }
+
+                // Resumo final
+                addLog('='.repeat(50), 'info');
+                addLog('✅ RESET CONCLUÍDO!', 'success');
+                addLog(`🗑️ Deletados: ${deleted}`, 'success');
+                addLog(`❌ Erros: ${errors}`, errors > 0 ? 'error' : 'success');
+                addLog('='.repeat(50), 'info');
+
+                progressText.textContent = 'Concluído!';
+                deleteBtn.textContent = 'Concluído ✅';
+
+                alert(
+                    `✅ Reset concluído!\n\n` +
+                    `Deletados: ${deleted}\n` +
+                    `Erros: ${errors}\n\n` +
+                    `Todos os pagamentos foram removidos.\n` +
+                    `Você pode começar do zero agora!`
+                );
+
+            } catch (error) {
+                addLog(`❌ Erro fatal: ${error.message}`, 'error');
+                alert('❌ Erro ao executar reset: ' + error.message);
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Tentar Novamente';
+            }
+        }
+    </script>
+</body>
+</html>

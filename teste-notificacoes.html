@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Notificações Push</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .status.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-info {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #90a4ae;
+            margin-right: 10px;
+        }
+
+        .log-success {
+            color: #4caf50;
+        }
+
+        .log-error {
+            color: #f44336;
+        }
+
+        .log-info {
+            color: #2196f3;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Teste de Notificações Push</h1>
+        <p class="subtitle">Firebase Cloud Messaging - PWA</p>
+
+        <div id="status" class="status info">
+            ⏳ Aguardando ação...
+        </div>
+
+        <button id="btnPermission" class="btn-primary">
+            1️⃣ Solicitar Permissão
+        </button>
+
+        <button id="btnRegister" class="btn-success" disabled>
+            2️⃣ Registrar Token FCM
+        </button>
+
+        <button id="btnTest" class="btn-info" disabled>
+            3️⃣ Enviar Notificação de Teste
+        </button>
+
+        <button id="btnTestLocal" class="btn-warning">
+            🧪 Teste Local (sem FCM)
+        </button>
+
+        <div class="log" id="log"></div>
+
+        <div class="info-box">
+            <strong>📱 Instruções:</strong><br>
+            1. Clique em "Solicitar Permissão" e aceite<br>
+            2. Clique em "Registrar Token FCM"<br>
+            3. Clique em "Enviar Notificação de Teste"<br>
+            4. Feche o app e aguarde a notificação!<br><br>
+            <strong>⚠️ Importante:</strong> Para testar com app fechado, use "Teste Local"
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+            authDomain: "gestaodoscondominios.firebaseapp.com",
+            projectId: "gestaodoscondominios",
+            storageBucket: "gestaodoscondominios.firebasestorage.app",
+            messagingSenderId: "20572242752",
+            appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5"
+        };
+
+        const VAPID_KEY = 'BKl3zSFNJs-D2MZRkxSS-sMuTPg15Tz-Zk8KW8vncSInWTPMmmv8weHRrCZxZKNPoTgcR7EmNmFrCm6UYdbDOZ8';
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        const db = getFirestore(app);
+
+        const logElement = document.getElementById('log');
+        const statusElement = document.getElementById('status');
+        const btnPermission = document.getElementById('btnPermission');
+        const btnRegister = document.getElementById('btnRegister');
+        const btnTest = document.getElementById('btnTest');
+        const btnTestLocal = document.getElementById('btnTestLocal');
+
+        let fcmToken = null;
+
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('pt-BR');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${message}</span>`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${time}] ${message}`);
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // 1. Solicitar Permissão
+        btnPermission.addEventListener('click', async () => {
+            log('🔐 Solicitando permissão...', 'info');
+            updateStatus('🔐 Solicitando permissão...', 'info');
+
+            try {
+                if (!('Notification' in window)) {
+                    throw new Error('Este navegador não suporta notificações');
+                }
+
+                if (!('serviceWorker' in navigator)) {
+                    throw new Error('Este navegador não suporta Service Workers');
+                }
+
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    log('✅ Permissão concedida!', 'success');
+                    updateStatus('✅ Permissão concedida!', 'success');
+                    btnPermission.disabled = true;
+                    btnRegister.disabled = false;
+                } else if (permission === 'denied') {
+                    log('❌ Permissão negada', 'error');
+                    updateStatus('❌ Permissão negada. Desbloqueie nas configurações.', 'error');
+                } else {
+                    log('⚠️ Permissão não concedida', 'warning');
+                    updateStatus('⚠️ Permissão não concedida', 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                updateStatus(`❌ Erro: ${error.message}`, 'error');
+            }
+        });
+
+        // 2. Registrar Token FCM
+        btnRegister.addEventListener('click', async () => {
+            log('📝 Registrando Service Worker...', 'info');
+            updateStatus('📝 Registrando token FCM...', 'info');
+
+            try {
+                // Desregistrar SW antigo
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    log('🗑️ Service Worker antigo removido', 'info');
+                }
+
+                // Registrar novo Service Worker
+                log('� Registrando Service Worker de teste...', 'info');
+                const registration = await navigator.serviceWorker.register('/sw-test.js');
+                log('✅ Service Worker registrado', 'success');
+
+                // Aguardar SW estar ativo
+                await navigator.serviceWorker.ready;
+                log('✅ Service Worker ativo', 'success');
+
+                // Aguardar um pouco para garantir que está pronto
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Obter token FCM
+                log('🔑 Obtendo token FCM...', 'info');
+                fcmToken = await getToken(messaging, { 
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: registration
+                });
+
+                if (fcmToken) {
+                    log(`✅ Token FCM obtido!`, 'success');
+                    log(`📋 Token: ${fcmToken.substring(0, 50)}...`, 'info');
+                    updateStatus('✅ Token FCM registrado!', 'success');
+                    btnRegister.disabled = true;
+                    btnTest.disabled = false;
+
+                    // Salvar no Firestore
+                    await addDoc(collection(db, 'fcmTokens'), {
+                        token: fcmToken,
+                        createdAt: new Date(),
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform
+                    });
+                    log('✅ Token salvo no Firestore', 'success');
+
+                } else {
+                    throw new Error('Não foi possível obter o token');
+                }
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                log(`📋 Código: ${error.code}`, 'error');
+                updateStatus(`❌ Erro: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+            }
+        });
+
+        // 3. Enviar Notificação de Teste
+        btnTest.addEventListener('click', async () => {
+            log('📤 Criando notificação de teste...', 'info');
+            updateStatus('📤 Enviando notificação...', 'info');
+
+            try {
+                const notificationRef = await addDoc(collection(db, 'notifications'), {
+                    title: '💰 Teste de Pagamento',
+                    body: 'Apt 101 - Bloco 01 - R$ 80,00',
+                    type: 'test',
+                    data: {
+                        test: true,
+                        timestamp: Date.now().toString()
+                    },
+                    createdAt: new Date(),
+                    sent: false
+                });
+
+                log(`✅ Notificação criada: ${notificationRef.id}`, 'success');
+                updateStatus('✅ Notificação enviada! Aguarde...', 'success');
+                log('⏳ Aguardando Cloud Function processar...', 'info');
+                log('📱 Feche o app para testar notificação em background', 'info');
+
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                updateStatus(`❌ Erro: ${error.message}`, 'error');
+            }
+        });
+
+        // 4. Teste Local (sem FCM)
+        btnTestLocal.addEventListener('click', () => {
+            log('🧪 Enviando notificação local...', 'info');
+            
+            if (Notification.permission !== 'granted') {
+                log('❌ Permissão não concedida', 'error');
+                updateStatus('❌ Solicite permissão primeiro', 'error');
+                return;
+            }
+
+            try {
+                const notification = new Notification('💰 Teste Local', {
+                    body: 'Esta é uma notificação de teste local',
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'test-local',
+                    requireInteraction: true
+                });
+
+                notification.onclick = () => {
+                    log('🖱️ Notificação clicada!', 'success');
+                    notification.close();
+                    window.focus();
+                };
+
+                log('✅ Notificação local enviada!', 'success');
+                updateStatus('✅ Notificação local enviada! Viu a notificação?', 'success');
+            } catch (error) {
+                log(`❌ Erro na notificação local: ${error.message}`, 'error');
+            }
+        });
+
+        // Escutar mensagens em foreground
+        onMessage(messaging, (payload) => {
+            log('📬 Mensagem recebida (foreground)!', 'success');
+            log(`📋 Título: ${payload.notification?.title}`, 'info');
+            log(`📋 Corpo: ${payload.notification?.body}`, 'info');
+            updateStatus('📬 Notificação recebida!', 'success');
+        });
+
+        // Verificar permissão inicial
+        window.addEventListener('load', () => {
+            log('🚀 Sistema carregado', 'info');
+            log(`📱 Navegador: ${navigator.userAgent}`, 'info');
+            log(`🔔 Permissão atual: ${Notification.permission}`, 'info');
+            
+            if (Notification.permission === 'granted') {
+                log('✅ Permissão já concedida', 'success');
+                btnPermission.disabled = true;
+                btnRegister.disabled = false;
+                updateStatus('✅ Permissão já concedida. Registre o token!', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

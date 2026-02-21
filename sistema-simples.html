@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Condomínio - Versão Simples</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .back-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .back-btn:hover {
+            background: #4b5563;
+        }
+        
+        .back-btn.show {
+            display: inline-block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .card h3 {
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card p {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card .stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .card .stat {
+            text-align: center;
+        }
+        
+        .card .stat-number {
+            font-weight: bold;
+            color: #2563eb;
+            display: block;
+        }
+        
+        .card .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .create-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .create-btn:hover {
+            background: #047857;
+        }
+        
+        .create-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="pageTitle">Gestão Condominial</h1>
+        <div class="user-info">
+            <span id="userName">Carregando...</span>
+            <button class="logout-btn" onclick="doLogout()">Sair</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <button class="back-btn" id="backBtn" onclick="goBack()">← Voltar</button>
+        
+        <div id="content">
+            <div class="loading">Carregando sistema...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { collection, getDocs, query, where, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { auth, db } from './firebase-config.js';
+
+        // Estado da aplicação
+        let appState = {
+            currentScreen: 'condominios',
+            selectedCondominio: null,
+            selectedBloco: null,
+            user: null,
+            condominios: [],
+            blocos: [],
+            apartamentos: []
+        };
+
+        // Inicializar aplicação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                appState.user = user;
+                document.getElementById('userName').textContent = user.email;
+                await loadCondominios();
+            } else {
+                // Fazer login automático
+                try {
+                    await signInWithEmailAndPassword(auth, 'admin@condominio.com', '123456');
+                } catch (error) {
+                    showError('Erro no login automático: ' + error.message);
+                }
+            }
+        });
+
+        async function loadCondominios() {
+            try {
+                showLoading('Carregando condomínios...');
+                
+                const q = query(collection(db, 'condominios'), where('active', '==', true));
+                const querySnapshot = await getDocs(q);
+                
+                appState.condominios = [];
+                querySnapshot.forEach((doc) => {
+                    appState.condominios.push({ id: doc.id, ...doc.data() });
+                });
+
+                appState.condominios.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                if (appState.condominios.length === 0) {
+                    showEmpty('Nenhum condomínio encontrado', 'Clique no botão abaixo para criar a estrutura inicial.', true);
+                } else {
+                    showCondominios();
+                }
+                
+            } catch (error) {
+                showError('Erro ao carregar condomínios: ' + error.message);
+            }
+        }
+
+        async function loadBlocos(condominioId) {
+            try {
+                showLoading('Carregando blocos...');
+                
+                const q = query(
+                    collection(db, 'blocos'), 
+                    where('condominioId', '==', condominioId),
+                    where('active', '==', true)
+                );
+                const querySnapshot = await getDocs(q);
+                
+                appState.blocos = [];
+                querySnapshot.forEach((doc) => {
+                    appState.blocos.push({ id: doc.id, ...doc.data() });
+                });
+
+                appState.blocos.sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                if (appState.blocos.length === 0) {
+                    showEmpty('Nenhum bloco encontrado', 'Este condomínio ainda não possui blocos cadastrados.', false);
+                } else {
+                    showBlocos();
+                }
+                
+            } catch (error) {
+                showError('Erro ao carregar blocos: ' + error.message);
+            }
+        }
+
+        async function loadApartamentos(blocoId) {
+            try {
+                showLoading('Carregando apartamentos...');
+                
+                const q = query(
+                    collection(db, 'apartamentos'), 
+                    where('blocoId', '==', blocoId),
+                    where('active', '==', true)
+                );
+                const querySnapshot = await getDocs(q);
+                
+                appState.apartamentos = [];
+                querySnapshot.forEach((doc) => {
+                    appState.apartamentos.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Ordenar por número
+                appState.apartamentos.sort((a, b) => {
+                    const numA = parseInt(a.numero) || 0;
+                    const numB = parseInt(b.numero) || 0;
+                    return numA - numB;
+                });
+                
+                if (appState.apartamentos.length === 0) {
+                    showEmpty('Nenhum apartamento encontrado', 'Este bloco ainda não possui apartamentos cadastrados.', false);
+                } else {
+                    showApartamentos();
+                }
+                
+            } catch (error) {
+                showError('Erro ao carregar apartamentos: ' + error.message);
+            }
+        }
+
+        function showCondominios() {
+            appState.currentScreen = 'condominios';
+            document.getElementById('pageTitle').textContent = 'Gestão Condominial';
+            document.getElementById('backBtn').classList.remove('show');
+            
+            let html = '<div class="grid">';
+            
+            appState.condominios.forEach(cond => {
+                html += `
+                    <div class="card" onclick="selectCondominio('${cond.id}')">
+                        <h3>${cond.nome}</h3>
+                        <p>${cond.endereco || ''}</p>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-number">${cond.totalBlocos || 0}</span>
+                                <span class="stat-label">Blocos</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">${cond.totalUnidades || 0}</span>
+                                <span class="stat-label">Unidades</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">${cond.totalCasas || 0}</span>
+                                <span class="stat-label">Casas</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function showBlocos() {
+            appState.currentScreen = 'blocos';
+            document.getElementById('pageTitle').textContent = appState.selectedCondominio.nome;
+            document.getElementById('backBtn').classList.add('show');
+            
+            let html = '<div class="grid">';
+            
+            appState.blocos.forEach(bloco => {
+                html += `
+                    <div class="card" onclick="selectBloco('${bloco.id}')">
+                        <h3>${bloco.nome}</h3>
+                        <p>Número: ${bloco.numero}</p>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-number">${bloco.totalApartamentos || 16}</span>
+                                <span class="stat-label">Apartamentos</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function showApartamentos() {
+            appState.currentScreen = 'apartamentos';
+            document.getElementById('pageTitle').textContent = `${appState.selectedCondominio.nome} - ${appState.selectedBloco.nome}`;
+            document.getElementById('backBtn').classList.add('show');
+            
+            let html = '<div class="grid">';
+            
+            appState.apartamentos.forEach(apt => {
+                const tipo = apt.tipo === 'casa' ? 'Casa' : 'Apt';
+                html += `
+                    <div class="card" onclick="selectApartamento('${apt.id}')">
+                        <h3>${tipo} ${apt.numero}</h3>
+                        <p>${apt.proprietario}</p>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-number">${apt.andar || 0}</span>
+                                <span class="stat-label">Andar</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function showLoading(message) {
+            document.getElementById('content').innerHTML = `<div class="loading">${message}</div>`;
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showEmpty(title, message, showCreateBtn) {
+            let html = `
+                <div class="empty">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+            `;
+            
+            if (showCreateBtn) {
+                html += `
+                    <button class="create-btn" onclick="createStructure()">
+                        Criar Estrutura dos Condomínios
+                    </button>
+                `;
+            }
+            
+            html += '</div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        // Funções globais
+        window.selectCondominio = function(id) {
+            appState.selectedCondominio = appState.condominios.find(c => c.id === id);
+            loadBlocos(id);
+        };
+
+        window.selectBloco = function(id) {
+            appState.selectedBloco = appState.blocos.find(b => b.id === id);
+            loadApartamentos(id);
+        };
+
+        window.selectApartamento = function(id) {
+            const apt = appState.apartamentos.find(a => a.id === id);
+            alert(`Apartamento ${apt.numero} selecionado!\n\nEm breve: módulo de pagamentos.`);
+        };
+
+        window.goBack = function() {
+            if (appState.currentScreen === 'apartamentos') {
+                showBlocos();
+            } else if (appState.currentScreen === 'blocos') {
+                showCondominios();
+            }
+        };
+
+        window.doLogout = async function() {
+            if (confirm('Deseja sair do sistema?')) {
+                await signOut(auth);
+                location.reload();
+            }
+        };
+
+        window.createStructure = function() {
+            if (confirm('Deseja criar a estrutura dos condomínios?\n\nIsso pode demorar alguns minutos.')) {
+                window.open('https://gestaodoscondominios.web.app/criar-blocos-apartamentos.html', '_blank');
+            }
+        };
+    </script>
+</body>
+</html>

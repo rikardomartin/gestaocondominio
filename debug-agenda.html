@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Agenda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-title {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .debug-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h2 class="debug-title">🔍 Debug da Agenda do Salão</h2>
+        <button onclick="debugElements()">Verificar Elementos</button>
+        <button onclick="debugFunctions()">Verificar Funções</button>
+        <button onclick="debugEventListeners()">Verificar Event Listeners</button>
+        <button onclick="testAgendaModal()">Testar Modal</button>
+        <div id="debugResults"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('debugResults');
+            const div = document.createElement('div');
+            div.className = `debug-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        function clearLog() {
+            document.getElementById('debugResults').innerHTML = '';
+        }
+        
+        function debugElements() {
+            clearLog();
+            log('🔍 Verificando elementos da agenda...', 'info');
+            
+            // Verificar botão da agenda
+            const openBtn = document.getElementById('openAgendaBtn');
+            if (openBtn) {
+                log('✅ Botão openAgendaBtn encontrado', 'success');
+                log(`   - Visível: ${openBtn.offsetWidth > 0 && openBtn.offsetHeight > 0}`, 'info');
+                log(`   - Classes: ${openBtn.className}`, 'info');
+                log(`   - Display: ${getComputedStyle(openBtn).display}`, 'info');
+            } else {
+                log('❌ Botão openAgendaBtn NÃO encontrado', 'error');
+            }
+            
+            // Verificar modal
+            const modal = document.getElementById('agendaModal');
+            if (modal) {
+                log('✅ Modal agendaModal encontrado', 'success');
+                log(`   - Classes: ${modal.className}`, 'info');
+                log(`   - Display: ${getComputedStyle(modal).display}`, 'info');
+            } else {
+                log('❌ Modal agendaModal NÃO encontrado', 'error');
+            }
+            
+            // Verificar outros elementos
+            const elements = [
+                'agendaModalTitle',
+                'agendaMonthYear',
+                'closeAgendaModal',
+                'closeAgendaModalBtn',
+                'availableDays',
+                'reservedDays',
+                'paidReservations',
+                'reservationsList',
+                'exportAgenda'
+            ];
+            
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ ${id} encontrado`, 'success');
+                } else {
+                    log(`❌ ${id} NÃO encontrado`, 'error');
+                }
+            });
+        }
+        
+        function debugFunctions() {
+            clearLog();
+            log('🔍 Verificando funções da agenda...', 'info');
+            
+            const functions = [
+                'openAgendaModal',
+                'hideAgendaModal',
+                'loadAgendaData',
+                'renderReservationsList',
+                'exportAgendaToCSV'
+            ];
+            
+            functions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    log(`✅ Função ${funcName} encontrada`, 'success');
+                } else {
+                    log(`❌ Função ${funcName} NÃO encontrada`, 'error');
+                }
+            });
+        }
+        
+        function debugEventListeners() {
+            clearLog();
+            log('🔍 Verificando event listeners...', 'info');
+            
+            const openBtn = document.getElementById('openAgendaBtn');
+            if (openBtn) {
+                // Tentar adicionar um listener de teste
+                openBtn.addEventListener('click', function testListener() {
+                    log('✅ Event listener funcionando!', 'success');
+                    openBtn.removeEventListener('click', testListener);
+                });
+                
+                // Simular clique
+                setTimeout(() => {
+                    openBtn.click();
+                }, 100);
+            } else {
+                log('❌ Não foi possível testar - botão não encontrado', 'error');
+            }
+        }
+        
+        function testAgendaModal() {
+            clearLog();
+            log('🔍 Testando abertura do modal...', 'info');
+            
+            // Verificar se a função existe
+            if (typeof window.openAgendaModal === 'function') {
+                try {
+                    window.openAgendaModal();
+                    log('✅ Função openAgendaModal executada', 'success');
+                } catch (error) {
+                    log(`❌ Erro ao executar openAgendaModal: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Função openAgendaModal não encontrada', 'error');
+                
+                // Tentar abrir modal manualmente
+                const modal = document.getElementById('agendaModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    log('✅ Modal aberto manualmente', 'success');
+                    
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        log('✅ Modal fechado automaticamente', 'info');
+                    }, 3000);
+                }
+            }
+        }
+        
+        // Auto-executar verificação inicial
+        setTimeout(() => {
+            log('🚀 Iniciando debug automático...', 'info');
+            debugElements();
+        }, 1000);
+    </script>
+</body>
+</html>

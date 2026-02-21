@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Teste Básico Modal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        /* MODAL SUPER SIMPLES */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal.show {
+            display: flex !important;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .close {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste Básico de Modal</h1>
+        
+        <p>Este é o teste mais simples possível para verificar se o modal funciona.</p>
+        
+        <button class="btn" onclick="openModal()">🚀 Abrir Modal Simples</button>
+        <button class="btn" onclick="testCSS()">🎨 Testar CSS</button>
+        <button class="btn" onclick="forceShow()">💪 Forçar Exibição</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <!-- MODAL SUPER SIMPLES -->
+    <div id="simpleModal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Modal Funcionando!</h2>
+            <p>Se você está vendo isso, o modal está funcionando corretamente.</p>
+            <p>Este é um teste básico com CSS simples.</p>
+            <button class="close" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const className = type === 'success' ? 'result success' : type === 'error' ? 'result error' : 'result';
+            results.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+        
+        function openModal() {
+            console.log('🚀 Abrindo modal simples...');
+            
+            const modal = document.getElementById('simpleModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado!', 'error');
+                return;
+            }
+            
+            console.log('Modal encontrado:', modal);
+            console.log('Classes antes:', modal.className);
+            
+            // Método 1: Adicionar classe
+            modal.classList.add('show');
+            
+            console.log('Classes depois:', modal.className);
+            
+            setTimeout(() => {
+                const computedDisplay = window.getComputedStyle(modal).display;
+                const isVisible = modal.classList.contains('show');
+                
+                console.log('Display computado:', computedDisplay);
+                console.log('Tem classe show:', isVisible);
+                
+                if (computedDisplay === 'flex') {
+                    showResult('✅ SUCESSO! Modal simples está funcionando!', 'success');
+                } else {
+                    showResult(`❌ Modal não visível. Display: ${computedDisplay}`, 'error');
+                }
+            }, 100);
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('simpleModal');
+            modal.classList.remove('show');
+            showResult('🔒 Modal fechado', 'info');
+        }
+        
+        function testCSS() {
+            console.log('🎨 Testando CSS...');
+            
+            const modal = document.getElementById('simpleModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado!', 'error');
+                return;
+            }
+            
+            // Verificar estilos CSS
+            const styles = window.getComputedStyle(modal);
+            
+            let report = '<h3>📊 Relatório CSS:</h3>';
+            report += `<p><strong>Position:</strong> ${styles.position}</p>`;
+            report += `<p><strong>Display:</strong> ${styles.display}</p>`;
+            report += `<p><strong>Z-index:</strong> ${styles.zIndex}</p>`;
+            report += `<p><strong>Top:</strong> ${styles.top}</p>`;
+            report += `<p><strong>Left:</strong> ${styles.left}</p>`;
+            report += `<p><strong>Width:</strong> ${styles.width}</p>`;
+            report += `<p><strong>Height:</strong> ${styles.height}</p>`;
+            
+            showResult(report, 'info');
+        }
+        
+        function forceShow() {
+            console.log('💪 Forçando exibição...');
+            
+            const modal = document.getElementById('simpleModal');
+            
+            if (!modal) {
+                showResult('❌ Modal não encontrado!', 'error');
+                return;
+            }
+            
+            // Forçar com JavaScript puro
+            modal.style.display = 'flex';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.zIndex = '9999';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            
+            showResult('💪 Modal forçado com JavaScript puro!', 'success');
+        }
+        
+        // Fechar modal clicando fora
+        document.getElementById('simpleModal').addEventListener('click', (e) => {
+            if (e.target.id === 'simpleModal') {
+                closeModal();
+            }
+        });
+        
+        // Auto-teste
+        window.addEventListener('load', () => {
+            showResult('🔧 Página carregada. Clique em "Abrir Modal Simples" para testar.', 'info');
+        });
+    </script>
+</body>
+</html>
