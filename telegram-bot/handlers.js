@@ -518,9 +518,11 @@ async function handlePlanilha(bot, msg, codigoCond) {
 
   const periodo = getPeriodoAtual();
   const dados = await fb.getPagamentosParaPlanilha(condominio.id, periodo);
-  const buffer = gerarExcel(dados, formatarPeriodo(periodo));
 
+  // Nome da aba não pode ter / : \ ? * [ ]
+  const nomeAba = `Pag ${periodo}`; // ex: "Pag 2026-04"
   const nomeArquivo = `${codigoCond.toUpperCase()}_${periodo}.xlsx`;
+  const buffer = gerarExcel(dados, nomeAba);
 
   await bot.sendDocument(chatId, buffer, {
     caption: `📊 *${condominio.nome}*\nPeríodo: ${formatarPeriodo(periodo)}\nTotal: ${dados.length} unidades`,
@@ -531,7 +533,46 @@ async function handlePlanilha(bot, msg, codigoCond) {
   });
 }
 
-// ─── /ajuda ───────────────────────────────────────────────────────────────────
+// ─── /mensagem — morador envia mensagem para o admin ─────────────────────────
+async function handleMensagem(bot, msg, texto, adminIds) {
+  const chatId = msg.chat.id;
+  const from = msg.from;
+  const usuario = await fb.getUsuarioBot(from.id);
+
+  if (!usuario) {
+    await bot.sendMessage(chatId, '⚠️ Cadastre sua unidade primeiro com /start.');
+    return;
+  }
+
+  if (!texto) {
+    await bot.sendMessage(chatId,
+      `💬 *Enviar Mensagem ao Administrador*\n\nUse: \`/mensagem Seu texto aqui\`\n\nEx: \`/mensagem Preciso de segunda via do boleto\``,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  // Confirmar para o morador
+  await bot.sendMessage(chatId,
+    `✅ Mensagem enviada ao administrador!\n\n_"${texto}"_`,
+    { parse_mode: 'Markdown' }
+  );
+
+  // Encaminhar para todos os admins
+  const aviso = `📩 *Mensagem de Morador*\n\n` +
+    `👤 ${from.first_name} ${from.last_name || ''}\n` +
+    `🏠 Unidade: \`${usuario.codigo}\`\n\n` +
+    `💬 _${texto}_\n\n` +
+    `_Para responder, use o Telegram diretamente._`;
+
+  for (const adminId of adminIds) {
+    try {
+      await bot.sendMessage(adminId, aviso, { parse_mode: 'Markdown' });
+    } catch (e) {
+      console.error(`Erro ao notificar admin ${adminId}:`, e.message);
+    }
+  }
+}
 async function handleAjuda(bot, msg, isAdminUser) {
   const chatId = msg.chat.id;
 
@@ -540,8 +581,8 @@ async function handleAjuda(bot, msg, isAdminUser) {
   texto += `/start — Cadastrar sua unidade\n`;
   texto += `/trocar DES-22-403 — Trocar de unidade\n`;
   texto += `/consultar — Ver status do pagamento\n`;
-  texto += `/historico — Ver histórico dos últimos 6 meses\n`;
   texto += `📎 Envie uma imagem ou PDF para enviar comprovante\n`;
+  texto += `/mensagem Texto — Enviar mensagem ao administrador\n`;
 
   if (isAdminUser) {
     texto += `\n*Para Administradores:*\n`;
@@ -565,6 +606,7 @@ module.exports = {
   handleConsultar,
   handleHistorico,
   handleComprovante,
+  handleMensagem,
   handleConsultarApto,
   handleConsultarBloco,
   handleConsultarCondominio,

@@ -65,6 +65,10 @@ bot.onText(/\/consultar(?:\s+(.+))?/, safe((msg, match) =>
 
 bot.onText(/\/historico/, safe(msg => handlers.handleHistorico(bot, msg)));
 
+bot.onText(/\/mensagem(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleMensagem(bot, msg, match[1] ? match[1].trim() : null, ADMIN_IDS)
+));
+
 bot.onText(/\/ajuda/, safe(msg =>
   handlers.handleAjuda(bot, msg, msg.from ? isAdmin(msg.from.id) : false)
 ));
