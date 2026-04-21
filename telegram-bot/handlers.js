@@ -93,6 +93,15 @@ async function handleCadastroCodigo(bot, msg, codigo) {
 async function handleConsultar(bot, msg, periodoParam) {
   const chatId = msg.chat.id;
   const from = msg.from;
+
+  // Se passou código de condomínio (admin tentando consultar condomínio)
+  if (periodoParam && /^(VAC|AYR|VID|TAR|DES|SPE)/i.test(periodoParam)) {
+    await bot.sendMessage(chatId,
+      `ℹ️ Para consultar um condomínio use:\n\`/condominio ${periodoParam.split(' ')[0].toUpperCase()}\`\n\nO /consultar é para o morador ver o próprio pagamento.`,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
   const usuario = await fb.getUsuarioBot(from.id);
 
   if (!usuario) {
