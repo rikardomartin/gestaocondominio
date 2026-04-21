@@ -293,6 +293,56 @@ async function salvarComprovante(telegramId, codigo, fileId, fileType, periodo) 
   return ref.id;
 }
 
+// ─── SALÃO ────────────────────────────────────────────────────────────────────
+
+/**
+ * Busca reservas do salão de um condomínio no mês/ano
+ */
+async function getReservasSalao(condominioId, ano, mes) {
+  const startDate = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const endDate = `${ano}-${String(mes).padStart(2, '0')}-31`;
+
+  const snap = await db.collection('salaoReservations')
+    .where('condominioId', '==', condominioId)
+    .where('date', '>=', startDate)
+    .where('date', '<=', endDate)
+    .orderBy('date')
+    .get();
+
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * Cria solicitação de reserva do salão
+ */
+async function solicitarReservaSalao(condominioId, apartamentoId, apartamentoNumero, blocoNome, data, telegramId) {
+  const ref = await db.collection('salaoReservations').add({
+    condominioId,
+    apartamentoId,
+    apartamentoNumero,
+    blocoNome,
+    date: data,
+    status: 'pendente',
+    value: 0,
+    solicitadoViaTelegram: true,
+    solicitadoPor: telegramId,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+  return ref.id;
+}
+
+/**
+ * Verifica se uma data já está reservada no salão
+ */
+async function dataDisponivelSalao(condominioId, data) {
+  const snap = await db.collection('salaoReservations')
+    .where('condominioId', '==', condominioId)
+    .where('date', '==', data)
+    .where('status', 'in', ['pendente', 'confirmado', 'pago'])
+    .get();
+  return snap.empty;
+}
+
 module.exports = {
   db,
   getUsuarioBot,
@@ -306,5 +356,8 @@ module.exports = {
   getApartamentosPorBloco,
   getPagamentosPorBloco,
   getPagamentosParaPlanilha,
-  salvarComprovante
+  salvarComprovante,
+  getReservasSalao,
+  solicitarReservaSalao,
+  dataDisponivelSalao
 };

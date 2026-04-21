@@ -530,7 +530,157 @@ async function handlePlanilha(bot, msg, codigoCond) {
   });
 }
 
-// ─── /mensagem — morador envia mensagem para o admin ─────────────────────────
+// ─── /salao — morador consulta disponibilidade ───────────────────────────────
+async function handleSalao(bot, msg, dataParam) {
+  const chatId = msg.chat.id;
+  const from = msg.from;
+  const usuario = await fb.getUsuarioBot(from.id);
+
+  if (!usuario) {
+    await bot.sendMessage(chatId, '⚠️ Cadastre sua unidade primeiro com /start.');
+    return;
+  }
+
+  const resultado = await fb.getApartamentoPorCodigo(usuario.codigo);
+  if (!resultado) return;
+  const { condominio } = resultado;
+
+  // Sem data = mostrar reservas do mês atual
+  if (!dataParam) {
+    const now = new Date();
+    const reservas = await fb.getReservasSalao(condominio.id, now.getFullYear(), now.getMonth() + 1);
+
+    if (reservas.length === 0) {
+      await bot.sendMessage(chatId,
+        `🎉 *Salão de Festas — ${condominio.nome}*\n\nNenhuma reserva este mês. Salão disponível!\n\nPara reservar: \`/reservar DD/MM/AAAA\``,
+        { parse_mode: 'Markdown' }
+      );
+      return;
+    }
+
+    const linhas = reservas.map(r => {
+      const emoji = { pendente: '⏳', confirmado: '✅', pago: '✅', cancelado: '❌' }[r.status] || '❓';
+      return `${emoji} ${r.date} — Apto ${r.apartamentoNumero} (${r.status})`;
+    });
+
+    await bot.sendMessage(chatId,
+      `🏛️ *Salão de Festas — ${condominio.nome}*\n\n${linhas.join('\n')}\n\nPara reservar: \`/reservar DD/MM/AAAA\``,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  // Com data = verificar disponibilidade
+  const match = dataParam.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) {
+    await bot.sendMessage(chatId, '❌ Formato inválido. Use: `DD/MM/AAAA`\nEx: `/salao 25/05/2026`', { parse_mode: 'Markdown' });
+    return;
+  }
+  const dataISO = `${match[3]}-${match[2]}-${match[1]}`;
+  const disponivel = await fb.dataDisponivelSalao(condominio.id, dataISO);
+
+  await bot.sendMessage(chatId,
+    disponivel
+      ? `✅ *${dataParam}* está disponível!\n\nPara reservar: \`/reservar ${dataParam}\``
+      : `❌ *${dataParam}* já está reservado.`,
+    { parse_mode: 'Markdown' }
+  );
+}
+
+// ─── /reservar DD/MM/AAAA — morador solicita reserva ─────────────────────────
+async function handleReservar(bot, msg, dataParam, adminIds) {
+  const chatId = msg.chat.id;
+  const from = msg.from;
+  const usuario = await fb.getUsuarioBot(from.id);
+
+  if (!usuario) {
+    await bot.sendMessage(chatId, '⚠️ Cadastre sua unidade primeiro com /start.');
+    return;
+  }
+
+  if (!dataParam) {
+    await bot.sendMessage(chatId, '❌ Informe a data.\nEx: `/reservar 25/05/2026`', { parse_mode: 'Markdown' });
+    return;
+  }
+
+  const match = dataParam.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) {
+    await bot.sendMessage(chatId, '❌ Formato inválido. Use: `DD/MM/AAAA`', { parse_mode: 'Markdown' });
+    return;
+  }
+
+  const dataISO = `${match[3]}-${match[2]}-${match[1]}`;
+  const resultado = await fb.getApartamentoPorCodigo(usuario.codigo);
+  if (!resultado) return;
+  const { apartamento, bloco, condominio } = resultado;
+
+  // Verificar disponibilidade
+  const disponivel = await fb.dataDisponivelSalao(condominio.id, dataISO);
+  if (!disponivel) {
+    await bot.sendMessage(chatId, `❌ *${dataParam}* já está reservado. Use /salao para ver datas disponíveis.`, { parse_mode: 'Markdown' });
+    return;
+  }
+
+  await fb.solicitarReservaSalao(condominio.id, apartamento.id, apartamento.numero, bloco.nome, dataISO, from.id);
+
+  await bot.sendMessage(chatId,
+    `✅ *Solicitação de Reserva Enviada!*\n\n` +
+    `🏛️ Salão de Festas\n` +
+    `🏢 ${condominio.nome}\n` +
+    `🏠 Unidade: ${usuario.codigo}\n` +
+    `📅 Data: *${dataParam}*\n\n` +
+    `⏳ Aguarde a confirmação do administrador.`,
+    { parse_mode: 'Markdown' }
+  );
+
+  // Notificar admins
+  for (const adminId of adminIds) {
+    try {
+      await bot.sendMessage(adminId,
+        `🏛️ *Nova Solicitação de Reserva*\n\n` +
+        `🏢 ${condominio.nome}\n` +
+        `🏠 ${bloco.nome} — Apto ${apartamento.numero}\n` +
+        `👤 ${from.first_name}\n` +
+        `📅 Data: *${dataParam}*\n\n` +
+        `Use \`/salao ${condominio.nome.replace('Condomínio ', '').toUpperCase().substring(0,3)}\` para ver reservas.`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (e) {}
+  }
+}
+
+// ─── /salao DES (admin) — ver reservas do condomínio ─────────────────────────
+async function handleSalaoAdmin(bot, msg, codigoCond) {
+  const chatId = msg.chat.id;
+  if (!await requireAdmin(bot, msg)) return;
+
+  const condominio = await fb.getCondominioPorCodigo(codigoCond);
+  if (!condominio) {
+    await bot.sendMessage(chatId,
+      `❌ Informe o código.\nEx: \`/reservas DES\`\n\nCódigos: VAC, AYR, VID, TAR, DES, SPE`,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  const now = new Date();
+  const reservas = await fb.getReservasSalao(condominio.id, now.getFullYear(), now.getMonth() + 1);
+
+  if (reservas.length === 0) {
+    await bot.sendMessage(chatId, `🏛️ *${condominio.nome}* — Nenhuma reserva este mês.`, { parse_mode: 'Markdown' });
+    return;
+  }
+
+  const linhas = reservas.map(r => {
+    const emoji = { pendente: '⏳', confirmado: '✅', pago: '✅', cancelado: '❌' }[r.status] || '❓';
+    return `${emoji} ${r.date} — Apto ${r.apartamentoNumero} (${r.status})`;
+  });
+
+  await bot.sendMessage(chatId,
+    `🏛️ *Reservas — ${condominio.nome}*\n\n${linhas.join('\n')}`,
+    { parse_mode: 'Markdown' }
+  );
+}
 async function handleMensagem(bot, msg, texto, adminIds) {
   const chatId = msg.chat.id;
   const from = msg.from;
@@ -579,6 +729,8 @@ async function handleAjuda(bot, msg, isAdminUser) {
   texto += `/trocar DES-22-403 — Trocar de unidade\n`;
   texto += `/consultar — Ver status do pagamento\n`;
   texto += `📎 Envie uma imagem ou PDF para enviar comprovante\n`;
+  texto += `/salao — Ver disponibilidade do salão\n`;
+  texto += `/reservar 25/05/2026 — Solicitar reserva do salão\n`;
   texto += `/mensagem Texto — Enviar mensagem ao administrador\n`;
 
   if (isAdminUser) {
@@ -588,7 +740,7 @@ async function handleAjuda(bot, msg, isAdminUser) {
     texto += `/condominio DES — Resumo do condomínio\n`;
     texto += `/pendentes DES — Listar pendentes\n`;
     texto += `/baixar DES-01-101 — Dar baixa no pagamento\n`;
-    texto += `/baixartodos DES — Baixa em lote (todo o condomínio)\n`;
+    texto += `/reservas DES — Ver reservas do salão\n`;
     texto += `/planilha DES — Gerar planilha Excel\n`;
     texto += `\n*Códigos:* VAC AYR VID TAR DES SPE`;
   }
@@ -604,6 +756,9 @@ module.exports = {
   handleHistorico,
   handleComprovante,
   handleMensagem,
+  handleSalao,
+  handleReservar,
+  handleSalaoAdmin,
   handleConsultarApto,
   handleConsultarBloco,
   handleConsultarCondominio,

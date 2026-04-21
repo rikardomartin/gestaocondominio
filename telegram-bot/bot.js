@@ -65,6 +65,23 @@ bot.onText(/\/consultar(?:\s+(.+))?/, safe((msg, match) =>
 
 bot.onText(/\/historico/, safe(msg => handlers.handleHistorico(bot, msg)));
 
+bot.onText(/\/salao(?:\s+(.+))?/i, safe((msg, match) => {
+  const param = match[1] ? match[1].trim() : null;
+  // Admin com código de condomínio = ver reservas admin
+  if (param && /^(VAC|AYR|VID|TAR|DES|SPE)$/i.test(param) && isAdmin(msg.from?.id)) {
+    return handlers.handleSalaoAdmin(bot, msg, param.toUpperCase());
+  }
+  return handlers.handleSalao(bot, msg, param);
+}));
+
+bot.onText(/\/reservar(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleReservar(bot, msg, match[1] ? match[1].trim() : null, ADMIN_IDS)
+));
+
+bot.onText(/\/reservas(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleSalaoAdmin(bot, msg, (match[1] || '').trim().toUpperCase())
+));
+
 bot.onText(/\/mensagem(?:\s+(.+))?/i, safe((msg, match) =>
   handlers.handleMensagem(bot, msg, match[1] ? match[1].trim() : null, ADMIN_IDS)
 ));
