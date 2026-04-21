@@ -130,8 +130,7 @@ async function handleConsultar(bot, msg, periodoParam) {
     `🏢 ${condominio.nome}\n` +
     `🏗️ ${bloco.nome} — Unidade *${apartamento.numero}*\n` +
     `📅 Período: *${formatarPeriodo(periodo)}*\n\n` +
-    `${emojiStatus(status)} Status: *${status.toUpperCase()}*\n` +
-    `💰 Valor: *${formatarValor(valor)}*` +
+    `${emojiStatus(status)} Status: *${status.toUpperCase()}*` +
     `\n\n_Para outro mês: /consultar 03/2026_`,
     { parse_mode: 'Markdown' }
   );
@@ -239,8 +238,7 @@ async function handleConsultarApto(bot, msg, codigo) {
     `🏢 ${condominio.nome}\n` +
     `🏗️ ${bloco.nome} — *${apartamento.numero}*\n` +
     `👤 ${apartamento.proprietario}\n` +
-    `📅 ${formatarPeriodo(periodo)}: ${emojiStatus(status)} *${status.toUpperCase()}*\n` +
-    `💰 ${formatarValor(pagamento?.value || 0)}`,
+    `📅 ${formatarPeriodo(periodo)}: ${emojiStatus(status)} *${status.toUpperCase()}*`,
     { parse_mode: 'Markdown' }
   );
 }
@@ -420,8 +418,7 @@ async function handleBaixar(bot, msg, codigo, periodoParam) {
     `✅ *Baixa realizada com sucesso!*\n\n` +
     `🏢 ${condominio.nome}\n` +
     `🏗️ ${bloco.nome} — *${apartamento.numero}*\n` +
-    `📅 ${formatarPeriodo(periodo)}\n` +
-    `💰 ${formatarValor(valor)}\n\n` +
+    `📅 ${formatarPeriodo(periodo)}\n\n` +
     `_Para outro mês: /baixar ${codigo} 03/2026_`,
     { parse_mode: 'Markdown' }
   );
