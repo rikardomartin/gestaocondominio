@@ -673,14 +673,93 @@ async function handleSalaoAdmin(bot, msg, codigoCond) {
 
   const linhas = reservas.map(r => {
     const emoji = { pendente: '⏳', confirmado: '✅', pago: '✅', cancelado: '❌' }[r.status] || '❓';
-    return `${emoji} ${r.date} — Apto ${r.apartamentoNumero} (${r.status})`;
+    return `${emoji} ${r.date} — Apto ${r.apartamentoNumero} (${r.status})\n   ID: \`${r.id}\``;
   });
 
   await bot.sendMessage(chatId,
-    `🏛️ *Reservas — ${condominio.nome}*\n\n${linhas.join('\n')}`,
+    `🏛️ *Reservas — ${condominio.nome}*\n\n${linhas.join('\n\n')}`,
     { parse_mode: 'Markdown' }
   );
 }
+// ─── /confirmarreserva ID (admin) ────────────────────────────────────────────
+async function handleConfirmarReserva(bot, msg, reservaId) {
+  const chatId = msg.chat.id;
+  if (!await requireAdmin(bot, msg)) return;
+
+  if (!reservaId) {
+    await bot.sendMessage(chatId,
+      `❌ Informe o ID da reserva.\nEx: \`/confirmarreserva abc123\`\n\nUse \`/reservas DES\` para ver os IDs.`,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  const snap = await fb.db.collection('salaoReservations').doc(reservaId).get();
+  if (!snap.exists) {
+    await bot.sendMessage(chatId, `❌ Reserva \`${reservaId}\` não encontrada.`, { parse_mode: 'Markdown' });
+    return;
+  }
+
+  const reserva = snap.data();
+  await fb.db.collection('salaoReservations').doc(reservaId).update({
+    status: 'confirmado',
+    confirmadoPor: msg.from.id,
+    confirmadoEm: require('firebase-admin').firestore.FieldValue.serverTimestamp()
+  });
+
+  await bot.sendMessage(chatId,
+    `✅ *Reserva Confirmada!*\n\n📅 Data: *${reserva.date}*\n🏠 Apto: ${reserva.apartamentoNumero}\nStatus: *CONFIRMADO*`,
+    { parse_mode: 'Markdown' }
+  );
+
+  if (reserva.solicitadoPor) {
+    try {
+      await bot.sendMessage(reserva.solicitadoPor,
+        `✅ *Sua reserva foi confirmada!*\n\n🏛️ Salão de Festas\n📅 Data: *${reserva.date}*\n\nDúvidas? Use /mensagem`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (e) {}
+  }
+}
+
+// ─── /cancelarreserva ID (admin) ──────────────────────────────────────────────
+async function handleCancelarReserva(bot, msg, reservaId) {
+  const chatId = msg.chat.id;
+  if (!await requireAdmin(bot, msg)) return;
+
+  if (!reservaId) {
+    await bot.sendMessage(chatId, `❌ Informe o ID.\nEx: \`/cancelarreserva abc123\``, { parse_mode: 'Markdown' });
+    return;
+  }
+
+  const snap = await fb.db.collection('salaoReservations').doc(reservaId).get();
+  if (!snap.exists) {
+    await bot.sendMessage(chatId, `❌ Reserva não encontrada.`);
+    return;
+  }
+
+  const reserva = snap.data();
+  await fb.db.collection('salaoReservations').doc(reservaId).update({
+    status: 'cancelado',
+    canceladoPor: msg.from.id,
+    canceladoEm: require('firebase-admin').firestore.FieldValue.serverTimestamp()
+  });
+
+  await bot.sendMessage(chatId,
+    `❌ *Reserva Cancelada*\n\n📅 ${reserva.date} — Apto ${reserva.apartamentoNumero}`,
+    { parse_mode: 'Markdown' }
+  );
+
+  if (reserva.solicitadoPor) {
+    try {
+      await bot.sendMessage(reserva.solicitadoPor,
+        `❌ *Sua reserva foi cancelada.*\n\n📅 Data: ${reserva.date}\n\nPara mais informações, use /mensagem.`,
+        { parse_mode: 'Markdown' }
+      );
+    } catch (e) {}
+  }
+}
+
 async function handleMensagem(bot, msg, texto, adminIds) {
   const chatId = msg.chat.id;
   const from = msg.from;
@@ -741,6 +820,8 @@ async function handleAjuda(bot, msg, isAdminUser) {
     texto += `/pendentes DES — Listar pendentes\n`;
     texto += `/baixar DES-01-101 — Dar baixa no pagamento\n`;
     texto += `/reservas DES — Ver reservas do salão\n`;
+    texto += `/confirmarreserva ID — Confirmar reserva\n`;
+    texto += `/cancelarreserva ID — Cancelar reserva\n`;
     texto += `/planilha DES — Gerar planilha Excel\n`;
     texto += `\n*Códigos:* VAC AYR VID TAR DES SPE`;
   }
@@ -759,6 +840,8 @@ module.exports = {
   handleSalao,
   handleReservar,
   handleSalaoAdmin,
+  handleConfirmarReserva,
+  handleCancelarReserva,
   handleConsultarApto,
   handleConsultarBloco,
   handleConsultarCondominio,

@@ -82,6 +82,14 @@ bot.onText(/\/reservas(?:\s+(.+))?/i, safe((msg, match) =>
   handlers.handleSalaoAdmin(bot, msg, (match[1] || '').trim().toUpperCase())
 ));
 
+bot.onText(/\/confirmarreserva(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleConfirmarReserva(bot, msg, match[1] ? match[1].trim() : null)
+));
+
+bot.onText(/\/cancelarreserva(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleCancelarReserva(bot, msg, match[1] ? match[1].trim() : null)
+));
+
 bot.onText(/\/mensagem(?:\s+(.+))?/i, safe((msg, match) =>
   handlers.handleMensagem(bot, msg, match[1] ? match[1].trim() : null, ADMIN_IDS)
 ));
