@@ -599,13 +599,19 @@ async function handleReservar(bot, msg, dataParam, adminIds) {
   }
 
   if (!dataParam) {
-    await bot.sendMessage(chatId, '❌ Informe a data.\nEx: `/reservar 25/05/2026`', { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId,
+      `🏛️ *Reservar Salão de Festas*\n\nInforme a data desejada:\n\`/reservar DD/MM/AAAA\`\n\nEx: \`/reservar 27/04/2026\`\n\nPara ver disponibilidade: /salao`,
+      { parse_mode: 'Markdown' }
+    );
     return;
   }
 
   const match = dataParam.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!match) {
-    await bot.sendMessage(chatId, '❌ Formato inválido. Use: `DD/MM/AAAA`', { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId,
+      `❌ Formato inválido.\n\nUse: \`/reservar DD/MM/AAAA\`\nEx: \`/reservar 27/04/2026\`\n\n⚠️ Não use o código do apartamento aqui — informe a *data* da reserva.`,
+      { parse_mode: 'Markdown' }
+    );
     return;
   }
 
