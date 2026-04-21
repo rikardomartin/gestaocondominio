@@ -131,7 +131,7 @@ async function handleConsultar(bot, msg, periodoParam) {
     `🏗️ ${bloco.nome} — Unidade *${apartamento.numero}*\n` +
     `📅 Período: *${formatarPeriodo(periodo)}*\n\n` +
     `${emojiStatus(status)} Status: *${status.toUpperCase()}*\n` +
-    (valor ? `💰 Valor: *${formatarValor(valor)}*` : '') +
+    `💰 Valor: *${formatarValor(valor)}*` +
     `\n\n_Para outro mês: /consultar 03/2026_`,
     { parse_mode: 'Markdown' }
   );
@@ -240,7 +240,7 @@ async function handleConsultarApto(bot, msg, codigo) {
     `🏗️ ${bloco.nome} — *${apartamento.numero}*\n` +
     `👤 ${apartamento.proprietario}\n` +
     `📅 ${formatarPeriodo(periodo)}: ${emojiStatus(status)} *${status.toUpperCase()}*\n` +
-    (pagamento?.value ? `💰 ${formatarValor(pagamento.value)}` : ''),
+    `💰 ${formatarValor(pagamento?.value || 0)}`,
     { parse_mode: 'Markdown' }
   );
 }
