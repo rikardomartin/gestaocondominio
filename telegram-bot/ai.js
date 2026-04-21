@@ -5,7 +5,13 @@
 const axios = require('axios');
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'google/gemini-flash-1.5';
+
+// Modelos em ordem de preferência (fallback automático)
+const MODELS = [
+  'google/gemma-3-27b-it:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'mistralai/mistral-7b-instruct:free'
+];
 
 const SYSTEM_PROMPT = `Você é o assistente virtual de um sistema de gestão condominial brasileiro.
 Seu nome é "Condo" e você é simpático, direto e fala português brasileiro informal.
@@ -62,52 +68,53 @@ EXEMPLOS DE INTERPRETAÇÃO:
 async function interpretarMensagem(texto, contexto = {}) {
   if (!OPENROUTER_API_KEY) return null;
 
-  try {
-    // Adicionar contexto do usuário ao prompt se disponível
-    let userContext = '';
-    if (contexto.unidade) userContext = `\nContexto: usuário está na unidade ${contexto.unidade}`;
-    if (contexto.isAdmin) userContext += ', é administrador';
+  let userContext = '';
+  if (contexto.unidade) userContext = `\nContexto: usuário está na unidade ${contexto.unidade}`;
+  if (contexto.isAdmin) userContext += ', é administrador';
 
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT + userContext },
-          { role: 'user', content: texto }
-        ],
-        max_tokens: 300,
-        temperature: 0.2
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://chatcondominios-bot.onrender.com',
-          'X-Title': 'Bot Condomínio'
+  for (const model of MODELS) {
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT + userContext },
+            { role: 'user', content: texto }
+          ],
+          max_tokens: 300,
+          temperature: 0.2
         },
-        timeout: 10000
-      }
-    );
+        {
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://chatcondominios-bot.onrender.com',
+            'X-Title': 'Bot Condomínio'
+          },
+          timeout: 10000
+        }
+      );
 
-    const content = response.data.choices[0]?.message?.content?.trim();
-    if (!content) return null;
+      const content = response.data.choices[0]?.message?.content?.trim();
+      if (!content) continue;
 
-    console.log('🤖 IA resposta:', content.substring(0, 200));
+      console.log(`🤖 IA [${model}]:`, content.substring(0, 150));
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.log('⚠️ IA não retornou JSON válido');
-      return null;
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) continue;
+
+      const resultado = JSON.parse(jsonMatch[0]);
+      console.log('✅ intent:', resultado.intent, '| cond:', resultado.condominio, '| codigo:', resultado.codigo);
+      return resultado;
+
+    } catch (err) {
+      console.error(`IA erro [${model}]: ${err.response?.status || err.message}`);
+      // Tentar próximo modelo
     }
-
-    const resultado = JSON.parse(jsonMatch[0]);
-    console.log('✅ IA intent:', resultado.intent, '| codigo:', resultado.codigo, '| cond:', resultado.condominio);
-    return resultado;
-  } catch (err) {
-    console.error('IA erro:', err.message);
-    return null;
   }
+
+  return null; // Todos os modelos falharam
 }
 
 /**
@@ -116,39 +123,41 @@ async function interpretarMensagem(texto, contexto = {}) {
 async function gerarRespostaMorador(pergunta, dados) {
   if (!OPENROUTER_API_KEY) return null;
 
-  try {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: MODEL,
-        messages: [
-          {
-            role: 'system',
-            content: `Você é o assistente "Condo" de um condomínio. 
+  for (const model of MODELS) {
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: `Você é o assistente "Condo" de um condomínio. 
 Responda de forma amigável, curta e em português brasileiro informal.
 Use emojis com moderação. Seja direto e útil.
 Dados do sistema: ${JSON.stringify(dados)}`
-          },
-          { role: 'user', content: pergunta }
-        ],
-        max_tokens: 200,
-        temperature: 0.7
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://chatcondominios-bot.onrender.com',
-          'X-Title': 'Bot Condomínio'
+            },
+            { role: 'user', content: pergunta }
+          ],
+          max_tokens: 200,
+          temperature: 0.7
         },
-        timeout: 10000
-      }
-    );
-
-    return response.data.choices[0]?.message?.content?.trim() || null;
-  } catch (err) {
-    return null;
+        {
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://chatcondominios-bot.onrender.com',
+            'X-Title': 'Bot Condomínio'
+          },
+          timeout: 10000
+        }
+      );
+      return response.data.choices[0]?.message?.content?.trim() || null;
+    } catch (err) {
+      // Tentar próximo modelo
+    }
   }
+  return null;
 }
 
 module.exports = { interpretarMensagem, gerarRespostaMorador };
