@@ -10,7 +10,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { BOT_TOKEN, ADMIN_IDS, CODIGO_REGEX, MSGS } = require('./config');
 const { isAdmin } = require('./permissions');
 const handlers = require('./handlers');
-const { interpretarMensagem, gerarRespostaMorador } = require('./ai');
+const { interpretarMensagem } = require('./ai');
 
 // ─── Servidor HTTP — sobe imediatamente, independente do bot ─────────────────
 const PORT = process.env.PORT || 10000;
