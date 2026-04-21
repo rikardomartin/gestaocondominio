@@ -5,7 +5,7 @@
 const axios = require('axios');
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+const MODEL = 'google/gemini-flash-1.5';
 
 const SYSTEM_PROMPT = `Você é o assistente virtual de um sistema de gestão condominial brasileiro.
 Seu nome é "Condo" e você é simpático, direto e fala português brasileiro informal.
@@ -93,10 +93,17 @@ async function interpretarMensagem(texto, contexto = {}) {
     const content = response.data.choices[0]?.message?.content?.trim();
     if (!content) return null;
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    console.log('🤖 IA resposta:', content.substring(0, 200));
 
-    return JSON.parse(jsonMatch[0]);
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.log('⚠️ IA não retornou JSON válido');
+      return null;
+    }
+
+    const resultado = JSON.parse(jsonMatch[0]);
+    console.log('✅ IA intent:', resultado.intent, '| codigo:', resultado.codigo, '| cond:', resultado.condominio);
+    return resultado;
   } catch (err) {
     console.error('IA erro:', err.message);
     return null;
