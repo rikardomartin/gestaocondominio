@@ -40,6 +40,8 @@ EXEMPLOS:
 "pagamento de março" → {"intent":"consultar","periodo":"03/2026","codigo":null,"condominio":null,"bloco":null,"data":null,"texto":null,"resposta":null}
 "reservar salão dia 27 de abril" → {"intent":"reservar","data":"27/04/2026","codigo":null,"condominio":null,"bloco":null,"periodo":null,"texto":null,"resposta":null}
 "planilha do ayres" → {"intent":"planilha","condominio":"AYR","codigo":null,"bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
+"planilha bloco 22 destri" → {"intent":"planilha","bloco":"DES-22","condominio":"DES","codigo":null,"periodo":null,"data":null,"texto":null,"resposta":null}
+"planilha do bloco 5 do vidal" → {"intent":"planilha","bloco":"VID-05","condominio":"VID","codigo":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "bloco 5 do vidal" → {"intent":"bloco","bloco":"VID-05","codigo":null,"condominio":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "obrigado" → {"intent":"desconhecido","resposta":"De nada! 😊 Se precisar de mais alguma coisa é só chamar.","codigo":null,"condominio":null,"bloco":null,"periodo":null,"data":null,"texto":null}`;
 

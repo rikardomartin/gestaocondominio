@@ -293,7 +293,38 @@ async function salvarComprovante(telegramId, codigo, fileId, fileType, periodo) 
   return ref.id;
 }
 
-// ─── SALÃO ────────────────────────────────────────────────────────────────────
+/**
+ * Busca pagamentos de um bloco específico no período (para planilha)
+ */
+async function getPagamentosBloco(blocoId, periodo) {
+  const aptsSnap = await db.collection(C.APARTAMENTOS)
+    .where('blocoId', '==', blocoId)
+    .where('active', '==', true)
+    .get();
+
+  const pagSnap = await db.collection(C.PAYMENTS)
+    .where('blocoId', '==', blocoId)
+    .where('date', '==', periodo)
+    .get();
+
+  const pagMap = {};
+  pagSnap.docs.forEach(d => { pagMap[d.data().apartamentoId] = d.data(); });
+
+  return aptsSnap.docs.map(d => {
+    const apt = { id: d.id, ...d.data() };
+    const pag = pagMap[apt.id] || {};
+    return {
+      condominio: apt.condominioNome || '',
+      bloco: apt.blocoNome || '',
+      unidade: apt.numero || '',
+      tipo: apt.tipo || 'apartamento',
+      proprietario: apt.proprietario || '',
+      status: pag.status || 'pendente',
+      valor: pag.value || 0,
+      data_pagamento: pag.paidAt ? new Date(pag.paidAt.toDate()).toLocaleDateString('pt-BR') : ''
+    };
+  }).sort((a, b) => (parseInt(a.unidade) || 0) - (parseInt(b.unidade) || 0));
+}
 
 /**
  * Busca reservas do salão de um condomínio no mês/ano
@@ -356,6 +387,7 @@ module.exports = {
   getApartamentosPorBloco,
   getPagamentosPorBloco,
   getPagamentosParaPlanilha,
+  getPagamentosBloco,
   salvarComprovante,
   getReservasSalao,
   solicitarReservaSalao,

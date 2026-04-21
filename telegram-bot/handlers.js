@@ -507,14 +507,77 @@ async function handleBaixarTodos(bot, msg, codigoCond, periodoParam) {
     { parse_mode: 'Markdown' }
   );
 }
-async function handlePlanilha(bot, msg, codigoCond) {
+// ─── /planilha DES ou /planilha DES-22 (admin) ───────────────────────────────
+async function handlePlanilha(bot, msg, param) {
   const chatId = msg.chat.id;
   if (!await requireAdmin(bot, msg)) return;
 
-  const condominio = await fb.getCondominioPorCodigo(codigoCond);
+  if (!param) {
+    await bot.sendMessage(chatId,
+      `❌ Informe o condomínio ou bloco.\n\nExemplos:\n\`/planilha DES\` — todo o condomínio\n\`/planilha DES-22\` — só o bloco 22`,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  // Verificar se é bloco específico (ex: DES-22)
+  const blocoMatch = param.toUpperCase().match(/^(VAC|AYR|VID|TAR|DES|SPE)-(\d{2})$/);
+  const condMatch = param.toUpperCase().match(/^(VAC|AYR|VID|TAR|DES|SPE)$/);
+
+  if (!blocoMatch && !condMatch) {
+    await bot.sendMessage(chatId,
+      `❌ Formato inválido.\n\`/planilha DES\` ou \`/planilha DES-22\``,
+      { parse_mode: 'Markdown' }
+    );
+    return;
+  }
+
+  const periodo = getPeriodoAtual();
+
+  // ── Planilha de BLOCO específico ──────────────────────────────────────────
+  if (blocoMatch) {
+    const [, condCodigo, blocoNum] = blocoMatch;
+    const condominio = await fb.getCondominioPorCodigo(condCodigo);
+    if (!condominio) {
+      await bot.sendMessage(chatId, `❌ Condomínio não encontrado.`);
+      return;
+    }
+
+    const blocoSnap = await fb.db.collection('blocos')
+      .where('condominioId', '==', condominio.id)
+      .where('numero', '==', parseInt(blocoNum))
+      .where('active', '==', true)
+      .limit(1)
+      .get();
+
+    if (blocoSnap.empty) {
+      await bot.sendMessage(chatId, `❌ Bloco ${blocoNum} não encontrado em ${condominio.nome}.`);
+      return;
+    }
+
+    const bloco = { id: blocoSnap.docs[0].id, ...blocoSnap.docs[0].data() };
+    await bot.sendMessage(chatId, `📊 Gerando planilha do ${bloco.nome}...`);
+
+    const dados = await fb.getPagamentosBloco(bloco.id, periodo);
+    const nomeAba = `Pag ${periodo}`;
+    const nomeArquivo = `${condCodigo}_Bloco${blocoNum}_${periodo}.xlsx`;
+    const buffer = gerarExcel(dados, nomeAba);
+
+    await bot.sendDocument(chatId, buffer, {
+      caption: `📊 *${condominio.nome} — ${bloco.nome}*\nPeríodo: ${formatarPeriodo(periodo)}\nTotal: ${dados.length} unidades`,
+      parse_mode: 'Markdown'
+    }, {
+      filename: nomeArquivo,
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    return;
+  }
+
+  // ── Planilha de CONDOMÍNIO completo ───────────────────────────────────────
+  const condominio = await fb.getCondominioPorCodigo(param.toUpperCase());
   if (!condominio) {
     await bot.sendMessage(chatId,
-      `❌ Informe o código do condomínio.\nEx: \`/planilha DES\`\n\nCódigos: VAC, AYR, VID, TAR, DES, SPE`,
+      `❌ Condomínio não encontrado.\nCódigos: VAC, AYR, VID, TAR, DES, SPE`,
       { parse_mode: 'Markdown' }
     );
     return;
@@ -522,12 +585,9 @@ async function handlePlanilha(bot, msg, codigoCond) {
 
   await bot.sendMessage(chatId, `📊 Gerando planilha de ${condominio.nome}...`);
 
-  const periodo = getPeriodoAtual();
   const dados = await fb.getPagamentosParaPlanilha(condominio.id, periodo);
-
-  // Nome da aba não pode ter / : \ ? * [ ]
-  const nomeAba = `Pag ${periodo}`; // ex: "Pag 2026-04"
-  const nomeArquivo = `${codigoCond.toUpperCase()}_${periodo}.xlsx`;
+  const nomeAba = `Pag ${periodo}`;
+  const nomeArquivo = `${param.toUpperCase()}_${periodo}.xlsx`;
   const buffer = gerarExcel(dados, nomeAba);
 
   await bot.sendDocument(chatId, buffer, {
@@ -837,7 +897,8 @@ async function handleAjuda(bot, msg, isAdminUser) {
     texto += `/reservas DES — Ver reservas do salão\n`;
     texto += `/confirmarreserva ID — Confirmar reserva\n`;
     texto += `/cancelarreserva ID — Cancelar reserva\n`;
-    texto += `/planilha DES — Gerar planilha Excel\n`;
+    texto += `/planilha DES — Planilha do condomínio\n`;
+    texto += `/planilha DES-22 — Planilha só do bloco 22\n`;
     texto += `\n*Códigos:* VAC AYR VID TAR DES SPE`;
   }
 

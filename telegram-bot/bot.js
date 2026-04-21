@@ -227,10 +227,13 @@ async function executarIntencaoIA(bot, msg, ia) {
         await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
       break;
     case 'planilha':
-      if (adminUser && ia.condominio)
-        await handlers.handlePlanilha(bot, msg, ia.condominio);
-      else
+      if (adminUser && (ia.condominio || ia.bloco)) {
+        // Se tem bloco específico, passa no formato DES-22
+        const paramPlanilha = ia.bloco || ia.condominio;
+        await handlers.handlePlanilha(bot, msg, paramPlanilha);
+      } else {
         await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      }
       break;
     case 'salao':
       await handlers.handleSalao(bot, msg, ia.data || null);
