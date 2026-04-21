@@ -369,7 +369,7 @@ async function dataDisponivelSalao(condominioId, data) {
   const snap = await db.collection('salaoReservations')
     .where('condominioId', '==', condominioId)
     .where('date', '==', data)
-    .where('status', 'in', ['pendente', 'confirmado', 'pago'])
+    .where('status', 'in', ['confirmado', 'pago']) // pendente NÃO bloqueia
     .get();
   return snap.empty;
 }

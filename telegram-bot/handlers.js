@@ -776,6 +776,17 @@ async function handleConfirmarReserva(bot, msg, reservaId) {
   }
 
   const reserva = snap.data();
+
+  // Verificar status atual
+  if (reserva.status === 'confirmado') {
+    await bot.sendMessage(chatId, `ℹ️ Esta reserva já está *confirmada*.\n📅 ${reserva.date} — Apto ${reserva.apartamentoNumero}`, { parse_mode: 'Markdown' });
+    return;
+  }
+  if (reserva.status === 'cancelado') {
+    await bot.sendMessage(chatId, `ℹ️ Esta reserva foi *cancelada* e não pode ser confirmada.`, { parse_mode: 'Markdown' });
+    return;
+  }
+
   await fb.db.collection('salaoReservations').doc(reservaId).update({
     status: 'confirmado',
     confirmadoPor: msg.from.id,
