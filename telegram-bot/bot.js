@@ -3,10 +3,20 @@
  * Sistema de Gestão Condominial
  */
 require('dotenv').config();
+const http = require('http');
 const TelegramBot = require('node-telegram-bot-api');
 const { BOT_TOKEN, ADMIN_IDS, CODIGO_REGEX, MSGS } = require('./config');
 const { isAdmin } = require('./permissions');
 const handlers = require('./handlers');
+
+// ─── Servidor HTTP mínimo (necessário para Render Web Service) ────────────────
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('Bot Telegram rodando ✅');
+}).listen(PORT, () => {
+  console.log(`🌐 Servidor HTTP na porta ${PORT}`);
+});
 
 // ─── Validação inicial ────────────────────────────────────────────────────────
 if (!BOT_TOKEN) {
