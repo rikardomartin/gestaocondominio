@@ -10,7 +10,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { BOT_TOKEN, ADMIN_IDS, CODIGO_REGEX, MSGS } = require('./config');
 const { isAdmin } = require('./permissions');
 const handlers = require('./handlers');
-const { interpretarMensagem } = require('./ai');
+const { interpretarMensagem, gerarRespostaMorador } = require('./ai');
 
 // ─── Servidor HTTP — sobe imediatamente, independente do bot ─────────────────
 const PORT = process.env.PORT || 10000;
@@ -138,33 +138,39 @@ bot.on('message', safe(async (msg) => {
     return;
   }
 
-  // Tentar IA primeiro
-  const ia = await interpretarMensagem(texto);
+  // Buscar contexto do usuário para enriquecer a IA
+  const { getUsuarioBot } = require('./firebase');
+  const usuario = await getUsuarioBot(msg.from.id);
+  const contexto = {
+    unidade: usuario?.codigo || null,
+    isAdmin: isAdmin(msg.from.id)
+  };
+
+  // Tentar IA
+  const ia = await interpretarMensagem(texto, contexto);
 
   if (ia && ia.intent !== 'desconhecido') {
     await executarIntencaoIA(bot, msg, ia);
     return;
   }
 
-  // Se IA retornou resposta para desconhecido
+  // IA retornou resposta conversacional
   if (ia && ia.intent === 'desconhecido' && ia.resposta) {
     await bot.sendMessage(msg.chat.id, ia.resposta);
     return;
   }
 
-  // Fallback: regex para admin
+  // Fallback regex para admin
   if (isAdmin(msg.from.id)) {
     await handleNaturalLanguage(msg, textoUpper);
     return;
   }
 
   // Morador sem cadastro
-  const { getUsuarioBot } = require('./firebase');
-  const usuario = await getUsuarioBot(msg.from.id);
   if (!usuario) {
     await bot.sendMessage(msg.chat.id, MSGS.BEM_VINDO, { parse_mode: 'Markdown' });
   } else {
-    await bot.sendMessage(msg.chat.id, '🤖 Não entendi. Use /ajuda para ver os comandos.');
+    await bot.sendMessage(msg.chat.id, '🤖 Não entendi. Use /ajuda para ver os comandos disponíveis.');
   }
 }));
 
