@@ -10,6 +10,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { BOT_TOKEN, ADMIN_IDS, CODIGO_REGEX, MSGS } = require('./config');
 const { isAdmin } = require('./permissions');
 const handlers = require('./handlers');
+const { interpretarMensagem } = require('./ai');
 
 // ─── Servidor HTTP — sobe imediatamente, independente do bot ─────────────────
 const PORT = process.env.PORT || 10000;
@@ -128,22 +129,42 @@ bot.onText(/\/planilha(?:\s+(.+))?/i, safe((msg, match) =>
 
 bot.on('message', safe(async (msg) => {
   if (!msg.text || msg.text.startsWith('/') || !msg.from) return;
-  const texto = msg.text.trim().toUpperCase();
+  const texto = msg.text.trim();
+  const textoUpper = texto.toUpperCase();
 
-  if (CODIGO_REGEX.test(texto)) {
-    await handlers.handleCadastroCodigo(bot, msg, texto);
+  // Código de unidade direto (ex: DES-01-101)
+  if (CODIGO_REGEX.test(textoUpper)) {
+    await handlers.handleCadastroCodigo(bot, msg, textoUpper);
     return;
   }
 
+  // Tentar IA primeiro
+  const ia = await interpretarMensagem(texto);
+
+  if (ia && ia.intent !== 'desconhecido') {
+    await executarIntencaoIA(bot, msg, ia);
+    return;
+  }
+
+  // Se IA retornou resposta para desconhecido
+  if (ia && ia.intent === 'desconhecido' && ia.resposta) {
+    await bot.sendMessage(msg.chat.id, ia.resposta);
+    return;
+  }
+
+  // Fallback: regex para admin
   if (isAdmin(msg.from.id)) {
-    await handleNaturalLanguage(msg, texto);
+    await handleNaturalLanguage(msg, textoUpper);
     return;
   }
 
+  // Morador sem cadastro
   const { getUsuarioBot } = require('./firebase');
   const usuario = await getUsuarioBot(msg.from.id);
   if (!usuario) {
     await bot.sendMessage(msg.chat.id, MSGS.BEM_VINDO, { parse_mode: 'Markdown' });
+  } else {
+    await bot.sendMessage(msg.chat.id, '🤖 Não entendi. Use /ajuda para ver os comandos.');
   }
 }));
 
@@ -152,7 +173,77 @@ bot.on('document', safe(msg => handlers.handleComprovante(bot, msg, ADMIN_IDS)))
 
 console.log('✅ Handlers registrados. Aguardando mensagens...');
 
-// ─── IA Natural ───────────────────────────────────────────────────────────────
+// ─── Executar intenção detectada pela IA ─────────────────────────────────────
+async function executarIntencaoIA(bot, msg, ia) {
+  const adminUser = isAdmin(msg.from?.id);
+
+  switch (ia.intent) {
+    case 'consultar':
+      await handlers.handleConsultar(bot, msg, ia.periodo || null);
+      break;
+    case 'historico':
+      await handlers.handleHistorico(bot, msg);
+      break;
+    case 'baixar':
+      if (adminUser && ia.codigo)
+        await handlers.handleBaixar(bot, msg, ia.codigo, ia.periodo);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão ou código inválido.');
+      break;
+    case 'baixartodos':
+      if (adminUser && ia.condominio)
+        await handlers.handleBaixarTodos(bot, msg, ia.condominio, ia.periodo);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão ou condomínio inválido.');
+      break;
+    case 'pendentes':
+      if (adminUser && ia.condominio)
+        await handlers.handlePendentes(bot, msg, ia.condominio);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      break;
+    case 'condominio':
+      if (adminUser && ia.condominio)
+        await handlers.handleConsultarCondominio(bot, msg, ia.condominio);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      break;
+    case 'bloco':
+      if (adminUser && ia.bloco)
+        await handlers.handleConsultarBloco(bot, msg, ia.bloco);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      break;
+    case 'apto':
+      if (adminUser && ia.codigo)
+        await handlers.handleConsultarApto(bot, msg, ia.codigo);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      break;
+    case 'planilha':
+      if (adminUser && ia.condominio)
+        await handlers.handlePlanilha(bot, msg, ia.condominio);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão.');
+      break;
+    case 'salao':
+      await handlers.handleSalao(bot, msg, ia.data || null);
+      break;
+    case 'reservar':
+      await handlers.handleReservar(bot, msg, ia.data || null, ADMIN_IDS);
+      break;
+    case 'mensagem':
+      await handlers.handleMensagem(bot, msg, ia.texto || null, ADMIN_IDS);
+      break;
+    case 'ajuda':
+      await handlers.handleAjuda(bot, msg, adminUser);
+      break;
+    default:
+      await bot.sendMessage(msg.chat.id, '🤖 Não entendi. Use /ajuda.');
+  }
+}
+
+// ─── IA Natural (fallback regex) ─────────────────────────────────────────────
 async function handleNaturalLanguage(msg, texto) {
   const chatId = msg.chat.id;
 
