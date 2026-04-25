@@ -21,23 +21,12 @@ http.createServer((req, res) => {
 console.log(`🌐 HTTP na porta ${PORT}`);
 
 // ─── Keep-alive: pinga a si mesmo a cada 10 min para não dormir no Render ────
-const SERVICE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+const SERVICE_URL = process.env.RENDER_EXTERNAL_URL || `https://chatcondominios-bot.onrender.com`;
 setInterval(() => {
-  const http_ = require('http');
-  const url = require('url');
-  const parsed = url.parse(SERVICE_URL);
-  const options = {
-    hostname: parsed.hostname,
-    port: parsed.port || 80,
-    path: '/',
-    method: 'GET',
-    timeout: 5000
-  };
-  const req = http_.request(options, res => {
+  const https_ = require('https');
+  https_.get(SERVICE_URL, res => {
     console.log(`💓 Keep-alive ping: ${res.statusCode}`);
-  });
-  req.on('error', () => {}); // Ignorar erros silenciosamente
-  req.end();
+  }).on('error', () => {});
 }, 10 * 60 * 1000); // 10 minutos
 
 // ─── Validação ────────────────────────────────────────────────────────────────
