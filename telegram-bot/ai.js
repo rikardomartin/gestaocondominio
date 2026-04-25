@@ -41,6 +41,8 @@ EXEMPLOS COMPLETOS:
 "ver destri" → {"intent":"condominio","condominio":"DES","codigo":null,"bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "quem tá devendo no vacaria" → {"intent":"pendentes","condominio":"VAC","codigo":null,"bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "baixa o 403 do bloco 22 do destri" → {"intent":"baixar","codigo":"DES-22-403","condominio":"DES","bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
+"reciclado o 403 bloco 22 destri" → {"intent":"reciclado","codigo":"DES-22-403","condominio":"DES","bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
+"baixa reciclado DES-22-403" → {"intent":"reciclado","codigo":"DES-22-403","condominio":"DES","bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "baixa todo mundo do speranza" → {"intent":"baixartodos","condominio":"SPE","codigo":null,"bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "meu pagamento" → {"intent":"consultar","codigo":null,"condominio":null,"bloco":null,"periodo":null,"data":null,"texto":null,"resposta":null}
 "pagamento de março" → {"intent":"consultar","periodo":"03/2026","codigo":null,"condominio":null,"bloco":null,"data":null,"texto":null,"resposta":null}

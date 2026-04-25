@@ -168,14 +168,14 @@ async function getPagamento(apartamentoId, periodo) {
 /**
  * Dá baixa em um pagamento (cria ou atualiza)
  */
-async function darBaixaPagamento(apartamentoId, blocoId, condominioId, periodo, valor, adminId) {
+async function darBaixaPagamento(apartamentoId, blocoId, condominioId, periodo, valor, adminId, status = 'pago') {
   const existing = await getPagamento(apartamentoId, periodo);
   const data = {
     apartamentoId,
     blocoId,
     condominioId,
     date: periodo,
-    status: 'pago',
+    status,
     value: valor,
     paidAt: admin.firestore.FieldValue.serverTimestamp(),
     paidByTelegram: adminId,

@@ -128,6 +128,11 @@ bot.onText(/\/baixar\s+(\S+)(?:\s+(.+))?/i, safe((msg, match) =>
   handlers.handleBaixar(bot, msg, match[1].trim(), match[2] ? match[2].trim() : null)
 ));
 
+// ─── /reciclado DES-22-403 (admin) ───────────────────────────────────────────
+bot.onText(/\/reciclado\s+(\S+)(?:\s+(.+))?/i, safe((msg, match) =>
+  handlers.handleReciclado(bot, msg, match[1].trim(), match[2] ? match[2].trim() : null)
+));
+
 bot.onText(/\/baixartodos\s+(\S+)(?:\s+(.+))?/i, safe((msg, match) =>
   handlers.handleBaixarTodos(bot, msg, match[1].trim().toUpperCase(), match[2] ? match[2].trim() : null)
 ));
@@ -202,6 +207,12 @@ async function executarIntencaoIA(bot, msg, ia) {
     case 'baixar':
       if (adminUser && ia.codigo)
         await handlers.handleBaixar(bot, msg, ia.codigo, ia.periodo);
+      else
+        await bot.sendMessage(msg.chat.id, '⛔ Sem permissão ou código inválido.');
+      break;
+    case 'reciclado':
+      if (adminUser && ia.codigo)
+        await handlers.handleReciclado(bot, msg, ia.codigo, ia.periodo);
       else
         await bot.sendMessage(msg.chat.id, '⛔ Sem permissão ou código inválido.');
       break;

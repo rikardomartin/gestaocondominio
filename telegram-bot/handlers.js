@@ -389,12 +389,15 @@ async function handlePendentes(bot, msg, codigoCond) {
 }
 
 // ─── /baixar DES-01-101 (admin) ───────────────────────────────────────────────
-async function handleBaixar(bot, msg, codigo, periodoParam) {
+async function handleBaixar(bot, msg, codigo, periodoParam, statusParam) {
   const chatId = msg.chat.id;
   const from = msg.from;
   if (!await requireAdmin(bot, msg)) return;
 
-  // Período: parâmetro ou mês atual
+  // Status: pago (padrão) ou reciclado
+  const status = (statusParam && statusParam.toLowerCase() === 'reciclado') ? 'reciclado' : 'pago';
+
+  // Período
   let periodo = getPeriodoAtual();
   if (periodoParam) {
     const m1 = periodoParam.match(/^(\d{2})\/(\d{4})$/);
@@ -420,20 +423,27 @@ async function handleBaixar(bot, msg, codigo, periodoParam) {
     return;
   }
 
-  const valor = pagAtual?.value || 285.00;
-  await fb.darBaixaPagamento(apartamento.id, bloco.id, condominio.id, periodo, valor, from.id);
+  const valor = status === 'reciclado' ? 40.00 : 285.00;
+  await fb.darBaixaPagamento(apartamento.id, bloco.id, condominio.id, periodo, valor, from.id, status);
+
+  const emoji = status === 'reciclado' ? '♻️' : '✅';
+  const label = status === 'reciclado' ? 'PAGO RECICLADO' : 'PAGO';
 
   await bot.sendMessage(chatId,
-    `✅ *Baixa realizada com sucesso!*\n\n` +
+    `${emoji} *Baixa realizada!*\n\n` +
     `🏢 ${condominio.nome}\n` +
     `🏗️ ${bloco.nome} — *${apartamento.numero}*\n` +
-    `📅 ${formatarPeriodo(periodo)}\n\n` +
-    `_Para outro mês: /baixar ${codigo} 03/2026_`,
+    `📅 ${formatarPeriodo(periodo)}\n` +
+    `Status: *${label}*\n\n` +
+    `_Para reciclado: /reciclado ${codigo}_`,
     { parse_mode: 'Markdown' }
   );
 }
 
-// ─── /baixartodos DES (admin) — baixa em lote por condomínio ─────────────────
+// ─── /reciclado DES-22-403 (admin) ───────────────────────────────────────────
+async function handleReciclado(bot, msg, codigo, periodoParam) {
+  return handleBaixar(bot, msg, codigo, periodoParam, 'reciclado');
+}
 async function handleBaixarTodos(bot, msg, codigoCond, periodoParam) {
   const chatId = msg.chat.id;
   const from = msg.from;
@@ -913,6 +923,7 @@ async function handleAjuda(bot, msg, isAdminUser) {
     texto += `💰 *Pagamentos:*\n`;
     texto += `/baixar DES-22-403 — Baixa de uma unidade\n`;
     texto += `/baixar DES-22-403 03/2026 — Baixa em mês específico\n`;
+    texto += `/reciclado DES-22-403 — ♻️ Baixa como RECICLADO\n`;
     texto += `/baixartodos DES — ⚡ Baixa de TODO o condomínio\n`;
     texto += `/baixartodos DES 03/2026 — Baixa de todo o condomínio em mês específico\n\n`;
 
@@ -953,6 +964,7 @@ module.exports = {
   handleConsultarCondominio,
   handlePendentes,
   handleBaixar,
+  handleReciclado,
   handleBaixarTodos,
   handlePlanilha,
   handleAjuda
