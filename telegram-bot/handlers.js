@@ -415,9 +415,10 @@ async function handleBaixar(bot, msg, codigo, periodoParam, statusParam) {
   const { apartamento, bloco, condominio } = resultado;
   const pagAtual = await fb.getPagamento(apartamento.id, periodo);
 
-  if (pagAtual && ['pago', 'reciclado'].includes(pagAtual.status)) {
+  // Bloquear apenas se já estiver no mesmo status solicitado
+  if (pagAtual && pagAtual.status === status) {
     await bot.sendMessage(chatId,
-      `ℹ️ Unidade \`${codigo}\` já está como *${pagAtual.status}* em ${formatarPeriodo(periodo)}.`,
+      `ℹ️ Unidade \`${codigo}\` já está como *${status}* em ${formatarPeriodo(periodo)}.`,
       { parse_mode: 'Markdown' }
     );
     return;

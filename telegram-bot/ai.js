@@ -19,7 +19,7 @@ FORMATO DE UNIDADES:
 
 RETORNE APENAS JSON VÁLIDO sem texto antes ou depois:
 {
-  "intent": "consultar|baixar|baixartodos|pendentes|condominio|bloco|apto|planilha|salao|reservar|historico|ajuda|mensagem|desconhecido",
+  "intent": "consultar|baixar|reciclado|baixartodos|pendentes|condominio|bloco|apto|planilha|salao|reservar|historico|ajuda|mensagem|desconhecido",
   "codigo": "DES-01-101 ou null",
   "condominio": "DES ou null",
   "bloco": "DES-22 ou null",
@@ -29,7 +29,11 @@ RETORNE APENAS JSON VÁLIDO sem texto antes ou depois:
   "resposta": "resposta amigável se intent=desconhecido, senão null"
 }
 
-REGRAS CRÍTICAS PARA PLANILHA:
+REGRAS CRÍTICAS:
+- Quando o usuário pedir para marcar como reciclado/reciclar: intent="reciclado", NÃO responda em texto
+- "reciclado DES-22-403" → intent=reciclado, codigo=DES-22-403
+- "marcar como reciclado DES-22-403" → intent=reciclado, codigo=DES-22-403
+- "tem como por como reciclado" seguido de código → intent=reciclado
 - "planilha do bloco 22 do destri" → intent=planilha, bloco="DES-22", condominio="DES"
 - "planilha bloco 5 vidal" → intent=planilha, bloco="VID-05", condominio="VID"
 - "planilha do destri" → intent=planilha, bloco=null, condominio="DES"
