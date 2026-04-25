@@ -889,28 +889,47 @@ async function handleAjuda(bot, msg, isAdminUser) {
   const chatId = msg.chat.id;
 
   let texto = `📖 *Comandos Disponíveis*\n\n`;
-  texto += `*Para Moradores:*\n`;
+
+  texto += `👤 *Para Moradores:*\n`;
   texto += `/start — Cadastrar sua unidade\n`;
   texto += `/trocar DES-22-403 — Trocar de unidade\n`;
-  texto += `/consultar — Ver status do pagamento\n`;
-  texto += `📎 Envie uma imagem ou PDF para enviar comprovante\n`;
-  texto += `/salao — Ver disponibilidade do salão\n`;
+  texto += `/consultar — Ver pagamento do mês atual\n`;
+  texto += `/consultar 03/2026 — Ver pagamento de outro mês\n`;
+  texto += `/historico — Últimos 6 meses\n`;
+  texto += `/salao — Ver reservas do salão\n`;
   texto += `/reservar 25/05/2026 — Solicitar reserva do salão\n`;
   texto += `/mensagem Texto — Enviar mensagem ao administrador\n`;
+  texto += `📎 Envie foto ou PDF para enviar comprovante\n`;
 
   if (isAdminUser) {
-    texto += `\n*Para Administradores:*\n`;
-    texto += `/apto DES-01-101 — Consultar unidade\n`;
-    texto += `/bloco DES-01 — Consultar bloco\n`;
+    texto += `\n👨‍💼 *Para Administradores:*\n\n`;
+
+    texto += `📊 *Consultas:*\n`;
     texto += `/condominio DES — Resumo do condomínio\n`;
-    texto += `/pendentes DES — Listar pendentes\n`;
-    texto += `/baixar DES-01-101 — Dar baixa no pagamento\n`;
-    texto += `/reservas DES — Ver reservas do salão\n`;
+    texto += `/pendentes DES — Listar inadimplentes\n`;
+    texto += `/bloco DES-22 — Ver bloco completo\n`;
+    texto += `/apto DES-22-403 — Consultar unidade\n\n`;
+
+    texto += `💰 *Pagamentos:*\n`;
+    texto += `/baixar DES-22-403 — Baixa de uma unidade\n`;
+    texto += `/baixar DES-22-403 03/2026 — Baixa em mês específico\n`;
+    texto += `/baixartodos DES — ⚡ Baixa de TODO o condomínio\n`;
+    texto += `/baixartodos DES 03/2026 — Baixa de todo o condomínio em mês específico\n\n`;
+
+    texto += `📋 *Planilhas:*\n`;
+    texto += `/planilha DES — Planilha do condomínio inteiro\n`;
+    texto += `/planilha DES-22 — Planilha só do bloco 22\n\n`;
+
+    texto += `🏛️ *Salão de Festas:*\n`;
+    texto += `/reservas DES — Ver reservas do mês\n`;
     texto += `/confirmarreserva ID — Confirmar reserva\n`;
-    texto += `/cancelarreserva ID — Cancelar reserva\n`;
-    texto += `/planilha DES — Planilha do condomínio\n`;
-    texto += `/planilha DES-22 — Planilha só do bloco 22\n`;
-    texto += `\n*Códigos:* VAC AYR VID TAR DES SPE`;
+    texto += `/cancelarreserva ID — Cancelar reserva\n\n`;
+
+    texto += `🏷️ *Códigos:* VAC AYR VID TAR DES SPE\n\n`;
+    texto += `💡 _Você também pode escrever em linguagem natural:_\n`;
+    texto += `_"baixa todo mundo do destri"_\n`;
+    texto += `_"quem tá devendo no vacaria"_\n`;
+    texto += `_"planilha bloco 22 destri"_`;
   }
 
   await bot.sendMessage(chatId, texto, { parse_mode: 'Markdown' });
