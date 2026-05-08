@@ -463,6 +463,33 @@ html {
     border-color: var(--error);
 }
 
+/* Botão Baixa em Massa */
+.baixa-massa-btn {
+    background: var(--success);
+    color: var(--white);
+    border: 1px solid var(--success-dark);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.baixa-massa-btn:hover {
+    background: var(--success-dark);
+    border-color: var(--success-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.baixa-massa-btn:active {
+    transform: translateY(0);
+}
+
 /* Permission-based visibility */
 .admin-only {
     display: block;

@@ -158,6 +158,7 @@ const elements = {
     userName: document.getElementById('userName'),
     userRole: document.getElementById('userRole'),
     logoutBtn: document.getElementById('logoutBtn'),
+    baixaMassaBtn: document.getElementById('baixaMassaBtn'),
 
     // Screens
     condominiosScreen: document.getElementById('condominiosScreen'),
@@ -1278,6 +1279,9 @@ function setupEventListeners() {
     // Login
     if (elements.loginForm) elements.loginForm.addEventListener('submit', handleLogin);
     if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', handleLogout);
+    if (elements.baixaMassaBtn) elements.baixaMassaBtn.addEventListener('click', () => {
+        window.open('baixa-massa-mes-ano.html', '_blank');
+    });
 
     // Period selector
     if (elements.activeYear) {
