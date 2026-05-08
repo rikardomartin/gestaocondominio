@@ -1,5 +1,5 @@
 ﻿{
-  "version": "140.1",
-  "timestamp": "2026-05-06T21:00:00Z",
-  "description": "Adiciona botao de Baixa em Massa no header + Spec de importacao Excel"
+  "version": "140.2",
+  "timestamp": "2026-05-06T21:30:00Z",
+  "description": "Remove bloqueio de licenca - Sistema liberado"
 }
