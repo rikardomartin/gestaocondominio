@@ -937,12 +937,17 @@
                     <h2>💰 Pagamentos de Hoje</h2>
                     <p class="modal-pagamentos-subtitle" id="dataHoje"></p>
                 </div>
-                <button id="closePagamentosHoje" class="btn-close-modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
+                <div class="modal-pagamentos-header-actions">
+                    <button id="exportPagamentosHoje" class="btn-export-hoje" title="Exportar pagamentos de hoje em Excel">
+                        Exportar Excel
+                    </button>
+                    <button id="closePagamentosHoje" class="btn-close-modal">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="modal-pagamentos-stats">
@@ -988,5 +993,11 @@
     
     <script type="module" src="app.js?v=131"></script>
     <script src="fix-save-single-month-v2.js?v=131"></script>
+
+    <!-- Verificação de Licença -->
+    <script type="module">
+        import { verificarLicenca } from './licenca-check.js';
+        verificarLicenca();
+    </script>
 </body>
 </html>

@@ -6,11 +6,6 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "source": "functions",
-    "predeploy": [],
-    "runtime": "nodejs20"
-  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -39,88 +34,46 @@
       {
         "source": "version.json",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate, max-age=0"
-          },
-          {
-            "key": "Pragma",
-            "value": "no-cache"
-          },
-          {
-            "key": "Expires",
-            "value": "0"
-          }
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" },
+          { "key": "Pragma", "value": "no-cache" },
+          { "key": "Expires", "value": "0" }
         ]
       },
       {
         "source": "**/*.@(js|css)",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=0, must-revalidate"
-          }
+          { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
         ]
       },
       {
         "source": "index.html",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate, max-age=0"
-          },
-          {
-            "key": "Pragma",
-            "value": "no-cache"
-          },
-          {
-            "key": "Expires",
-            "value": "0"
-          }
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" },
+          { "key": "Pragma", "value": "no-cache" },
+          { "key": "Expires", "value": "0" }
         ]
       },
       {
         "source": "sw.js",
         "headers": [
-          {
-            "key": "Cache-Control", 
-            "value": "no-cache, no-store, must-revalidate, max-age=0"
-          },
-          {
-            "key": "Pragma",
-            "value": "no-cache"
-          },
-          {
-            "key": "Expires",
-            "value": "0"
-          },
-          {
-            "key": "Service-Worker-Allowed",
-            "value": "/"
-          }
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" },
+          { "key": "Pragma", "value": "no-cache" },
+          { "key": "Expires", "value": "0" },
+          { "key": "Service-Worker-Allowed", "value": "/" }
         ]
       },
       {
         "source": "manifest.json",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=3600, must-revalidate"
-          }
+          { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
         ]
       },
       {
         "source": "**/*.@(jpg|jpeg|gif|png|svg|ico)",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=86400, immutable"
-          }
+          { "key": "Cache-Control", "value": "public, max-age=86400, immutable" }
         ]
       }
     ]
-  },
-  "storage": {
-    "rules": "storage.rules"
   }
 }

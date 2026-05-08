@@ -161,9 +161,7 @@ const elements = {
 
     // Screens
     condominiosScreen: document.getElementById('condominiosScreen'),
-    condominiosScreen: document.getElementById('condominiosScreen'),
     // dashboardScreen: document.getElementById('dashboardScreen'), // Removed
-    blocosScreen: document.getElementById('blocosScreen'),
     blocosScreen: document.getElementById('blocosScreen'),
     apartamentosScreen: document.getElementById('apartamentosScreen'),
     pagamentosScreen: document.getElementById('pagamentosScreen'),
@@ -290,6 +288,10 @@ const elements = {
 };
 
 // Inicialização da aplicação
+let isAppInitializing = false;
+let isAppInitialized = false;
+let isLoginInProgress = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Sistema de Gestao Condominial - Inicializando...');
     console.log('📋 Versão: v104 - Nome Único na Exportação');
@@ -309,6 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Configurar indicador de versão - REMOVIDO
 
 async function initializeApp() {
+    if (isAppInitialized || isAppInitializing) {
+        console.warn('⚠️ Inicialização ignorada (app já inicializado ou em inicialização)');
+        return;
+    }
+
+    isAppInitializing = true;
     console.log('🔧 Iniciando configuração da aplicação...');
 
     try {
@@ -338,6 +346,7 @@ async function initializeApp() {
             }
         }, 3000);
 
+        isAppInitialized = true;
         console.log('✅ Aplicação totalmente inicializada');
 
     } catch (error) {
@@ -345,6 +354,8 @@ async function initializeApp() {
         if (typeof showToast === 'function') {
             showToast('Erro durante inicialização: ' + error.message, 'error');
         }
+    } finally {
+        isAppInitializing = false;
     }
 }
 
@@ -352,9 +363,15 @@ async function initializeApp() {
 async function handleLogin(e) {
     e.preventDefault();
 
+    if (isLoginInProgress) {
+        console.warn('⚠️ Login já em andamento');
+        return;
+    }
+
     const email = elements.emailInput.value.trim();
     const password = elements.passwordInput.value.trim();
 
+    isLoginInProgress = true;
     elements.loginBtn.disabled = true;
     elements.loginBtn.textContent = 'Entrando...';
 
@@ -380,6 +397,7 @@ async function handleLogin(e) {
         elements.passwordInput.value = '';
         elements.passwordInput.focus();
     } finally {
+        isLoginInProgress = false;
         elements.loginBtn.disabled = false;
         elements.loginBtn.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -845,13 +863,20 @@ async function loadBlocosData(condominioId) {
             getCasasByCondominio(condominioId)
         ]);
         appState.blocos = blocos;
-        appState.casas = casas;
+        // Manter dados dos outros condomínios para evitar cards inconsistentes ao voltar
+        appState.casas = appState.casas
+            .filter(c => c.condominioId !== condominioId)
+            .concat(casas);
         
         // Carregar TODOS os apartamentos do condom�nio para calcular status dos blocos
         if (blocos.length > 0) {
             const apartamentosPromises = blocos.map(bloco => getApartamentosByBloco(bloco.id));
             const apartamentosArrays = await Promise.all(apartamentosPromises);
-            appState.apartamentos = apartamentosArrays.flat();
+            const apartamentosDoCondominio = apartamentosArrays.flat();
+            // Manter dados dos outros condomínios para evitar cards inconsistentes ao voltar
+            appState.apartamentos = appState.apartamentos
+                .filter(a => a.condominioId !== condominioId)
+                .concat(apartamentosDoCondominio);
             
             // Carregar pagamentos do per�odo ativo para TODOS os apartamentos
             if (appState.activeYear && appState.activeMonth) {
@@ -863,13 +888,19 @@ async function loadBlocosData(condominioId) {
                         appState.selectedCondominio.id, 
                         date
                     );
-                    appState.payments.condominio = allPayments;
+                    // Mesclar por condomínio (não sobrescrever tudo)
+                    appState.payments.condominio = appState.payments.condominio
+                        .filter(p => p.condominioId !== condominioId)
+                        .concat(allPayments);
                     console.log(`✅ [LOAD] ${allPayments.length} pagamentos carregados (1 query otimizada)`);
                 } else {
                     // Fallback: buscar por bloco
                     const paymentsPromises = blocos.map(bloco => getPaymentsByBlocoAndPeriod(bloco.id, date));
                     const paymentsArrays = await Promise.all(paymentsPromises);
-                    appState.payments.condominio = paymentsArrays.flat();
+                    const paymentsDoCondominio = paymentsArrays.flat();
+                    appState.payments.condominio = appState.payments.condominio
+                        .filter(p => p.condominioId !== condominioId)
+                        .concat(paymentsDoCondominio);
                 }
             }
         }
@@ -968,8 +999,12 @@ async function carregarDadosCondominios() {
     if (!requirePermission('manageStructure')) return;
 
     try {
-        elements.loadCondominiosBtn.disabled = true;
-        elements.loadCondominiosBtn.textContent = 'Criando estrutura completa...';
+        // CORRECAO: Buscar botão dinamicamente em vez de usar elements.loadCondominiosBtn
+        const loadBtn = document.getElementById('loadCondominiosBtn');
+        if (loadBtn) {
+            loadBtn.disabled = true;
+            loadBtn.textContent = 'Criando estrutura completa...';
+        }
 
         // Mostrar progresso
         showToast('Iniciando criaÃ§Ã£o da estrutura completa (condomÃ­nios + blocos + apartamentos)...', 'info');
@@ -997,15 +1032,18 @@ async function carregarDadosCondominios() {
         console.error('Erro ao carregar estrutura:', error);
         showToast('Erro ao criar estrutura dos condomÃ­nios: ' + error.message, 'error');
     } finally {
-        elements.loadCondominiosBtn.disabled = false;
-        elements.loadCondominiosBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7,10 12,15 17,10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Criar Estrutura Completa
-        `;
+        const loadBtn = document.getElementById('loadCondominiosBtn');
+        if (loadBtn) {
+            loadBtn.disabled = false;
+            loadBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Criar Estrutura Completa
+            `;
+        }
     }
 }
 
@@ -1896,13 +1934,6 @@ function renderCondominios() {
                             <rect x="3" y="14" width="7" height="7"/>
                         </svg>
                     </button>
-                    ${percentualPago < 100 && !isViewer ? `
-                    <button class="bulk-pay-condo-btn" data-condo-id="${condominio.id}" title="Marcar ano inteiro como pago">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </button>
-                    ` : ''}
                     <div class="card-badge ${percentualPago >= 80 ? 'success' : percentualPago >= 50 ? 'warning' : 'error'}">
                         ${percentualPago}% em dia
                     </div>
@@ -1937,17 +1968,6 @@ function renderCondominios() {
             painelBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Não abrir o condomínio
                 openPainelCondominio(condominio);
-            });
-        }
-
-        // Event listener para o botão de pagamento em massa
-        const bulkPayBtn = condominioElement.querySelector('.bulk-pay-condo-btn');
-        if (bulkPayBtn) {
-            bulkPayBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Não abrir o condomínio
-                if (typeof window.bulkPaymentForCondominio === 'function') {
-                    window.bulkPaymentForCondominio(condominio);
-                }
             });
         }
 
@@ -3958,60 +3978,9 @@ async function payFullYear() {
 }
 
 function renderCondominioPayments() {
-    const payments = appState.payments.condominio.filter(p => p.apartamentoId === appState.selectedApartamento.id);
-    elements.condominioPaymentsList.innerHTML = '';
-
-    if (payments.length === 0) {
-        elements.condominioPaymentsList.innerHTML = `
-            <div class="payment-item empty-state">
-                <div class="payment-info">
-                    <div class="payment-date">Nenhum pagamento registrado</div>
-                    <p>Adicione o primeiro pagamento de condomÃ­nio</p>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    payments.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(payment => {
-        const paymentElement = document.createElement('div');
-
-        // Determine payment status based on date
-        const paymentDate = new Date(payment.date + '-01');
-        const currentDate = new Date();
-        const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
-
-        let status = 'paid';
-        if (payment.date === currentMonth) {
-            status = 'paid';
-        } else if (paymentDate < new Date(currentMonth + '-01')) {
-            status = 'paid';
-        }
-
-        paymentElement.className = `payment-item ${status}`;
-
-        const date = new Date(payment.date + '-01');
-        const monthYear = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
-        paymentElement.innerHTML = `
-            <div class="payment-info">
-                <div class="payment-date">${monthYear.charAt(0).toUpperCase() + monthYear.slice(1)}</div>
-                <div class="payment-value">R$ ${payment.value.toFixed(2).replace('.', ',')}</div>
-            </div>
-            <div class="payment-actions">
-                <div class="payment-status status-${status}">Pago</div>
-                <button class="btn-delete" onclick="deletePaymentLocal('condominio', '${payment.id}')">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3,6 5,6 21,6"/>
-                        <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
-                    </svg>
-                    Excluir
-                </button>
-            </div>
-        `;
-
-        elements.condominioPaymentsList.appendChild(paymentElement);
-    });
+    // REMOVIDO: Esta função não é mais usada
+    // O painel de pagamentos foi consolidado em renderPaymentsTable()
+    console.log('⚠️ renderCondominioPayments() foi removida - usar renderPaymentsTable() em vez disso');
 }
 
 function renderSalaoPayments() {
@@ -5372,34 +5341,47 @@ const performanceMonitor = {
     }
 };
 
+// Função para mostrar/ocultar loading do painel
+function showPainelLoading(show) {
+    const loadingElement = document.getElementById('painelLoading');
+    if (loadingElement) {
+        if (show) {
+            loadingElement.style.display = 'flex';
+        } else {
+            loadingElement.style.display = 'none';
+        }
+    } else if (show) {
+        // Criar elemento de loading se não existir
+        const loading = document.createElement('div');
+        loading.id = 'painelLoading';
+        loading.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        `;
+        loading.innerHTML = `
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div class="loading-spinner"></div>
+                <div style="margin-top: 10px;">Carregando dados do painel...</div>
+            </div>
+        `;
+        document.body.appendChild(loading);
+    }
+}
+
 function hideLoadingToast() {
     const loadingToast = document.getElementById('loadingToast');
     if (loadingToast) {
         loadingToast.classList.add('toast-hide');
         setTimeout(() => loadingToast.remove(), 300);
     }
-}
-
-function showPainelLoading(show) {
-    const loadingElement = document.getElementById('painelLoading');
-    if (loadingElement) {
-        loadingElement.style.display = show ? 'flex' : 'none';
-    }
-
-    // Desabilitar filtros durante carregamento
-    const filterElements = [
-        elements.filterAno,
-        elements.filterCondominio,
-        elements.filterBloco,
-        elements.filterMes,
-        elements.clearFilters
-    ];
-
-    filterElements.forEach(element => {
-        if (element) {
-            element.disabled = show;
-        }
-    });
 }
 
 async function openPainel() {
@@ -6591,132 +6573,35 @@ function getStatusText(status) {
 // Função para mapear status do apartamento para exportação
 
 async function updateSummaryCards() {
-    const data = await getFilteredData();
-
-    const paid = data.filter(item => item.status === 'paid').length;
-    const pending = data.filter(item => item.status === 'pending').length;
-    const agreement = data.filter(item => item.status === 'agreement').length;
-    const totalValue = data.filter(item => item.status === 'paid')
-        .reduce((sum, item) => sum + item.value, 0);
-
-    elements.totalPaid.textContent = paid;
-    elements.totalPending.textContent = pending;
-    elements.totalAgreement.textContent = agreement;
-    elements.totalValue.textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
+    // REMOVIDO: Esta função não é mais usada
+    // Os cards de resumo foram removidos do painel geral
+    console.log('⚠️ updateSummaryCards() foi removida - cards de resumo não existem mais');
 }
 
 function editStatus(itemId, currentStatus, apartamento, month) {
-    currentStatusEdit = { itemId, currentStatus, apartamento, month };
-
-    elements.statusApartmentInfo.textContent = `Apartamento ${apartamento} - ${month}`;
-
-    // Selecionar status atual
-    const statusRadio = document.querySelector(`input[name="newStatus"][value="${currentStatus}"]`);
-    if (statusRadio) {
-        statusRadio.checked = true;
+    // REMOVIDO: Modal de edição de status foi removido
+    // Usar openApartmentModal() em vez disso
+    console.log('⚠️ editStatus() foi removida - usar openApartmentModal() em vez disso');
+    
+    // Buscar apartamento e abrir modal correto
+    const apt = appState.apartamentos.find(a => a.numero === apartamento);
+    if (apt) {
+        openApartmentModal(apt);
     }
-
-    elements.statusModal.classList.remove('hidden');
 }
 
 // Tornar editStatus acessível globalmente para uso em onclick
 window.editStatus = editStatus;
 
 function hideStatusModal() {
-    elements.statusModal.classList.add('hidden');
-    currentStatusEdit = null;
+    // REMOVIDO: Modal de status não existe mais
+    console.log('⚠️ hideStatusModal() foi removida - modal não existe mais');
 }
 
 async function confirmStatusChange() {
-    if (!requirePermission('registerPayments')) return;
-
-    if (!currentStatusEdit) return;
-
-    const newStatus = document.querySelector('input[name="newStatus"]:checked').value;
-    const [apartmentId, monthKey] = currentStatusEdit.itemId.split('-');
-    const [ano, mes] = monthKey.split('-');
-
-    // 1) Persistir status escolhido no apartamento (para refletir no Painel Geral)
-    const apartamento = appState.apartamentos.find(a => a.id === apartmentId);
-    if (apartamento) {
-        apartamento.status = newStatus;
-        // CORRECAO: NAO atualizar documento do apartamento
-        // O status ja esta sendo salvo no pagamento abaixo
-        // Atualizar o documento causa erro para casas (que estao em subcoleção)
-        /*
-        if (typeof updateApartamento === 'function') {
-            updateApartamento(apartmentId, { status: newStatus, observacao: apartamento.observacao || '' })
-                .catch(err => console.warn('Falha ao salvar status no Firebase:', err));
-        }
-        */
-    }
-
-    // 2) Manter regra antiga de pagamento do Painel (pago/reciclado cria pagamento; pendente/acordo remove)
-    if (newStatus === 'pago' || newStatus === 'reciclado') {
-        const paymentData = {
-            apartamentoId: apartmentId,
-            date: monthKey,
-            ano: ano,
-            mes: mes,
-            value: newStatus === 'pago' ? 80.00 : 40.00,
-            type: 'condominio',
-            status: newStatus,
-            updatedAt: new Date()
-        };
-
-        // Verificar se j� existe pagamento no appState
-        const existingPaymentIndex = appState.payments.condominio.findIndex(p =>
-            p.apartamentoId === apartmentId && p.date === monthKey
-        );
-
-        try {
-            if (existingPaymentIndex >= 0) {
-                const paymentId = appState.payments.condominio[existingPaymentIndex].id;
-                // Pagamento j� existe, atualizar status e valor
-                appState.payments.condominio[existingPaymentIndex] = {
-                    ...appState.payments.condominio[existingPaymentIndex],
-                    ...paymentData
-                };
-
-                if (typeof updatePayment === 'function') {
-                    await updatePayment(paymentId, paymentData);
-                }
-            } else {
-                // Criar novo pagamento
-                if (typeof createPayment === 'function') {
-                    const newId = await createPayment(paymentData);
-                    appState.payments.condominio.push({
-                        id: newId,
-                        ...paymentData
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao persistir pagamento:', error);
-            showToast('Erro ao salvar no banco de dados', 'error');
-        }
-    } else {
-        // Remover pagamento se existir
-        const existingPayment = appState.payments.condominio.find(p =>
-            p.apartamentoId === apartmentId && p.date === monthKey
-        );
-
-        if (existingPayment) {
-            try {
-                if (typeof deletePayment === 'function') {
-                    await deletePayment(existingPayment.id);
-                }
-                appState.payments.condominio = appState.payments.condominio.filter(p => p.id !== existingPayment.id);
-            } catch (error) {
-                console.error('Erro ao deletar pagamento:', error);
-            }
-        }
-    }
-
-    // saveData(); // Removido por n�o estar definido e usamos chamadas diretas
-    hideStatusModal();
-    applyFilters();
-    showToast('Status atualizado com sucesso!', 'success');
+    // REMOVIDO: Esta função não é mais usada
+    // O modal de status foi removido - usar openApartmentModal() em vez disso
+    console.log('⚠️ confirmStatusChange() foi removida - usar saveApartmentStatusNew() em vez disso');
 }
 
 async function getCurrentTaxForApartment() {
@@ -7027,11 +6912,13 @@ function initPagamentosHoje() {
     const fabButton = document.getElementById('fabPagamentosHoje');
     const modal = document.getElementById('modalPagamentosHoje');
     const closeBtn = document.getElementById('closePagamentosHoje');
+    const exportBtn = document.getElementById('exportPagamentosHoje');
 
     console.log('📍 Elementos:', {
         fabButton: !!fabButton,
         modal: !!modal,
-        closeBtn: !!closeBtn
+        closeBtn: !!closeBtn,
+        exportBtn: !!exportBtn
     });
 
     if (!fabButton || !modal || !closeBtn) {
@@ -7073,6 +6960,13 @@ function initPagamentosHoje() {
         modal.classList.add('hidden');
     });
 
+    // Exportar pagamentos de hoje (Excel)
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            exportarPagamentosHojeExcel();
+        });
+    }
+
     // Fechar ao clicar fora
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -7087,6 +6981,7 @@ async function carregarPagamentosHoje() {
     const dataHojeElement = document.getElementById('dataHoje');
     const listaPagamentos = document.getElementById('listaPagamentosHoje');
     const badge = document.getElementById('fabBadge');
+    const exportBtn = document.getElementById('exportPagamentosHoje');
 
     // Mostrar data de hoje
     const hoje = new Date();
@@ -7115,6 +7010,7 @@ async function carregarPagamentosHoje() {
 
         // Atualizar badge
         badge.textContent = pagamentosHoje.length;
+        if (exportBtn) exportBtn.disabled = pagamentosHoje.length === 0;
 
         // Renderizar pagamentos
         renderizarPagamentosHoje(pagamentosHoje);
@@ -7128,6 +7024,7 @@ async function carregarPagamentosHoje() {
                 <div class="empty-pagamentos-desc">${error.message}</div>
             </div>
         `;
+        if (exportBtn) exportBtn.disabled = true;
     }
 }
 
@@ -7143,7 +7040,7 @@ async function buscarPagamentosHoje() {
     try {
         // Importar Firestore
         const { db } = await import('./firebase-config.js');
-        const { collection, query, where, getDocs, Timestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const { collection, query, where, getDocs, Timestamp, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         // Buscar todos os pagamentos de hoje em uma única query
         const paymentsRef = collection(db, 'payments');
@@ -7162,6 +7059,44 @@ async function buscarPagamentosHoje() {
         
         const snapshot = await getDocs(q);
         console.log(`✅ ${snapshot.size} pagamentos encontrados no Firebase`);
+
+        // Mapa local de blocos para resolver nome corretamente no export/lista
+        const blocosMap = new Map((appState.blocos || []).map(b => [b.id, b]));
+        const missingBlocoIds = new Set();
+
+        // Primeiro passe: identificar blocos faltantes em memória
+        snapshot.forEach(docSnap => {
+            const payment = docSnap.data();
+            if (!payment || !payment.updatedAt) return;
+
+            const paymentDate = payment.updatedAt.toDate ?
+                payment.updatedAt.toDate() :
+                new Date(payment.updatedAt);
+
+            const paymentDateStr = paymentDate.toISOString().split('T')[0];
+            if (paymentDateStr !== hojeStr) return;
+            if (!['pago', 'reciclado', 'acordo'].includes(payment.status)) return;
+
+            if (payment.blocoId && !blocosMap.has(payment.blocoId)) {
+                missingBlocoIds.add(payment.blocoId);
+            }
+        });
+
+        // Carregar blocos faltantes diretamente do Firestore (evita classificar apt como "Casa")
+        if (missingBlocoIds.size > 0) {
+            const missingIds = Array.from(missingBlocoIds);
+            await Promise.all(missingIds.map(async (blocoId) => {
+                try {
+                    const blocoRef = doc(db, 'blocos', blocoId);
+                    const blocoSnap = await getDoc(blocoRef);
+                    if (blocoSnap.exists()) {
+                        blocosMap.set(blocoId, { id: blocoSnap.id, ...blocoSnap.data() });
+                    }
+                } catch (err) {
+                    console.warn(`⚠️ Erro ao buscar bloco ${blocoId}:`, err);
+                }
+            }));
+        }
         
         // Filtrar e processar cada pagamento
         snapshot.forEach(doc => {
@@ -7180,27 +7115,29 @@ async function buscarPagamentosHoje() {
             if (paymentDateStr !== hojeStr) return;
             if (!['pago', 'reciclado', 'acordo'].includes(payment.status)) return;
             
-            // Buscar informações do apartamento
+            // Buscar informações da unidade
             const apartamento = appState.apartamentos.find(a => a.id === payment.apartamentoId);
             const casa = appState.casas ? appState.casas.find(c => c.id === payment.apartamentoId) : null;
             
             const unidade = apartamento || casa;
             
             if (unidade) {
-                const bloco = appState.blocos.find(b => b.id === unidade.blocoId);
+                const blocoId = payment.blocoId || unidade.blocoId || null;
+                const bloco = blocoId ? (blocosMap.get(blocoId) || null) : null;
                 const condominio = appState.condominios.find(c => c.id === (bloco ? bloco.condominioId : unidade.condominioId));
+                const isCasa = (unidade.tipo === 'casa') || (payment.tipo === 'casa');
                 
                 if (condominio) {
                     pagamentosHoje.push({
                         ...payment,
                         condominio: condominio.nome,
                         condominioId: condominio.id,
-                        bloco: bloco ? bloco.nome : 'Casa',
+                        bloco: bloco ? bloco.nome : (isCasa ? 'Casa' : 'Bloco não informado'),
                         blocoId: bloco ? bloco.id : null,
                         apartamento: unidade.numero,
                         apartamentoId: unidade.id,
                         proprietario: unidade.proprietario || 'N/A',
-                        tipo: casa ? 'casa' : 'apartamento'
+                        tipo: isCasa ? 'casa' : 'apartamento'
                     });
                 }
             }
@@ -7323,6 +7260,62 @@ function getStatusBadge(status) {
         'acordo': '<span class="pagamento-badge acordo">Acordo</span>'
     };
     return badges[status] || '';
+}
+
+function exportarPagamentosHojeExcel() {
+    if (!Array.isArray(pagamentosHojeData) || pagamentosHojeData.length === 0) {
+        showToast('Nenhum pagamento de hoje para exportar', 'warning');
+        return;
+    }
+
+    const rows = [[
+        'Condominio',
+        'Bloco',
+        'Unidade',
+        'Proprietario',
+        'Ano',
+        'Mes',
+        'Status',
+        'Valor'
+    ]];
+
+    pagamentosHojeData.forEach((p) => {
+        const ano = p.year || p.ano || (p.date ? p.date.split('-')[0] : '');
+        const mesNumero = p.month || p.mes || (p.date ? p.date.split('-')[1] : '');
+        const mes = getMesNome(mesNumero);
+        const tipoUnidade = p.tipo === 'casa' ? 'Casa' : 'Apt';
+        const unidade = `${tipoUnidade} ${p.apartamento || ''}`.trim();
+        const valor = Number(p.value ?? (p.status === 'reciclado' ? 40 : 80));
+
+        rows.push([
+            p.condominio || '',
+            p.bloco || '',
+            unidade,
+            p.proprietario || '',
+            ano || '',
+            mes || '',
+            getStatusForExport(p.status || ''),
+            `R$ ${valor.toFixed(2).replace('.', ',')}`
+        ]);
+    });
+
+    const content = rows.map(r => r.join('\t')).join('\n');
+    const blob = new Blob(['\ufeff' + content], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10);
+    const time = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+    const filename = `pagamentos-hoje-${date}-${time}.xls`;
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    showToast('Excel de pagamentos de hoje exportado!', 'success');
 }
 
 // Inicializar quando o app carregar
@@ -7547,39 +7540,35 @@ function setupPaymentChangeListener() {
     console.log('🔔 Configurando listener de mudanças de pagamento...');
 
     // Listener para PAYMENTS (onde os status são salvos)
-    const paymentsRef = window.db.collection('payments');
-    
-    paymentsRef.onSnapshot((snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === 'modified' || change.type === 'added') {
-                const data = change.doc.data();
-                const docId = change.doc.id;
-                
-                // Verificar se houve mudança de status para pago/reciclado/acordo
-                const statusChanged = ['pago', 'reciclado', 'acordo'].includes(data.status);
-                
-                // Verificar se foi modificado recentemente (últimos 10 segundos)
-                const now = Date.now();
-                const updatedAt = data.updatedAt?.toMillis() || data.createdAt?.toMillis() || 0;
-                const isRecent = (now - updatedAt) < 10000;
-                
+    // CORRECAO: Usar subscribeToPayments em vez de window.db.collection (Firestore v9 modular)
+    const unsubscribe = subscribeToPayments(null, (payments) => {
+        const currentUser = getCurrentUser();
+        if (!currentUser || currentUser.email !== 'admin@condominio.com') {
+            return; // Só admin principal recebe notificações
+        }
+
+        payments.forEach((payment) => {
+            // Verificar se houve mudança de status para pago/reciclado/acordo
+            const statusChanged = ['pago', 'reciclado', 'acordo'].includes(payment.status);
+            
+            if (statusChanged) {
                 // Verificar se foi modificado por outro usuário
-                const modifiedBy = data.lastModifiedBy || '';
+                const modifiedBy = payment.lastModifiedBy || '';
                 const isOtherUser = modifiedBy && modifiedBy !== currentUser.email;
                 
-                if (statusChanged && isRecent && isOtherUser) {
-                    console.log(`📬 Mudança detectada por ${modifiedBy} em pagamento ${docId}`);
+                if (isOtherUser) {
+                    console.log(`📬 Mudança detectada por ${modifiedBy} em pagamento ${payment.id}`);
                     
                     // Buscar informações completas do apartamento
-                    const apartamento = appState.apartamentos?.find(a => a.id === data.apartamentoId);
-                    const bloco = appState.blocos?.find(b => b.id === data.blocoId);
-                    const condominio = appState.condominios?.find(c => c.id === data.condominioId);
+                    const apartamento = appState.apartamentos?.find(a => a.id === payment.apartamentoId);
+                    const bloco = appState.blocos?.find(b => b.id === payment.blocoId);
+                    const condominio = appState.condominios?.find(c => c.id === payment.condominioId);
                     
                     // Se não encontrou nos arrays, usar dados do próprio payment
-                    const condominioNome = condominio?.nome || data.condominioNome || 'Condomínio';
-                    const blocoNome = bloco?.nome || data.blocoNome || (data.tipo === 'casa' ? 'Casa' : 'Bloco');
-                    const aptNumero = apartamento?.numero || data.apartamentoNumero || '?';
-                    const valor = data.value || 80;
+                    const condominioNome = condominio?.nome || payment.condominioNome || 'Condomínio';
+                    const blocoNome = bloco?.nome || payment.blocoNome || (payment.tipo === 'casa' ? 'Casa' : 'Bloco');
+                    const aptNumero = apartamento?.numero || payment.apartamentoNumero || '?';
+                    const valor = payment.value || 80;
                     
                     // Enviar notificação
                     notifyNewPayment(
@@ -7587,16 +7576,17 @@ function setupPaymentChangeListener() {
                         condominioNome,
                         blocoNome,
                         valor,
-                        data.status
+                        payment.status
                     );
                 }
             }
         });
-    }, (error) => {
-        console.error('❌ Erro no listener de pagamentos:', error);
     });
 
-    console.log('✅ Listener de mudanças configurado!');
+    // Registrar para limpeza global ao fazer logout
+    if (appState.unsubscribeFunctions) {
+        appState.unsubscribeFunctions.push(unsubscribe);
+    }
 }
 
 

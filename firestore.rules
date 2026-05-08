@@ -2,6 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Licenças — leitura pública (sistema precisa verificar sem estar logado), escrita só autenticado
+    match /licencas/{licencaId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     // CHATBOT: Permitir leitura pública de dados do condomínio (DEVE VIR PRIMEIRO)
     match /condominios/{condominioId} {
       allow read: if true; // Leitura pública

@@ -8,7 +8,13 @@
     "dev": "python -m http.server 8000",
     "setup-users": "node setup-demo-users.js",
     "build": "echo 'PWA build complete'",
-    "deploy": "firebase deploy"
+    "deploy": "firebase deploy",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:install": "playwright install chromium",
+    "serve": "http-server . -p 3000 -c-1"
   },
   "keywords": [
     "pwa",
@@ -23,7 +29,9 @@
     "firebase": "^10.7.1"
   },
   "devDependencies": {
-    "firebase-tools": "^13.0.0"
+    "@playwright/test": "^1.59.1",
+    "firebase-tools": "^13.0.0",
+    "http-server": "^14.1.1"
   },
   "engines": {
     "node": ">=16.0.0"

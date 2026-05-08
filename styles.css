@@ -6514,6 +6514,33 @@ input:focus-visible {
     opacity: 0.9;
 }
 
+.modal-pagamentos-hoje .modal-pagamentos-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-pagamentos-hoje .btn-export-hoje {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-pagamentos-hoje .btn-export-hoje:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-pagamentos-hoje .btn-export-hoje:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .modal-pagamentos-hoje .btn-close-modal {
     background: rgba(255, 255, 255, 0.2);
     border: none;
@@ -6761,6 +6788,11 @@ input:focus-visible {
 
     .modal-pagamentos-header {
         border-radius: 0;
+    }
+
+    .modal-pagamentos-hoje .modal-pagamentos-header-actions {
+        flex-direction: column;
+        align-items: flex-end;
     }
 
     .modal-pagamentos-stats {
