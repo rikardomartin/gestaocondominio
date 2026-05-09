@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forcar Atualizacao e Limpeza de Cache - v134</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #0f172a;
+        }
+        .card {
+            width: 100%;
+            max-width: 700px;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        h1 {
+            margin: 0 0 6px 0;
+            font-size: 24px;
+        }
+        .sub {
+            margin: 0 0 16px 0;
+            color: #475569;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        button, a.btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #runBtn {
+            background: #0ea5e9;
+            color: #fff;
+        }
+        #appBtn {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .status {
+            margin-top: 12px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            color: #334155;
+        }
+        .log {
+            margin-top: 12px;
+            background: #0b1220;
+            color: #dbeafe;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Forcar Atualizacao e Limpeza de Cache</h1>
+        <p class="sub">Ferramenta operacional para forcar troca de versao na URL e limpar cache local completo.</p>
+
+        <div class="grid">
+            <div>
+                <label for="versionInput">Versao (parametro v)</label>
+                <input id="versionInput" type="text" value="134" placeholder="Ex: 134">
+            </div>
+            <div>
+                <label for="targetInput">Destino apos limpeza</label>
+                <input id="targetInput" type="text" value="/" placeholder="/ ou /index.html">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="runBtn">Executar Limpeza Forcada</button>
+            <a id="appBtn" class="btn" href="/">Ir para o Sistema</a>
+        </div>
+
+        <div id="status" class="status">Pronto para executar.</div>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script src="./force-update.js"></script>
+    <script>
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        const versionInput = document.getElementById('versionInput');
+        const targetInput = document.getElementById('targetInput');
+        const runBtn = document.getElementById('runBtn');
+
+        function log(msg) {
+            const t = new Date().toLocaleTimeString('pt-BR');
+            logEl.textContent += `[${t}] ${msg}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function setStatus(msg) {
+            statusEl.textContent = msg;
+        }
+
+        runBtn.addEventListener('click', async () => {
+            if (!window.runForceUpdate) {
+                setStatus('Erro: force-update.js nao carregou.');
+                return;
+            }
+
+            const version = (versionInput.value || '').trim() || String(Date.now());
+            const targetPath = (targetInput.value || '').trim() || '/';
+
+            const ok = confirm(
+                'Confirma executar limpeza forcada?\n\n' +
+                `Versao: ${version}\n` +
+                `Destino: ${targetPath}`
+            );
+
+            if (!ok) return;
+
+            runBtn.disabled = true;
+            setStatus('Executando limpeza completa...');
+            log(`Inicio: versao=${version}, destino=${targetPath}`);
+
+            try {
+                const summary = await window.runForceUpdate({
+                    version,
+                    targetPath,
+                    clearStorage: true,
+                    clearIndexedDb: true,
+                    redirect: false
+                });
+
+                log(`SW removidos: ${summary.serviceWorkers?.removed || 0}/${summary.serviceWorkers?.total || 0}`);
+                log(`Caches removidos: ${summary.caches?.removed || 0}/${summary.caches?.total || 0}`);
+                log(`Storage limpo: local=${summary.storage?.localStorage}, session=${summary.storage?.sessionStorage}`);
+                log(`IndexedDB removidos: ${summary.indexedDb?.deleted || 0}/${summary.indexedDb?.total || 0}`);
+                log(`Redirect: ${summary.redirectUrl}`);
+
+                setStatus('Limpeza concluida. Redirecionando...');
+                setTimeout(() => {
+                    window.location.href = summary.redirectUrl;
+                }, 1200);
+            } catch (error) {
+                log(`ERRO: ${error.message}`);
+                setStatus('Falha na limpeza. Veja o log.');
+                runBtn.disabled = false;
+            }
+        });
+
+        log('Ferramenta carregada.');
+    </script>
+</body>
+</html>

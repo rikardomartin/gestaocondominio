@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baixa em Massa - Fevereiro/2026</title>
+    <style>
+        body {
+            font-family: Segoe UI, Arial, sans-serif;
+            margin: 0;
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .container {
+            max-width: 900px;
+            margin: 24px auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        h1 {
+            margin: 0 0 6px 0;
+            font-size: 24px;
+        }
+        .subtitle {
+            margin: 0 0 16px 0;
+            color: #6b7280;
+        }
+        .warning {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        label {
+            font-size: 13px;
+            color: #374151;
+            display: block;
+            margin-bottom: 6px;
+        }
+        input[type="email"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .controls {
+            margin-top: 14px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-login {
+            background: #2563eb;
+            color: #fff;
+        }
+        .btn-run {
+            background: #059669;
+            color: #fff;
+        }
+        .btn-run:disabled,
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #eef2ff;
+            color: #1e40af;
+        }
+        .progress {
+            margin-top: 10px;
+            height: 10px;
+            width: 100%;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #10b981;
+            transition: width 0.2s ease;
+        }
+        .log {
+            margin-top: 12px;
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            height: 320px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .stats {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .card .n {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Baixa em Massa - Fevereiro/2026</h1>
+        <p class="subtitle">Marca todas as unidades ativas como <strong>PAGO</strong> no período <strong>2026-02</strong>.</p>
+
+        <div class="warning">
+            Execute com usuário administrador. O script evita duplicidade lógica, pula o que já está pago e grava em lotes.
+        </div>
+
+        <div class="grid">
+            <div>
+                <label for="email">Email</label>
+                <input id="email" type="email" placeholder="admin@condominio.com">
+            </div>
+            <div>
+                <label for="password">Senha</label>
+                <input id="password" type="password" placeholder="Sua senha">
+            </div>
+            <div>
+                <label for="batchSize">Tamanho do lote (max 450)</label>
+                <input id="batchSize" type="number" min="1" max="450" value="300">
+            </div>
+            <div>
+                <label for="delayMs">Pausa entre lotes (ms)</label>
+                <input id="delayMs" type="number" min="0" max="10000" value="500">
+            </div>
+            <div>
+                <label for="maxWrites">Máximo de escritas nesta execução</label>
+                <input id="maxWrites" type="number" min="1" value="15000">
+            </div>
+            <div>
+                <label>
+                    <input id="dryRun" type="checkbox">
+                    Modo teste (sem gravar no Firebase)
+                </label>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="loginBtn" class="btn-login">Fazer Login</button>
+            <button id="runBtn" class="btn-run" disabled>Executar Baixa Fevereiro/2026</button>
+        </div>
+
+        <div id="status" class="status">Aguardando login...</div>
+        <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+
+        <div class="stats">
+            <div class="card"><div>Total unidades</div><div id="sTotal" class="n">0</div></div>
+            <div class="card"><div>Escritas</div><div id="sWrites" class="n">0</div></div>
+            <div class="card"><div>Pulados</div><div id="sSkipped" class="n">0</div></div>
+            <div class="card"><div>Erros</div><div id="sErrors" class="n">0</div></div>
+        </div>
+
+        <div id="log" class="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import {
+            getFirestore,
+            collection,
+            query,
+            where,
+            getDocs,
+            doc,
+            setDoc,
+            writeBatch,
+            serverTimestamp
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const PERIOD_YEAR = '2026';
+        const PERIOD_MONTH = '02';
+        const PERIOD_DATE = `${PERIOD_YEAR}-${PERIOD_MONTH}`;
+        const TARGET_STATUS = 'pago';
+        const TARGET_VALUE = 80;
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8',
+            authDomain: 'gestaodoscondominios.firebaseapp.com',
+            projectId: 'gestaodoscondominios',
+            storageBucket: 'gestaodoscondominios.firebasestorage.app',
+            messagingSenderId: '20572242752',
+            appId: '1:20572242752:web:c1b533c1bb905e81b0f0a5',
+            measurementId: 'G-DSGCBWM9Q1'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const el = {
+            email: document.getElementById('email'),
+            password: document.getElementById('password'),
+            batchSize: document.getElementById('batchSize'),
+            delayMs: document.getElementById('delayMs'),
+            maxWrites: document.getElementById('maxWrites'),
+            dryRun: document.getElementById('dryRun'),
+            loginBtn: document.getElementById('loginBtn'),
+            runBtn: document.getElementById('runBtn'),
+            status: document.getElementById('status'),
+            progressBar: document.getElementById('progressBar'),
+            log: document.getElementById('log'),
+            sTotal: document.getElementById('sTotal'),
+            sWrites: document.getElementById('sWrites'),
+            sSkipped: document.getElementById('sSkipped'),
+            sErrors: document.getElementById('sErrors')
+        };
+
+        const stats = {
+            total: 0,
+            writes: 0,
+            skipped: 0,
+            errors: 0
+        };
+
+        function log(msg) {
+            const time = new Date().toLocaleTimeString('pt-BR');
+            el.log.textContent += `[${time}] ${msg}\n`;
+            el.log.scrollTop = el.log.scrollHeight;
+        }
+
+        function setStatus(msg) {
+            el.status.textContent = msg;
+        }
+
+        function updateStats() {
+            el.sTotal.textContent = String(stats.total);
+            el.sWrites.textContent = String(stats.writes);
+            el.sSkipped.textContent = String(stats.skipped);
+            el.sErrors.textContent = String(stats.errors);
+        }
+
+        function updateProgress(processed, total) {
+            const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
+            el.progressBar.style.width = `${pct}%`;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function toNumber(value, fallback) {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function isAlreadyPaidCorrectly(payment) {
+            if (!payment) return false;
+            return (
+                payment.status === TARGET_STATUS &&
+                Number(payment.value || 0) === TARGET_VALUE &&
+                payment.type === 'condominio' &&
+                String(payment.ano || '') === PERIOD_YEAR &&
+                String(payment.mes || '') === PERIOD_MONTH &&
+                payment.date === PERIOD_DATE
+            );
+        }
+
+        async function commitWithRetry(batch, maxRetries) {
+            let attempt = 0;
+            while (true) {
+                try {
+                    await batch.commit();
+                    return;
+                } catch (error) {
+                    attempt++;
+                    const retriable = ['resource-exhausted', 'unavailable', 'deadline-exceeded', 'aborted'];
+                    const code = String(error.code || '').toLowerCase();
+                    if (attempt > maxRetries || !retriable.some(x => code.includes(x))) {
+                        throw error;
+                    }
+                    const wait = 500 * Math.pow(2, attempt);
+                    log(`Falha transitória (${error.code || 'sem-codigo'}). Retry ${attempt}/${maxRetries} em ${wait}ms.`);
+                    await sleep(wait);
+                }
+            }
+        }
+
+        async function authenticate() {
+            const email = el.email.value.trim();
+            const password = el.password.value.trim();
+            if (!email || !password) {
+                alert('Informe email e senha.');
+                return;
+            }
+            try {
+                el.loginBtn.disabled = true;
+                setStatus('Autenticando...');
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                setStatus(`Autenticado: ${cred.user.email}`);
+                el.runBtn.disabled = false;
+                log(`Login OK: ${cred.user.email}`);
+            } catch (error) {
+                setStatus(`Erro de login: ${error.code || error.message}`);
+                log(`Erro de login: ${error.code || ''} ${error.message}`);
+            } finally {
+                el.loginBtn.disabled = false;
+            }
+        }
+
+        async function executeBulk() {
+            const ok = confirm(
+                'Confirma a baixa em massa para TODAS as unidades ativas em Fevereiro/2026?\n\n' +
+                'Status: PAGO\nValor: R$ 80,00\nTipo: condomínio'
+            );
+            if (!ok) return;
+
+            stats.total = 0;
+            stats.writes = 0;
+            stats.skipped = 0;
+            stats.errors = 0;
+            updateStats();
+            updateProgress(0, 1);
+
+            const batchSize = Math.max(1, Math.min(450, toNumber(el.batchSize.value, 300)));
+            const delayMs = Math.max(0, toNumber(el.delayMs.value, 500));
+            const maxWrites = Math.max(1, toNumber(el.maxWrites.value, 15000));
+            const dryRun = el.dryRun.checked;
+
+            el.runBtn.disabled = true;
+            setStatus('Carregando unidades e pagamentos existentes...');
+            log(`Início - período ${PERIOD_DATE} | lote=${batchSize} | pausa=${delayMs}ms | maxWrites=${maxWrites} | dryRun=${dryRun}`);
+
+            try {
+                const aptSnap = await getDocs(query(
+                    collection(db, 'apartamentos'),
+                    where('active', '==', true)
+                ));
+                const apartments = aptSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                apartments.sort((a, b) => {
+                    const c = String(a.condominioId || '').localeCompare(String(b.condominioId || ''));
+                    if (c !== 0) return c;
+                    const bl = String(a.blocoId || '').localeCompare(String(b.blocoId || ''));
+                    if (bl !== 0) return bl;
+                    return String(a.numero || '').localeCompare(String(b.numero || ''), 'pt-BR', { numeric: true });
+                });
+
+                stats.total = apartments.length;
+                updateStats();
+                log(`Unidades ativas: ${apartments.length}`);
+
+                const paymentsSnap = await getDocs(query(
+                    collection(db, 'payments'),
+                    where('date', '==', PERIOD_DATE)
+                ));
+
+                const existingByApartment = new Map();
+                let duplicates = 0;
+                paymentsSnap.forEach(p => {
+                    const data = p.data();
+                    if (data.type !== 'condominio') return;
+                    if (!data.apartamentoId) return;
+                    if (existingByApartment.has(data.apartamentoId)) {
+                        duplicates++;
+                        return;
+                    }
+                    existingByApartment.set(data.apartamentoId, { id: p.id, ...data });
+                });
+                log(`Pagamentos existentes (${PERIOD_DATE}): ${existingByApartment.size} | duplicados detectados: ${duplicates}`);
+
+                let processed = 0;
+                let stoppedByLimit = false;
+
+                for (let i = 0; i < apartments.length; i += batchSize) {
+                    const chunk = apartments.slice(i, i + batchSize);
+                    const batch = writeBatch(db);
+                    let chunkWrites = 0;
+
+                    for (const apt of chunk) {
+                        const existing = existingByApartment.get(apt.id);
+                        if (isAlreadyPaidCorrectly(existing)) {
+                            stats.skipped++;
+                            processed++;
+                            continue;
+                        }
+
+                        if ((stats.writes + chunkWrites) >= maxWrites) {
+                            stoppedByLimit = true;
+                            break;
+                        }
+
+                        const payload = {
+                            apartamentoId: apt.id,
+                            condominioId: apt.condominioId || null,
+                            blocoId: apt.blocoId || null,
+                            apartamentoNumero: apt.numero || '',
+                            tipo: apt.tipo || 'apartamento',
+                            ano: PERIOD_YEAR,
+                            mes: PERIOD_MONTH,
+                            date: PERIOD_DATE,
+                            type: 'condominio',
+                            status: TARGET_STATUS,
+                            value: TARGET_VALUE,
+                            observacao: 'Baixa em massa - Fevereiro/2026',
+                            updatedAt: serverTimestamp()
+                        };
+
+                        let ref;
+                        if (existing) {
+                            ref = doc(db, 'payments', existing.id);
+                        } else {
+                            ref = doc(collection(db, 'payments'));
+                            payload.createdAt = serverTimestamp();
+                        }
+
+                        batch.set(ref, payload, { merge: true });
+                        chunkWrites++;
+                        processed++;
+                    }
+
+                    if (chunkWrites > 0) {
+                        if (!dryRun) {
+                            await commitWithRetry(batch, 5);
+                        }
+                        stats.writes += chunkWrites;
+                        log(`${dryRun ? '[DRY-RUN] ' : ''}Lote ${Math.floor(i / batchSize) + 1}: ${chunkWrites} gravações.`);
+                    }
+
+                    updateStats();
+                    updateProgress(processed, apartments.length);
+
+                    if (stoppedByLimit) {
+                        log(`Parado por limite de escritas (${maxWrites}).`);
+                        break;
+                    }
+
+                    if (delayMs > 0) await sleep(delayMs);
+                }
+
+                const mode = dryRun ? 'SIMULAÇÃO concluída' : 'Execução concluída';
+                setStatus(`${mode}. Escritas=${stats.writes}, Pulados=${stats.skipped}, Erros=${stats.errors}`);
+                log(`Fim. Escritas=${stats.writes} | Pulados=${stats.skipped} | Erros=${stats.errors}`);
+                if (stoppedByLimit) {
+                    log('Dica: execute novamente para continuar; o script pula o que já está correto.');
+                }
+            } catch (error) {
+                stats.errors++;
+                updateStats();
+                setStatus(`Falha: ${error.message}`);
+                log(`ERRO FATAL: ${error.code || ''} ${error.message}`);
+            } finally {
+                el.runBtn.disabled = false;
+            }
+        }
+
+        el.loginBtn.addEventListener('click', authenticate);
+        el.runBtn.addEventListener('click', executeBulk);
+        el.password.addEventListener('keypress', e => {
+            if (e.key === 'Enter') authenticate();
+        });
+
+        log('Pronto. Faça login e execute.');
+    </script>
+</body>
+</html>

@@ -14,7 +14,12 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "test:install": "playwright install chromium",
-    "serve": "http-server . -p 3000 -c-1"
+    "serve": "http-server . -p 3000 -c-1",
+    "test:unit": "vitest",
+    "test:unit:ui": "vitest --ui",
+    "test:unit:run": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:all": "npm run test:unit:run && npm run test"
   },
   "keywords": [
     "pwa",
@@ -30,8 +35,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/ui": "^4.1.5",
     "firebase-tools": "^13.0.0",
-    "http-server": "^14.1.1"
+    "happy-dom": "^20.9.0",
+    "http-server": "^14.1.1",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=16.0.0"

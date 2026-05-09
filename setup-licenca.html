@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Setup Licença</title></head>
+<body>
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, doc, setDoc, serverTimestamp }
+        from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const app = initializeApp({
+        apiKey: "AIzaSyDw1XIkVyMMPfGLCeF4GpMJ6kEZ8HeeuF8",
+        authDomain: "gestaodoscondominios.firebaseapp.com",
+        projectId: "gestaodoscondominios",
+        storageBucket: "gestaodoscondominios.firebasestorage.app",
+        messagingSenderId: "20572242752",
+        appId: "1:20572242752:web:c1b533c1bb905e81b0f0a5"
+    });
+    const db = getFirestore(app);
+
+    // Cria a licença do cliente como ATIVA
+    await setDoc(doc(db, 'licencas', 'gestaodoscondominios'), {
+        nome: 'Cliente - Gestão Condominial',
+        observacao: '',
+        ativo: true,
+        criadoEm: serverTimestamp(),
+        atualizadoEm: serverTimestamp()
+    });
+
+    document.body.innerHTML = '<h2 style="font-family:sans-serif;padding:40px;color:green">✅ Licença criada com sucesso! Sistema ativo.</h2>';
+</script>
+</body>
+</html>
