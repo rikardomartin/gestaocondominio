@@ -1,5 +1,5 @@
 ﻿{
-  "version": "140.3",
-  "timestamp": "2026-05-09T19:10:00Z",
-  "description": "Testes unitários Vitest implementados - 46 testes (100% aprovados)"
+  "version": "140.4",
+  "timestamp": "2026-05-09T19:30:00Z",
+  "description": "Segurança Firebase implementada - Bloqueio de leitura pública e controle de permissões"
 }

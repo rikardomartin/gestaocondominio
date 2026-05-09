@@ -2,60 +2,132 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Licenças — leitura pública (sistema precisa verificar sem estar logado), escrita só autenticado
+    // ========================================
+    // FUNÇÕES AUXILIARES DE SEGURANÇA
+    // ========================================
+    
+    // Verificar se usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Verificar se é admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Verificar se é operator ou admin (pode registrar pagamentos)
+    function isOperator() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'operator'];
+    }
+    
+    // ========================================
+    // REGRAS DE ACESSO POR COLEÇÃO
+    // ========================================
+    
+    // Licenças - leitura pública (sistema precisa verificar sem login)
+    // Escrita apenas para admins
     match /licencas/{licencaId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
-
-    // CHATBOT: Permitir leitura pública de dados do condomínio (DEVE VIR PRIMEIRO)
+    
+    // Usuários - cada um vê e edita apenas seu próprio perfil
+    // Admins podem ver todos
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // CHATBOT: Dados públicos não-sensíveis (FAQ, horários, contatos)
+    match /chatbot_public/{document=**} {
+      allow read: if true;
+      allow write: if isOperator();
+    }
+    
+    // Condomínios - apenas usuários autenticados podem ler
+    // Apenas admins podem modificar
     match /condominios/{condominioId} {
-      allow read: if true; // Leitura pública
-      allow write: if request.auth != null; // Escrita apenas autenticado
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
+    // Blocos - apenas usuários autenticados podem ler
+    // Apenas admins podem modificar
     match /blocos/{blocoId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
+    // Apartamentos - apenas usuários autenticados podem ler
+    // Apenas admins podem modificar
     match /apartamentos/{apartamentoId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
+    // Pagamentos - apenas usuários autenticados podem ler
+    // Operators e admins podem criar/modificar
+    // Apenas admins podem deletar
     match /payments/{paymentId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isOperator();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
+    // Reservas do Salão - usuários autenticados podem ler e criar
+    // Apenas operators e admins podem modificar/deletar
     match /salaoReservations/{reservationId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Qualquer autenticado pode reservar
+      allow update: if isOperator();
+      allow delete: if isOperator();
     }
     
+    // Taxas de Condomínio - apenas autenticados podem ler
+    // Apenas operators e admins podem modificar
     match /condominioTaxes/{taxId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow create: if isOperator();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
-    // Tokens FCM - usuários podem gerenciar seus próprios tokens
+    // Tokens FCM - usuários podem gerenciar apenas seus próprios tokens
     match /fcmTokens/{tokenId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == tokenId;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == tokenId;
     }
     
-    // Notificações - admins podem criar, todos podem ler
+    // Notificações - todos autenticados podem ler
+    // Apenas operators e admins podem criar/modificar
+    // Apenas admins podem deletar
     match /notifications/{notificationId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if false; // Não permitir deletar
+      allow read: if isAuthenticated();
+      allow create: if isOperator();
+      allow update: if isOperator();
+      allow delete: if isAdmin();
     }
     
-    // Regra geral (DEVE VIR POR ÚLTIMO) - apenas usuários autenticados
+    // ========================================
+    // REGRA PADRÃO - BLOQUEAR TUDO
+    // ========================================
+    
+    // Qualquer coleção não explicitamente permitida acima
+    // Requer autenticação para ler/escrever
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
   }
 }
